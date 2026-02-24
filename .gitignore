@@ -1,0 +1,17 @@
+# Node modules
+node_modules/
+
+# Optional: lock file (sometimes you may want to keep it)
+package-lock.json
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
