@@ -1,0 +1,69 @@
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import PrivateRoute from './utils/PrivateRoute';
+import PublicRoute from './utils/PublicRoute';
+import { removeUserSession } from '../src/utils/Common';
+import { useIdleTimer } from 'react-idle-timer'
+
+//Theme
+import Theme from './components/theme/Theme';
+
+//Public Routes
+import Login from './components/Login';
+import Register from './components/Register';
+import Unauthorized from './components/Unauthorized';
+
+//Private Routes
+import Home from './components/Home';
+import ChangePassword from './components/pages/ChangePassword/ChangePasswordES';
+import UserProfile from './components/pages/UserProfile/UserProfileES';
+
+import Material from './components/pages/Material/MaterialES';
+
+// import Style from './components/pages/Style/StyleES';
+// import Marker from './components/pages/Marker/MarkerES';
+import UserRoles from './components/pages/UserRoles/UserRolesES';
+import CreateUser from './components/pages/CreateUser/CreateUserES';
+import Permissions from './components/pages/Permissions/PermissionsES';
+// import Invoice from './components/pages/Invoice/InvoiceES';
+// import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
+// import Configuration from './components/pages/Configuration/ConfigurationES';
+// import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
+// import DayBook from './components/pages/DayBook/DayBookES';
+
+
+const getBaseName = path => path.substr(0, path.lastIndexOf('/'));
+
+const App = () => {
+
+  return (
+    <div>
+      <Router basename={getBaseName(window.location.pathname)} forceRefresh={true}>
+        <Switch>
+          <PublicRoute exact path="/" screen="login" component={Login} />
+          <PublicRoute  path="/login" screen="login" component={Login} /> 
+          <Route path="/unauthorized" screen="unauthorized" component={Unauthorized} />
+          <PrivateRoute path="/home" screen="home" component={Home} theme={Theme} />
+          <PrivateRoute path="/changePassword" screen="changePassword" component={ChangePassword} theme={Theme} />
+          <PrivateRoute path="/userProfile" screen="userProfile" component={UserProfile} theme={Theme} />
+
+          <PrivateRoute path="/material" screen="Material" component={Material} theme={Theme} />
+           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
+          <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
+          <PrivateRoute path="/invoice" screen="Invoice" component={Invoice} theme={Theme} />
+          <PrivateRoute path="/invoiceRegistry" screen="invoiceRegistry" component={InvoiceRegistry} theme={Theme} />
+          <PrivateRoute path="/configuration" screen="configuration" component={Configuration} theme={Theme} />
+          <PrivateRoute path="/transactionSummary" screen="transactionSummary" component={TransactionSummary} theme={Theme} />
+          <PrivateRoute path="/dayBook" screen="dayBook" component={DayBook} theme={Theme} /> */}
+
+          <PrivateRoute path="/createUser" screen="createUser" component={CreateUser} theme={Theme} />
+          <PrivateRoute path="/userRoles" screen="userRoles" component={UserRoles} theme={Theme} />
+          <PrivateRoute path="/permissions" screen="permissions" component={Permissions} theme={Theme} />
+
+        </Switch>
+      </Router>
+    </div>
+  );
+}
+
+export default App;

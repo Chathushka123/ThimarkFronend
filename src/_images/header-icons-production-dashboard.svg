@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="321" height="40" viewBox="0 0 321 40">
+  <g id="Header-Icons" transform="translate(-1003 -15)">
+    <rect id="Rectangle_221" data-name="Rectangle 221" width="20" height="20" transform="translate(1143 15)" fill="#AE55D7"/>
+    <rect id="Rectangle_225" data-name="Rectangle 225" width="20" height="20" transform="translate(1193 15)" fill="#CFDA2D"/>
+    <rect id="Rectangle_226" data-name="Rectangle 226" width="20" height="20" transform="translate(1243 15)" fill="#EA2F2F"/>
+    <rect id="Rectangle_227" data-name="Rectangle 227" width="20" height="20" transform="translate(1293 15)" fill="#3895f2"/>
+    <text id="Ready" transform="translate(1153 51)" fill="#39393b" font-size="10" font-family="Poppins-Medium, Poppins" font-weight="500"><tspan x="-15.775" y="0">Ready</tspan></text>
+    <text id="Progress" transform="translate(1203 51)" fill="#39393b" font-size="10" font-family="Poppins-Medium, Poppins" font-weight="500"><tspan x="-21.89" y="0">Progress</tspan></text>
+    <text id="Hold" transform="translate(1253 51)" fill="#39393b" font-size="10" font-family="Poppins-Medium, Poppins" font-weight="500"><tspan x="-11.34" y="0">Hold</tspan></text>
+    <text id="Pending" transform="translate(1303 51)" fill="#39393b" font-size="10" font-family="Poppins-Medium, Poppins" font-weight="500"><tspan x="-20.575" y="0">Pending</tspan></text>
+  </g>
+</svg>
