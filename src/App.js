@@ -19,7 +19,8 @@ import ChangePassword from './components/pages/ChangePassword/ChangePasswordES';
 import UserProfile from './components/pages/UserProfile/UserProfileES';
 
 import Material from './components/pages/Material/MaterialES';
-
+import Warehouse from './components/pages/Warehouse/WarehouseES';
+import Model from './components/pages/Model/ModelES';
 // import Style from './components/pages/Style/StyleES';
 // import Marker from './components/pages/Marker/MarkerES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
@@ -41,14 +42,16 @@ const App = () => {
       <Router basename={getBaseName(window.location.pathname)} forceRefresh={true}>
         <Switch>
           <PublicRoute exact path="/" screen="login" component={Login} />
-          <PublicRoute  path="/login" screen="login" component={Login} /> 
+          <PublicRoute path="/login" screen="login" component={Login} />
           <Route path="/unauthorized" screen="unauthorized" component={Unauthorized} />
           <PrivateRoute path="/home" screen="home" component={Home} theme={Theme} />
           <PrivateRoute path="/changePassword" screen="changePassword" component={ChangePassword} theme={Theme} />
           <PrivateRoute path="/userProfile" screen="userProfile" component={UserProfile} theme={Theme} />
 
           <PrivateRoute path="/material" screen="Material" component={Material} theme={Theme} />
-           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
+          <PrivateRoute path="/warehouse" screen="Warehouse" component={Warehouse} theme={Theme} />
+          <PrivateRoute path="/model" screen="Model" component={Model} theme={Theme} />
+          {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
           <PrivateRoute path="/invoice" screen="Invoice" component={Invoice} theme={Theme} />
           <PrivateRoute path="/invoiceRegistry" screen="invoiceRegistry" component={InvoiceRegistry} theme={Theme} />

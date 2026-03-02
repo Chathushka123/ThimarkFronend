@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { generateMaterialDisplay } from './MaterialDS';
-import config from './MaterialCS';
+import { useEffect, useState } from 'react';
+import { generateWarehouseDisplay } from './WarehouseDS';
+import config from './WarehouseCS';
 import API from '../../../api/API';
 
-const Material = () => {
+const Warehouse = () => {
     let [rendered, setRendered] = useState(true);
-    const [uoms, setUoms] = useState([]);
-    const [categories, setCategories] = useState([
-        { value: 'Not selected', text: '- Select Category -' },
-        { value: 'material', text: 'Material' },
-        { value: 'consumble', text: 'Consumable' },
-        { value: 'returnable', text: 'Returnable' }
-    ]);
+    const [stockMaterials, setStockMaterials] = useState([]);
+    const [warehouseLocations, setWarehouseLocations] = useState([]);
+    const [locationBasis, setLocationBasis] = useState(0);
+
     function reRender() {
         setRendered(!rendered);
     }
@@ -22,7 +19,10 @@ const Material = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
-    config["gridMaterials"].event.onRowCustomButton = handleRowEditClick;
+    config["gridWarehouses"].event.onRowCustomButton = handleRowEditClick;
+    config["buttonSaveInventory"].event.onClick = handleSaveInventory;
+    config["inputLocationBasis"].event.onClick = handleChangeLocationBasis;
+    config["gridLocations"].event.onRowCustomButton = handleAddNewLocaionRow;
 
 
     /*********************************************************/
@@ -39,29 +39,11 @@ const Material = () => {
 
     // Executes when Page Load
     useEffect(() => {
-        // __checkIsAuthorized();
-        __setFormReadWrite(true);
-        getAllUOMs();
-        config['inputCategory'].setOptions(categories);
-        // getAllMaterials();
+        getAllWarehouses();
+        getAllStockMaterials();
+        config["gridLocations"].setData([{ id: 0, bin: "", rack: "" }])
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    function __checkIsAuthorized() {
-        const apiRequest = { "screen": "marker" }
-        API.post(`permissions/isAuthorized`, apiRequest).then(response => {
-            const isAuthorized = response.data;
-            __setFormReadWrite(isAuthorized);
-        }).catch(error => {
-            __setFormReadWrite("r");
-        });
-    }
-
-    function __setFormReadWrite(status) {
-        if (status === "r") {
-
-        }
-    }
 
     // Enable navigation prompt
     window.onbeforeunload = function () {
@@ -75,60 +57,156 @@ const Material = () => {
     /*********************************************************/
 
     function handleRowEditClick(e, r) {
-        const id = config["gridMaterials"].getValueWiltColName(r, 'id');
-        const name = config["gridMaterials"].getValueWiltColName(r, 'name');
-        const code = config["gridMaterials"].getValueWiltColName(r, 'code');
-        const supplier = config["gridMaterials"].getValueWiltColName(r, 'supplier');
-        const lead_time = config["gridMaterials"].getValueWiltColName(r, 'lead_time');
-        const min_qty = config["gridMaterials"].getValueWiltColName(r, 'min_qty');
-        const size = config["gridMaterials"].getValueWiltColName(r, 'size');
-        const unit_price = config["gridMaterials"].getValueWiltColName(r, 'unit_price');
-        const category = config["gridMaterials"].getValueWiltColName(r, 'category');
-        const uom_id = config["gridMaterials"].getValueWiltColName(r, 'uom_id');
+        const id = config["gridWarehouses"].getValueWiltColName(r, 'id');
+        const name = config["gridWarehouses"].getValueWiltColName(r, 'name');
+        const code = config["gridWarehouses"].getValueWiltColName(r, 'code');
+        const location_basis = config["gridWarehouses"].getValueWiltColName(r, 'location_basis');
 
         // Set values to form fields
         config['inputId'].setValue(id);
-        config['inputMatName'].setValue(name);
-        config['inputMatCode'].setValue(code);
-        config['inputSupplier'].setValue(supplier);
-        config['inputLeadTime'].setValue(lead_time);
-        config['inputMinQty'].setValue(min_qty);
-        config['inputMatSize'].setValue(size);
-        config['inputUnitPrice'].setValue(unit_price);
-        config['inputCategory'].setValue(category);
-        config['inputUOM'].setValue(uom_id);
+        config['inputName'].setValue(name);
+        config['inputCode'].setValue(code);
+
+        const isLocationBased = location_basis === 1 || location_basis === "1" || location_basis === true || location_basis === 'Yes';
+        config['inputLocationBasis'].setValue(isLocationBased);
+        setLocationBasis(isLocationBased ? 1 : 0);
+
+        // Load locations and WHL items for this warehouse
+        loadWarehouseData(id);
 
         config["CONTROL_CENTER"].state.modified = true;
         config["CONTROL_CENTER"].state.new = true;
     }
 
+    function handleChangeLocationBasis(event) {
+        const val = event.target.checked;
+        if (val) {
+            setLocationBasis(1);
+        }
+        else {
+            setLocationBasis(0);
+        }
+    }
+
+    function handleAddNewLocaionRow() {
+        const currentData = config['gridLocations'].data || [];
+        const newRow = { id: 0, bin: "", rack: "" };
+        config['gridLocations'].setData([...currentData, newRow]);
+    }
+
     function resetInputForm() {
         config['inputId'].setValue('');
-        config['inputMatName'].setValue('');
-        config['inputMatCode'].setValue('');
-        config['inputSupplier'].setValue('');
-        config['inputLeadTime'].setValue('');
-        config['inputMinQty'].setValue(0);
-        config['inputMatSize'].setValue('');
-        config['inputUnitPrice'].setValue(0);
-        config['inputCategory'].setValue('Not Selected');
-        config['inputUOM'].setValue(0);
+        config['inputName'].setValue('');
+        config['inputCode'].setValue('');
+        config['inputLocationBasis'].setValue(false);
+        setLocationBasis(0);
+        config["gridLocations"].setData([{ id: 0, bin: "", rack: "" }])
+        config['gridWHLItems'].setData([]);
 
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
     }
 
-
-    const getAllUOMs = async () => {
-        document.getElementById("spinner").style.display = "";
+    const loadWarehouseData = async (warehouseId) => {
         try {
-            const response = await API.get('/Uom/getUoms');
-            const uoms = response.data.map(item => { return { value: item.id, text: item.uom } })
-            setUoms(uoms);
-            config['inputUOM'].setOptions([{ value: 0, text: '- Select UOM -' }, ...uoms]);
-            getAllMaterials(uoms);
+            const response = await API.get(`/warehouses/${warehouseId}`);
+            if (response.data && response.data.locations) {
+                config['gridLocations'].setData(response.data.locations.length > 0 ? response.data.locations : [{ id: 0, bin: "", rack: "" }]);
+
+                // Set location basis checkbox
+                const isLocationBased = response.data.location_basis == 1;
+                config['inputLocationBasis'].setValue(isLocationBased);
+                setLocationBasis(isLocationBased ? 1 : 0);
+
+                // Store locations for WHL items dropdown
+                const locationOptions = response.data.locations.map(loc => ({
+                    value: loc.id,
+                    text: `Rack: ${loc.rack || 'N/A'}, Bin: ${loc.bin || 'N/A'}`
+                }));
+                setWarehouseLocations(locationOptions);
+
+                // Set location dropdown options for WHL items grid
+                config['gridWHLItems'].columns.whl_id.options = [
+                    { value: 0, text: '- Select Location -' },
+                    ...locationOptions
+                ];
+            }
+
+            // Load WHL items for this warehouse
+            loadWHLItems(warehouseId);
+        } catch (error) {
+            console.log(error);
         }
-        catch (error) {
+    }
+
+    const loadWHLItems = async (warehouseId) => {
+        try {
+            const response = await API.get(`/warehouses/${warehouseId}/whl-items`);
+            if (response.data) {
+                config['gridWHLItems'].setData(response.data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function handleSaveInventory() {
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            const warehouseId = config['inputId'].data.value;
+
+            if (!warehouseId || warehouseId === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("Please select a warehouse first", "");
+                return;
+            }
+
+            // Get WHL items from grid
+            const whlItems = config['gridWHLItems'].data.map(row => {
+                const item = {
+                    whl_id: row.whl_id,
+                    stock_item_id: row.stock_item_id,
+                    qty: parseInt(row.qty) || 0
+                };
+                if (row.id) {
+                    item.id = row.id;
+                }
+                return item;
+            });
+
+            // Validate WHL items
+            for (let i = 0; i < whlItems.length; i++) {
+                const item = whlItems[i];
+
+                if (!item.whl_id || item.whl_id === 0) {
+                    config["CONTROL_CENTER"].promptWarningMessage(`Row ${i + 1}: Please select a Warehouse Location`, "");
+                    return;
+                }
+
+                if (!item.stock_item_id || item.stock_item_id === 0) {
+                    config["CONTROL_CENTER"].promptWarningMessage(`Row ${i + 1}: Please select a Stock Material`, "");
+                    return;
+                }
+
+                if (item.qty < 0) {
+                    config["CONTROL_CENTER"].promptWarningMessage(`Row ${i + 1}: Quantity cannot be negative`, "");
+                    return;
+                }
+            }
+
+            // Save WHL items via API
+            const response = await API.post(`/warehouses/${warehouseId}/whl-items`, {
+                items: whlItems
+            });
+
+            if (response.status === 200 || response.status === 201) {
+                config["CONTROL_CENTER"].promptBaseMessage("Warehouse inventory saved successfully", "");
+                await loadWHLItems(warehouseId);
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in saving warehouse inventory", "");
+            }
+
+        } catch (error) {
             console.log(error);
 
             try {
@@ -173,24 +251,36 @@ const Material = () => {
         }
     }
 
-    const getAllMaterials = async (uomsX) => {
-        document.getElementById("spinner").style.display = "";
+    const getAllStockMaterials = async () => {
         try {
             const response = await API.get('/stock-materials');
+            const materials = response.data.map(item => ({ value: item.id, text: item.name }));
+            setStockMaterials(materials);
+
+            // Set stock material dropdown options for WHL items grid
+            config['gridWHLItems'].columns.stock_item_id.options = [
+                { value: 0, text: '- Select Material -' },
+                ...materials
+            ];
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getAllWarehouses = async () => {
+        document.getElementById("spinner").style.display = "";
+        try {
+            const response = await API.get('/warehouses');
 
             if (response.data && response.data.length > 0) {
                 const rows = response.data.map(item => {
-                    const real_category = categories.find(cat => cat.value === item.category)?.text || "";
-                    const uom = uomsX.find(uom => uom.value == item.uom_id)?.text || "";
                     return {
                         ...item,
-                        real_category,
-                        uom,
-                        size: item.size.join(",")
+                        location_basis: item.location_basis ? 'Yes' : 'No'
                     }
                 })
 
-                config['gridMaterials'].setData(rows);
+                config['gridWarehouses'].setData(rows);
             }
 
         }
@@ -243,129 +333,85 @@ const Material = () => {
             document.getElementById("spinner").style.display = "";
 
             // Get form values
-            const name = config['inputMatName'].data.value;
-            const code = config['inputMatCode'].data.value;
-            const supplier = config['inputSupplier'].data.value;
-            const lead_time = config['inputLeadTime'].data.value;
-            const min_qty = config['inputMinQty'].data.value;
-            const unit_price = config['inputUnitPrice'].data.value;
-            const size = config['inputMatSize'].data.value;
-            const uom_id = config['inputUOM'].data.value;
-            const category = config['inputCategory'].data.value;
+            const name = config['inputName'].data.value;
+            const code = config['inputCode'].data.value;
+            const location_basis = locationBasis;
             const id = config['inputId'].data.value;
-
 
             // Validations
             if (!name || name.trim() === "") {
-                config["CONTROL_CENTER"].promptWarningMessage("Material Name is required", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Warehouse Name is required", "");
                 return;
             }
 
             if (name.length > 100) {
-                config["CONTROL_CENTER"].promptWarningMessage("Material Name cannot exceed 100 characters", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Warehouse Name cannot exceed 100 characters", "");
                 return;
             }
 
             if (!code || code.trim() === "") {
-                config["CONTROL_CENTER"].promptWarningMessage("Material Code is required", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Warehouse Code is required", "");
                 return;
             }
 
             if (code.length > 50) {
-                config["CONTROL_CENTER"].promptWarningMessage("Material Code cannot exceed 50 characters", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Warehouse Code cannot exceed 50 characters", "");
                 return;
             }
 
-            if (!uom_id && uom_id === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please add a valid UOM", "");
-                return;
-            }
-
-            if (supplier && supplier.length > 100) {
-                config["CONTROL_CENTER"].promptWarningMessage("Supplier cannot exceed 100 characters", "");
-                return;
-            }
-
-            if (lead_time && !Number.isInteger(Number(lead_time))) {
-                config["CONTROL_CENTER"].promptWarningMessage("Lead Time must be an integer", "");
-                return;
-            }
-
-            if (min_qty && !Number.isInteger(Number(min_qty))) {
-                config["CONTROL_CENTER"].promptWarningMessage("Min Qty must be an integer", "");
-                return;
-            }
-
-            if (!['material', 'consumble', 'returnable'].includes(category)) {
-                config["CONTROL_CENTER"].promptWarningMessage("A valid category should be selected!", "");
-                return;
-            }
-
-            if (unit_price && !Number.isInteger(Number(unit_price))) {
-                config["CONTROL_CENTER"].promptWarningMessage("Invalid Unit price", "");
-                return;
-            }
-
-            // Validate and process size field
-            let sizeArray = ['base_size'];
-            if (size && size.trim() !== "") {
-                // Check if size contains spaces (invalid format)
-                if (size.includes(' ')) {
-                    config["CONTROL_CENTER"].promptWarningMessage("Size should not contain spaces. Use comma-separated values without spaces (e.g., S,M,L)", "");
-                    return;
-                }
-
-                // Check if size contains commas
-                if (size.includes(',')) {
-                    // Split by comma and validate each part
-                    sizeArray = size.split(',').filter(s => s.trim() !== '');
-
-                    if (sizeArray.length === 0) {
-                        config["CONTROL_CENTER"].promptWarningMessage("Invalid size format. Provide values like S or S,M,L (without spaces)", "");
-                        return;
+            // Get locations from grid
+            const locations = config['gridLocations'].data
+                .map(row => {
+                    const loc = {
+                        rack: row.rack || null,
+                        bin: row.bin || null
+                    };
+                    if (row.id && row.id !== 0) {
+                        loc.id = row.id;
                     }
-                } else {
-                    // Single size value
-                    sizeArray = [size.trim()];
-                }
-            }
+
+
+                    if (row._rowstate && row._rowstate === "DELETED") {
+                        return {
+                            ...loc,
+                            active: 0
+                        };
+                    }
+                    else {
+                        return loc;
+                    }
+                });
 
             // Prepare API request
             const apiRequest = {
                 name: name.trim(),
                 code: code.trim(),
-                supplier: supplier ? supplier.trim() : null,
-                lead_time: lead_time ? parseInt(lead_time) : null,
-                min_qty: min_qty ? parseInt(min_qty) : null,
-                size: sizeArray,
-                uom_id: uom_id,
-                unit_price: unit_price,
-                category: (category && category !== 'Not selected') ? category : null
+                location_basis: location_basis ? 1 : 0,
+                locations: locations
             };
 
             // Call API based on whether it's create or update
             let response;
             if (id && id !== "") {
-                // Update existing material
-                response = await API.put(`/stock-materials/${id}`, apiRequest);
+                // Update existing warehouse
+                response = await API.put(`/warehouses/${id}`, apiRequest);
             } else {
-                // Create new material
-                response = await API.post(`/stock-materials`, apiRequest);
+                // Create new warehouse
+                response = await API.post(`/warehouses`, apiRequest);
             }
 
             if (response.status === 200 || response.status === 201) {
                 if (!id || id === "") {
                     config['inputId'].setValue(response.data.id);
                 }
-                config["CONTROL_CENTER"].promptBaseMessage("Material saved successfully", "");
+                config["CONTROL_CENTER"].promptBaseMessage("Warehouse saved successfully", "");
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
-                await getAllMaterials(uoms);
+                await getAllWarehouses();
                 resetInputForm();
             } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Error in saving Material", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Error in saving Warehouse", "");
             }
-
 
         } catch (error) {
             console.log(error);
@@ -412,7 +458,7 @@ const Material = () => {
         }
     }
 
-    return generateMaterialDisplay(config)
+    return generateWarehouseDisplay(config)
 }
 
-export default Material;
+export default Warehouse;
