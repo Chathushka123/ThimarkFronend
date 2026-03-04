@@ -12,7 +12,7 @@ const RACK_COLORS = ['#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997', '#e8
  *                            Each bin: { id, bin, items: [...] }
  *   - rackIndex {number}   : Index used to pick accent colour (optional, defaults to 0)
  */
-const WarehouseRack = ({ rack, bins, rackIndex = 0 }) => {
+const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [] }) => {
     const accentColor = RACK_COLORS[rackIndex % RACK_COLORS.length];
 
     // Summarise this rack for the sub-header
@@ -29,6 +29,11 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0 }) => {
             return qty > min && qty <= min * 1.5;
         }).length;
     }, 0);
+
+    // Count how many bins in this rack contain at least one highlighted item
+    const matchedBinCount = highlightedIds.length > 0
+        ? bins.filter(b => b.items && b.items.some(item => highlightedIds.includes(item.stock_item.id))).length
+        : 0;
 
     return (
         <div style={{
@@ -105,6 +110,22 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0 }) => {
                             ↓ {lowCount} Low
                         </span>
                     )}
+                    {matchedBinCount > 0 && (
+                        <span style={{
+                            backgroundColor: '#6f42c1',
+                            color: '#fff',
+                            fontSize: '10px',
+                            fontWeight: '700',
+                            padding: '3px 10px',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            animation: 'pulse-search 1.4s ease-in-out infinite'
+                        }}>
+                            🔍 {matchedBinCount} bin{matchedBinCount !== 1 ? 's' : ''} matched
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -122,6 +143,7 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0 }) => {
                             key={bin.id}
                             binLabel={bin.bin}
                             items={bin.items}
+                            highlightedIds={highlightedIds}
                         />
                     ))
                 ) : (

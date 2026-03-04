@@ -7,6 +7,21 @@ const Inventory = () => {
     let [rendered, setRendered] = useState(true);
     const [warehouses, SetWarehouses] = useState([]);
     const [inventoryData, setInventoryData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [highlightedIds, setHighlightedIds] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    function toggleFullscreen() {
+        setIsFullscreen(prev => !prev);
+    }
+
+    // Lock body scroll when fullscreen overlay is open
+    useEffect(() => {
+        document.body.style.overflow = isFullscreen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [isFullscreen]);
+
     function reRender() {
         setRendered(!rendered);
     }
@@ -39,6 +54,51 @@ const Inventory = () => {
         // config["CONTROL_CENTER"].state.modified = true;
         // config["CONTROL_CENTER"].state.new = true;
     }, []);
+
+    // Debounced material search
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setHighlightedIds([]);
+            return;
+        }
+
+        if (searchTerm.trim().length >= 3) {
+            const timer = setTimeout(() => {
+                searchMaterials(searchTerm.trim());
+            }, 400);
+            return () => clearTimeout(timer);
+        }
+
+    }, [searchTerm]);
+
+    // Scroll to first matched bin after results render
+    useEffect(() => {
+        if (highlightedIds.length === 0) return;
+        const timer = setTimeout(() => {
+            const first = document.querySelector('[data-material-match="true"]');
+            if (first) {
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 80); // short delay lets React finish painting
+        return () => clearTimeout(timer);
+    }, [highlightedIds]);
+
+    const searchMaterials = async (term) => {
+        setIsSearching(true);
+        try {
+            const response = await API.get(`/stock-materials/search?q=${encodeURIComponent(term)}`);
+            if (Array.isArray(response.data)) {
+                setHighlightedIds(response.data);
+            } else {
+                setHighlightedIds([]);
+            }
+        } catch (error) {
+            console.log(error);
+            setHighlightedIds([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
     function __setFormReadWrite(status) {
         if (status === "r") {
@@ -355,7 +415,14 @@ const Inventory = () => {
         }
     }
 
-    return generateInventoryDisplay(config, inventoryData)
+    return generateInventoryDisplay(config, inventoryData, {
+        searchTerm,
+        setSearchTerm,
+        highlightedIds,
+        isSearching,
+        isFullscreen,
+        toggleFullscreen
+    })
 }
 
 export default Inventory;
