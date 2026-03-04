@@ -26,7 +26,7 @@ import Model from './components/pages/Model/ModelES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
 import CreateUser from './components/pages/CreateUser/CreateUserES';
 import Permissions from './components/pages/Permissions/PermissionsES';
-// import Invoice from './components/pages/Invoice/InvoiceES';
+import Inventory from './components/pages/Inventory/InventoryES';
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
@@ -51,9 +51,10 @@ const App = () => {
           <PrivateRoute path="/material" screen="Material" component={Material} theme={Theme} />
           <PrivateRoute path="/warehouse" screen="Warehouse" component={Warehouse} theme={Theme} />
           <PrivateRoute path="/model" screen="Model" component={Model} theme={Theme} />
+          <PrivateRoute path="/inventory" screen="Inventory" component={Inventory} theme={Theme} />
+
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
-          <PrivateRoute path="/invoice" screen="Invoice" component={Invoice} theme={Theme} />
           <PrivateRoute path="/invoiceRegistry" screen="invoiceRegistry" component={InvoiceRegistry} theme={Theme} />
           <PrivateRoute path="/configuration" screen="configuration" component={Configuration} theme={Theme} />
           <PrivateRoute path="/transactionSummary" screen="transactionSummary" component={TransactionSummary} theme={Theme} />
