@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { generateMaterialDisplay } from './MaterialDS';
-import config from './MaterialCS';
+import { generateInventoryDisplay } from './InventoryDS';
+import config from './InventoryCS';
 import API from '../../../api/API';
 
-const Material = () => {
+const Inventory = () => {
     let [rendered, setRendered] = useState(true);
-    const [uoms, setUoms] = useState([]);
-    const [categories, setCategories] = useState([
-        { value: 'Not selected', text: '- Select Category -' },
-        { value: 'material', text: 'Material' },
-        { value: 'consumable', text: 'Consumable' },
-        { value: 'returnable', text: 'Returnable' }
-    ]);
+    const [warehouses, SetWarehouses] = useState([]);
+    const [inventoryData, setInventoryData] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [highlightedIds, setHighlightedIds] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    function toggleFullscreen() {
+        setIsFullscreen(prev => !prev);
+    }
+
+    // Lock body scroll when fullscreen overlay is open
+    useEffect(() => {
+        document.body.style.overflow = isFullscreen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [isFullscreen]);
+
     function reRender() {
         setRendered(!rendered);
     }
@@ -22,7 +32,7 @@ const Material = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
-    config["gridMaterials"].event.onRowCustomButton = handleRowEditClick;
+    config["inputWH"].event.onChange = handleWarehouseChange;
 
 
     /*********************************************************/
@@ -39,23 +49,56 @@ const Material = () => {
 
     // Executes when Page Load
     useEffect(() => {
-        // __checkIsAuthorized();
         __setFormReadWrite(true);
-        getAllUOMs();
-        config['inputCategory'].setOptions(categories);
-        // getAllMaterials();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        getAllWarehouses();
+        // config["CONTROL_CENTER"].state.modified = true;
+        // config["CONTROL_CENTER"].state.new = true;
     }, []);
 
-    function __checkIsAuthorized() {
-        const apiRequest = { "screen": "marker" }
-        API.post(`permissions/isAuthorized`, apiRequest).then(response => {
-            const isAuthorized = response.data;
-            __setFormReadWrite(isAuthorized);
-        }).catch(error => {
-            __setFormReadWrite("r");
-        });
-    }
+    // Debounced material search
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setHighlightedIds([]);
+            return;
+        }
+
+        if (searchTerm.trim().length >= 3) {
+            const timer = setTimeout(() => {
+                searchMaterials(searchTerm.trim());
+            }, 400);
+            return () => clearTimeout(timer);
+        }
+
+    }, [searchTerm]);
+
+    // Scroll to first matched bin after results render
+    useEffect(() => {
+        if (highlightedIds.length === 0) return;
+        const timer = setTimeout(() => {
+            const first = document.querySelector('[data-material-match="true"]');
+            if (first) {
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 80); // short delay lets React finish painting
+        return () => clearTimeout(timer);
+    }, [highlightedIds]);
+
+    const searchMaterials = async (term) => {
+        setIsSearching(true);
+        try {
+            const response = await API.get(`/stock-materials/search?q=${encodeURIComponent(term)}`);
+            if (Array.isArray(response.data)) {
+                setHighlightedIds(response.data);
+            } else {
+                setHighlightedIds([]);
+            }
+        } catch (error) {
+            console.log(error);
+            setHighlightedIds([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
     function __setFormReadWrite(status) {
         if (status === "r") {
@@ -74,63 +117,32 @@ const Material = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
-    function handleRowEditClick(e, r) {
-        const id = config["gridMaterials"].getValueWiltColName(r, 'id');
-        const name = config["gridMaterials"].getValueWiltColName(r, 'name');
-        const code = config["gridMaterials"].getValueWiltColName(r, 'code');
-        const supplier = config["gridMaterials"].getValueWiltColName(r, 'supplier');
-        const lead_time = config["gridMaterials"].getValueWiltColName(r, 'lead_time');
-        const min_qty = config["gridMaterials"].getValueWiltColName(r, 'min_qty');
-        const size = config["gridMaterials"].getValueWiltColName(r, 'size');
-        const unit_price = config["gridMaterials"].getValueWiltColName(r, 'unit_price');
-        const category = config["gridMaterials"].getValueWiltColName(r, 'category');
-        const uom_id = config["gridMaterials"].getValueWiltColName(r, 'uom_id');
-
-        // Set values to form fields
-        config['inputId'].setValue(id);
-        config['inputMatName'].setValue(name);
-        config['inputMatCode'].setValue(code);
-        config['inputSupplier'].setValue(supplier);
-        config['inputLeadTime'].setValue(lead_time);
-        config['inputMinQty'].setValue(min_qty);
-        config['inputMatSize'].setValue(size);
-        config['inputUnitPrice'].setValue(unit_price);
-        config['inputCategory'].setValue(category);
-        config['inputUOM'].setValue(uom_id);
-
-        config["CONTROL_CENTER"].state.modified = true;
-        config["CONTROL_CENTER"].state.new = true;
+    function handleWarehouseChange() {
+        const selectedWH = config["inputWH"].data.value;
+        getWarehouseRelatedData(selectedWH);
     }
 
     function resetInputForm() {
-        config['inputId'].setValue('');
-        config['inputMatName'].setValue('');
-        config['inputMatCode'].setValue('');
-        config['inputSupplier'].setValue('');
-        config['inputLeadTime'].setValue('');
-        config['inputMinQty'].setValue(0);
-        config['inputMatSize'].setValue('');
-        config['inputUnitPrice'].setValue(0);
-        config['inputCategory'].setValue('Not Selected');
         config['inputUOM'].setValue(0);
 
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
     }
 
-
-    const getAllUOMs = async () => {
+    const getWarehouseRelatedData = async (wh) => {
         document.getElementById("spinner").style.display = "";
         try {
-            const response = await API.get('/Uom/getUoms');
-            const uoms = response.data.map(item => { return { value: item.id, text: item.uom } })
-            setUoms(uoms);
-            config['inputUOM'].setOptions([{ value: 0, text: '- Select UOM -' }, ...uoms]);
-            getAllMaterials(uoms);
+            const response = await API.get(`/inventory/warehouse/${wh}`);
+
+            if (response.data && response.data.length > 0) {
+                setInventoryData(response.data);
+            } else {
+                setInventoryData([]);
+            }
+
         }
         catch (error) {
             console.log(error);
-
             try {
                 if (error.response && error.response.data && error.response.data.message) {
                     try {
@@ -173,24 +185,16 @@ const Material = () => {
         }
     }
 
-    const getAllMaterials = async (uomsX) => {
+
+    const getAllWarehouses = async () => {
         document.getElementById("spinner").style.display = "";
         try {
-            const response = await API.get('/stock-materials');
+            const response = await API.get('/warehouses');
 
             if (response.data && response.data.length > 0) {
-                const rows = response.data.map(item => {
-                    const real_category = categories.find(cat => cat.value === item.category)?.text || "";
-                    const uom = uomsX.find(uom => uom.value == item.uom_id)?.text || "";
-                    return {
-                        ...item,
-                        real_category,
-                        uom,
-                        size: item.size.join(",")
-                    }
-                })
-
-                config['gridMaterials'].setData(rows);
+                const whs = response.data.map(item => { return { value: item.id, text: `${item.code} - ${item.name}` } })
+                SetWarehouses(whs);
+                config['inputWH'].setOptions([{ value: 0, text: '- Select Warehouse -' }, ...whs]);
             }
 
         }
@@ -296,7 +300,7 @@ const Material = () => {
                 return;
             }
 
-            if (!['material', 'consumable', 'returnable'].includes(category)) {
+            if (!['material', 'consumble', 'returnable'].includes(category)) {
                 config["CONTROL_CENTER"].promptWarningMessage("A valid category should be selected!", "");
                 return;
             }
@@ -360,7 +364,6 @@ const Material = () => {
                 config["CONTROL_CENTER"].promptBaseMessage("Material saved successfully", "");
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
-                await getAllMaterials(uoms);
                 resetInputForm();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in saving Material", "");
@@ -412,7 +415,14 @@ const Material = () => {
         }
     }
 
-    return generateMaterialDisplay(config)
+    return generateInventoryDisplay(config, inventoryData, {
+        searchTerm,
+        setSearchTerm,
+        highlightedIds,
+        isSearching,
+        isFullscreen,
+        toggleFullscreen
+    })
 }
 
-export default Material;
+export default Inventory;
