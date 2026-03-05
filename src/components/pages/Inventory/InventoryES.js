@@ -11,6 +11,7 @@ const Inventory = () => {
     const [highlightedIds, setHighlightedIds] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState(null); // 'low' | 'critical' | null
 
     function toggleFullscreen() {
         setIsFullscreen(prev => !prev);
@@ -119,7 +120,12 @@ const Inventory = () => {
 
     function handleWarehouseChange() {
         const selectedWH = config["inputWH"].data.value;
-        getWarehouseRelatedData(selectedWH);
+        if (selectedWH > 0) {
+            getWarehouseRelatedData(selectedWH);
+        }
+        else {
+            setInventoryData([]);
+        }
     }
 
     function resetInputForm() {
@@ -421,7 +427,9 @@ const Inventory = () => {
         highlightedIds,
         isSearching,
         isFullscreen,
-        toggleFullscreen
+        toggleFullscreen,
+        activeFilter,
+        setActiveFilter
     })
 }
 
