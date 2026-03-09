@@ -64,7 +64,7 @@ import pim3 from "../_images/job-card-blue.svg";
 import pim4 from "../_images/red-background-shirt.svg";
 import pim5 from "../_images/green-background-shirt.svg";
 
-export function MultiSelectDropDown(props) {
+export function MultiSelectDropDownOriginal(props) {
     let [rendered, setRendered] = useState(true);
     let state = props.item.schema.dataSourceController.state;
     let [filteredOptions, setFilteredOptions] = useState(props.item.options);
@@ -217,6 +217,214 @@ export function MultiSelectDropDown(props) {
     props.item.handleSearch = handleSearch;
  
     const selectedValues = props.item.data.value;
+ 
+    const getDisplayValue = () => {
+        if (selectedValues.length === 0) return "Select options";
+        if (selectedValues.length === 1) return selectedValues[0].name;
+        return `${selectedValues[0].name}, +${selectedValues.length - 1} more`;
+    };
+ 
+    return (
+        <Multiselect
+            options={filteredOptions}
+            id={props.item.schema.id}
+            avoidHighlightFirstOption={props.item.schema.avoidHighlightFirstOption}
+            showCheckbox={props.item.schema.showCheckbox}
+            disable={props.item.schema.disable}
+            onSearch={handleSearch}
+            loading={props.item.schema.loading}
+            style={props.item.schema.style}
+            selectionLimit={props.item.schema.selectionLimit}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            displayValue="name"
+            selectedValues={selectedValues}
+            placeholder={getDisplayValue()}
+            hideSelectedList={true}
+        />
+    );
+}
+
+export function 
+MultiSelectDropDown(props) {
+    let [rendered, setRendered] = useState(true);
+    let state = props.item.schema.dataSourceController.state;
+    let [filteredOptions, setFilteredOptions] = useState(props.item.options);
+    // let [selectedValue, setSelectedValue] = useState(props.item.data.value || []);
+    let selectedValues = props.item.data.value;
+ 
+    useEffect(() => {
+        // Update filtered options when props.item.options change
+        setFilteredOptions(props.item.options);
+    }, [props.item.options]);
+ 
+    // Function to force re-render
+    function reRender() {
+        setRendered(!rendered);
+    }
+ 
+    // Function to handle selection
+    function onSelect(selectedList, selectedItem) {
+        if (selectedItem.id === "select_all") {
+            // Select all except "Select All" itself
+            props.item.data.value = props.item.options.filter(opt => opt.id !== "select_all");
+        } else {
+            props.item.data.value = selectedList;
+        }
+ 
+        state.modified = true;
+        if (typeof props.item.event.onSelect !== "undefined") {
+            props.item.event.onSelect(selectedList, selectedItem);
+        }
+        if (typeof props.item.schema.dataSourceController.renderControlButtons !== "undefined") {
+            props.item.schema.dataSourceController.renderControlButtons();
+        }
+        reRender();
+    }
+ 
+    // Function to handle removal
+    function onRemove(selectedList, selectedItem) {
+        if (selectedItem.id === "select_all") {
+            // Deselect all
+            props.item.data.value = [];
+        } else {
+            props.item.data.value = selectedList;
+        }
+ 
+        state.modified = true;
+        if (typeof props.item.event.onRemove !== "undefined") {
+            props.item.event.onRemove(selectedList, selectedItem);
+        }
+        if (typeof props.item.schema.dataSourceController.renderControlButtons !== "undefined") {
+            props.item.schema.dataSourceController.renderControlButtons();
+        }
+        reRender();
+    }
+ 
+    // Function to get selected items
+    function getSelectedItems() {
+        return props.item.data.value.map(data => data.id);
+    }
+ 
+    // Function to set options
+    function setOptions(list) {
+        // Prevent duplicate "Select All" entry
+        setFilteredOptions(list);
+        const hasSelectAll = list.some(opt => opt.id === "select_all");
+        props.item.options = hasSelectAll ? list : [{ id: "select_all", name: "Select All" }, ...list];
+        reRender();
+    }
+ 
+    // Function to set value
+    function setValue(list) {
+        let option = props.item.options;
+        let selectList = list;
+
+        let mergedArray = [...option, ...selectList];
+        let uniqueArray = Array.from(new Map(mergedArray.map(item => [item.id, item])).values());
+        setFilteredOptions(uniqueArray);  
+
+              
+        props.item.data.value = list;
+       selectedValues = props.item.data.value;
+        // setSelectedValue(props.item.data.value);
+        reRender();
+    }
+
+    function setValueByID(id){
+        let option = props.item.options;
+        let selectList = option.filter(opt => id==opt.id);                
+        setValue(selectList);
+    }
+ 
+    async function handleSearch(query) {
+        if (!query) {
+            setFilteredOptions(props.item.options); // Reset options if query is empty
+            return;
+        }
+ 
+        try {
+ 
+            if(props.item.schema.endpoint){
+                if(props.item.schema.endpoint == "getSizesForDropDown"){
+                    setFilteredOptions([])
+                    const response = await API.get(`${props.item.schema.endpoint}/${query}`);
+                    if (response.status !== 200) {
+                        throw new Error('Failed to fetch data');
+                    }
+                    const data = await response.data;
+   
+                    setFilteredOptions(data)
+                }
+                else{
+                    if (query.length >= 3) {
+                        setFilteredOptions([])
+                        const response = await API.get(`${props.item.schema.endpoint}/${query}`);
+                        if (response.status !== 200) {
+                            throw new Error('Failed to fetch data');
+                        }
+                        const data = await response.data;
+       
+                        setFilteredOptions(data);
+                    }
+                }
+            }
+ 
+ 
+ 
+        } catch (error) {
+            console.error("Error searching:", error);
+        }
+    }
+ 
+    // Function to select all options
+    function selectAll() {
+        props.item.data.value = props.item.options.filter(opt => opt.id !== "select_all"); // Exclude "Select All"
+        state.modified = true;
+        if (typeof props.item.event.onSelect !== "undefined") {
+            props.item.event.onSelect(props.item.data.value, { id: "select_all", name: "Select All" });
+        }
+        if (typeof props.item.schema.dataSourceController.renderControlButtons !== "undefined") {
+            props.item.schema.dataSourceController.renderControlButtons();
+        }
+        reRender();
+    }
+ 
+    // Function to remove all options
+    function removeAll() {
+        props.item.data.value = [];
+        state.modified = true;
+        if (typeof props.item.event.onRemove !== "undefined") {
+            props.item.event.onRemove([], { id: "select_all", name: "Select All" });
+        }
+        if (typeof props.item.schema.dataSourceController.renderControlButtons !== "undefined") {
+            props.item.schema.dataSourceController.renderControlButtons();
+        }
+        reRender();
+    }    
+
+    function getSelectedArray(){
+        return props.item.data.value;
+    }
+
+    function setDesabled(desabled){
+        props.item.schema.disable = desabled;
+        reRender();
+    }
+   
+    // Attach functions to props.item
+    props.item.getValue = getSelectedItems;
+    props.item.setOptions = setOptions;
+    props.item.setValue = setValue;
+    props.item.setValueByID = setValueByID;
+    props.item.reRender = reRender;
+    props.item.selectAll = selectAll; // Add selectAll to props.item
+    props.item.removeAll = removeAll; // Add removeAll to props.item
+    props.item.handleSearch = handleSearch;
+    props.item.getSelectedArray = getSelectedArray;
+    props.item.setDesabled = setDesabled;
+ 
+    
  
     const getDisplayValue = () => {
         if (selectedValues.length === 0) return "Select options";
