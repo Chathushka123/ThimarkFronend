@@ -19,6 +19,7 @@ const Warehouse = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
+    config["CONTROL_CENTER"].event.onPopulate = handlePopulate;
     config["gridWarehouses"].event.onRowCustomButton = handleRowEditClick;
     config["gridWarehouses"].event.onRowCustomButton2 = handleDownloadStickers;
     config["gridWarehouses"].event.onRowDelete = handleWarehouseDelete;
@@ -190,7 +191,18 @@ const Warehouse = () => {
         config["CONTROL_CENTER"].state.new = false;
     }
 
-    const loadWarehouseData = async (warehouseId) => {
+    function handlePopulate() {
+        const selected = config['inputId'].data.value;
+
+        if(!selected || selected == 0 || selected == ""){
+            config["CONTROL_CENTER"].promptWarningMessage("Please select a material first!", "");
+        }
+
+        loadWarehouseData(selected);
+    }
+
+
+    async function loadWarehouseData(warehouseId) {
         try {
             const response = await API.get(`/warehouses/${warehouseId}`);
             if (response.data && response.data.locations) {

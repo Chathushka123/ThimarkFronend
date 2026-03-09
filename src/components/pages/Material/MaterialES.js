@@ -22,6 +22,7 @@ const Material = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
+    config["CONTROL_CENTER"].event.onPopulate = handlePopulate;
     config["gridMaterials"].event.onRowCustomButton = handleRowEditClick;
     config["gridMaterials"].event.onRowDelete = handleStkMatDelete;
 
@@ -169,7 +170,6 @@ const Material = () => {
         config["CONTROL_CENTER"].state.new = false;
     }
 
-
     const getAllUOMs = async () => {
         document.getElementById("spinner").style.display = "";
         try {
@@ -288,6 +288,10 @@ const Material = () => {
         finally {
             document.getElementById("spinner").style.display = "none";
         }
+    }
+
+    function handlePopulate() {
+        getAllMaterials(uoms);
     }
 
     async function handleSave() {
