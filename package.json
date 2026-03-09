@@ -4,7 +4,7 @@
   "homepage": "",
   "private": true,
   "dependencies": {
-    "@handsontable/react": "^16.0.1",
+    "@handsontable/react": "14.5.0",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -13,7 +13,7 @@
     "draft-js": "^0.11.6",
     "draftjs-to-html": "^0.9.1",
     "env-cmd": "^10.1.0",
-    "handsontable": "^16.0.1",
+    "handsontable": "14.5.0",
     "html-to-draftjs": "^1.5.0",
     "immutable": "^4.0.0-rc.12",
     "jquery": "^3.5.1",

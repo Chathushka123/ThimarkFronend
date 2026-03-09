@@ -22,6 +22,7 @@ import Material from './components/pages/Material/MaterialES';
 import Warehouse from './components/pages/Warehouse/WarehouseES';
 import Model from './components/pages/Model/ModelES';
 import Batch from './components/pages/Batch/BatchES';
+import Grn from './components/pages/Grn/MarkerES';
 // import Style from './components/pages/Style/StyleES';
 // import Marker from './components/pages/Marker/MarkerES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
@@ -55,6 +56,7 @@ const App = () => {
           <PrivateRoute path="/inventory" screen="Inventory" component={Inventory} theme={Theme} />
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
+          <PrivateRoute path="/grn" screen="GRN" component={Grn} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
