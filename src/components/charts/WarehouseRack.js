@@ -12,23 +12,28 @@ const RACK_COLORS = ['#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997', '#e8
  *                            Each bin: { id, bin, items: [...] }
  *   - rackIndex {number}   : Index used to pick accent colour (optional, defaults to 0)
  */
-const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [] }) => {
+const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materialStatusMap = null }) => {
     const accentColor = RACK_COLORS[rackIndex % RACK_COLORS.length];
 
-    // Summarise this rack for the sub-header
+    // Summarise this rack — deduplicate by material ID using aggregated status
     const totalItems = bins.reduce((acc, b) => acc + (b.items ? b.items.length : 0), 0);
-    const criticalCount = bins.reduce((acc, b) => {
-        if (!b.items) return acc;
-        return acc + b.items.filter(item => item.qty <= item.stock_item.min_qty).length;
-    }, 0);
-    const lowCount = bins.reduce((acc, b) => {
-        if (!b.items) return acc;
-        return acc + b.items.filter(item => {
-            const { qty } = item;
-            const min = item.stock_item.min_qty;
-            return qty > min && qty <= min * 1.5;
-        }).length;
-    }, 0);
+    const criticalIds = new Set();
+    const lowIds = new Set();
+    bins.forEach(b => {
+        (b.items || []).forEach(item => {
+            const id = item.stock_item.id;
+            const status = materialStatusMap ? materialStatusMap.get(id) : null;
+            if (status === 'critical') criticalIds.add(id);
+            else if (status === 'low') lowIds.add(id);
+            else if (!status) {
+                // fallback: per-bin
+                if (item.qty <= item.stock_item.min_qty) criticalIds.add(id);
+                else if (item.qty <= item.stock_item.min_qty * 1.5) lowIds.add(id);
+            }
+        });
+    });
+    const criticalCount = criticalIds.size;
+    const lowCount = lowIds.size;
 
     // Count how many bins in this rack contain at least one highlighted item
     const matchedBinCount = highlightedIds.length > 0
@@ -144,6 +149,7 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [] }) => {
                             binLabel={bin.bin}
                             items={bin.items}
                             highlightedIds={highlightedIds}
+                            materialStatusMap={materialStatusMap}
                         />
                     ))
                 ) : (
