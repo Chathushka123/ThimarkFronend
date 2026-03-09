@@ -31,7 +31,8 @@
     "react-tooltip": "^4.2.21",
     "read-excel-file": "^5.6.1",
     "recharts": "^1.8.5",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

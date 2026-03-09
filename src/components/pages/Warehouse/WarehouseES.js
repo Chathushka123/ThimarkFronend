@@ -20,6 +20,8 @@ const Warehouse = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
     config["gridWarehouses"].event.onRowCustomButton = handleRowEditClick;
+    config["gridWarehouses"].event.onRowCustomButton2 = handleDownloadStickers;
+    config["gridWarehouses"].event.onRowDelete = handleWarehouseDelete;
     config["buttonSaveInventory"].event.onClick = handleSaveInventory;
     config["inputLocationBasis"].event.onClick = handleChangeLocationBasis;
     config["gridLocations"].event.onRowCustomButton = handleAddNewLocaionRow;
@@ -56,6 +58,87 @@ const Warehouse = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
+    async function handleDownloadStickers(e, r) {
+        const warehouseId = config["gridWarehouses"].getValueWiltColName(r, 'id');
+        const warehouseName = config["gridWarehouses"].getValueWiltColName(r, 'name');
+        if (!warehouseId) return;
+
+        try {
+            document.getElementById("spinner").style.display = "";
+            const response = await API.get(`/warehouses/${warehouseId}/stickers`, { responseType: 'blob' });
+
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `stickers-${warehouseName || warehouseId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to download stickers. Please Contact System Administrator");
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleWarehouseDelete(event, rowId) {
+        const row = config["gridWarehouses"].data[rowId];
+        if (!row) return;
+
+        const warehouseId = row.id;
+        if (!warehouseId || warehouseId === 0) return;
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete warehouse "${row.name}"? All associated locations will also be deleted.`
+        );
+
+        if (!confirmed) {
+            // Revert the _rowstate set by the framework since user cancelled
+            row._rowstate = undefined;
+            reRender();
+            return;
+        }
+
+        try {
+            document.getElementById("spinner").style.display = "";
+            const response = await API.delete(`/warehouses/${warehouseId}`);
+
+            if (response.status === 200 || response.status === 204) {
+                config["CONTROL_CENTER"].promptBaseMessage("Warehouse deleted successfully", "");
+
+                // If this warehouse was loaded in the form, clear the form
+                const currentId = config['inputId'].data.value;
+                if (currentId && String(currentId) === String(warehouseId)) {
+                    resetInputForm();
+                }
+
+                await getAllWarehouses();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error deleting warehouse", "");
+                row._rowstate = undefined;
+                reRender();
+            }
+        } catch (error) {
+            console.log(error);
+            row._rowstate = undefined;
+            reRender();
+
+            try {
+                if (error.response && error.response.data && error.response.data.message) {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", error.response.data.message || "Please Contact System Administrator");
+                } else {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+                }
+            } catch (err) {
+                config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+            }
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
     function handleRowEditClick(e, r) {
         const id = config["gridWarehouses"].getValueWiltColName(r, 'id');
         const name = config["gridWarehouses"].getValueWiltColName(r, 'name');
@@ -67,8 +150,8 @@ const Warehouse = () => {
         config['inputName'].setValue(name);
         config['inputCode'].setValue(code);
 
-        const isLocationBased = location_basis === 1 || location_basis === "1" || location_basis === true || location_basis === 'Yes';
-        config['inputLocationBasis'].setValue(isLocationBased);
+        const isLocationBased = location_basis === 'Yes' || location_basis == 1 || location_basis === true;
+        config['inputLocationBasis'].setValue(isLocationBased ? "1" : "0");
         setLocationBasis(isLocationBased ? 1 : 0);
 
         // Load locations and WHL items for this warehouse
@@ -98,10 +181,10 @@ const Warehouse = () => {
         config['inputId'].setValue('');
         config['inputName'].setValue('');
         config['inputCode'].setValue('');
-        config['inputLocationBasis'].setValue(false);
+        config['inputLocationBasis'].setValue("0");
         setLocationBasis(0);
         config["gridLocations"].setData([{ id: 0, bin: "", rack: "" }])
-        config['gridWHLItems'].setData([]);
+        // config['gridWHLItems'].setData([]);
 
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
@@ -115,7 +198,7 @@ const Warehouse = () => {
 
                 // Set location basis checkbox
                 const isLocationBased = response.data.location_basis == 1;
-                config['inputLocationBasis'].setValue(isLocationBased);
+                config['inputLocationBasis'].setValue(isLocationBased ? "1" : "0");
                 setLocationBasis(isLocationBased ? 1 : 0);
 
                 // Store locations for WHL items dropdown
@@ -126,14 +209,14 @@ const Warehouse = () => {
                 setWarehouseLocations(locationOptions);
 
                 // Set location dropdown options for WHL items grid
-                config['gridWHLItems'].columns.whl_id.options = [
-                    { value: 0, text: '- Select Location -' },
-                    ...locationOptions
-                ];
+                // config['gridWHLItems'].columns.whl_id.options = [
+                //     { value: 0, text: '- Select Location -' },
+                //     ...locationOptions
+                // ];
             }
 
             // Load WHL items for this warehouse
-            loadWHLItems(warehouseId);
+            // loadWHLItems(warehouseId);
         } catch (error) {
             console.log(error);
         }
@@ -143,7 +226,7 @@ const Warehouse = () => {
         try {
             const response = await API.get(`/warehouses/${warehouseId}/whl-items`);
             if (response.data) {
-                config['gridWHLItems'].setData(response.data);
+                // config['gridWHLItems'].setData(response.data);
             }
         } catch (error) {
             console.log(error);
@@ -162,17 +245,7 @@ const Warehouse = () => {
             }
 
             // Get WHL items from grid
-            const whlItems = config['gridWHLItems'].data.map(row => {
-                const item = {
-                    whl_id: row.whl_id,
-                    stock_item_id: row.stock_item_id,
-                    qty: parseInt(row.qty) || 0
-                };
-                if (row.id) {
-                    item.id = row.id;
-                }
-                return item;
-            });
+            const whlItems = []
 
             // Validate WHL items
             for (let i = 0; i < whlItems.length; i++) {
@@ -258,10 +331,10 @@ const Warehouse = () => {
             setStockMaterials(materials);
 
             // Set stock material dropdown options for WHL items grid
-            config['gridWHLItems'].columns.stock_item_id.options = [
-                { value: 0, text: '- Select Material -' },
-                ...materials
-            ];
+            // config['gridWHLItems'].columns.stock_item_id.options = [
+            //     { value: 0, text: '- Select Material -' },
+            //     ...materials
+            // ];
         } catch (error) {
             console.log(error);
         }

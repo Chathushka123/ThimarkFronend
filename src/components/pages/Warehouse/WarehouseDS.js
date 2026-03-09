@@ -59,7 +59,8 @@ export function generateWarehouseDisplay(componentList, control) {
                         <div className="col-12">
                             <div className='table-wrp background-white'>
                                 <h5>Warehouse Locations</h5>
-                                <Grid item={componentList["gridLocations"]} deleteButton={<i className="fa fa-trash"></i>}
+                                <Grid item={componentList["gridLocations"]} 
+                                    deleteButton={<i className="fa fa-trash"></i>}
                                     customButton={<i className="fa fa-plus"></i>}
                                     className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
@@ -75,15 +76,9 @@ export function generateWarehouseDisplay(componentList, control) {
                         </div>
                     </div>
 
-                    <div className="row pb-4">
+                    {/* <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>
-                                {/* <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 className="mb-0">Warehouse Location Items (Inventory)</h5>
-                                    <Button className="btn common-btn common-btn-erp btn-sm" item={componentList["buttonSaveInventory"]}>
-                                        <i className="far fa-save mr-1"></i> Save Inventory
-                                    </Button>
-                                </div> */}
                                 <Grid item={componentList["gridWHLItems"]} deleteButton={<i className="fa fa-trash"></i>} className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
                                         <div className="col-12">
@@ -96,13 +91,17 @@ export function generateWarehouseDisplay(componentList, control) {
                                 </Grid>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>
                                 <h5>All Warehouses</h5>
-                                <Grid item={componentList["gridWarehouses"]} customButton={<i className="fa fa-edit"></i>} className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                <Grid item={componentList["gridWarehouses"]} 
+                                customButton={<i className="fa fa-edit"></i>} 
+                                customButton2={<i className="fa fa-print"></i>}
+                                deleteButton={<i className="fa fa-trash"></i>}
+                                className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
                                         <div className="col-12">
                                             <div className="master-table-wrp">

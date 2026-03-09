@@ -308,7 +308,7 @@ componentListConfig["gridWarehouses"] = {
         ReadAPI: "",
         Update: true,
         UpdateAPI: "",
-        delete: false,
+        delete: true,
         DeleteAPI: "",
         State: {
             Populated: false,

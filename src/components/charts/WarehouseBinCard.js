@@ -1,5 +1,11 @@
 import React from 'react';
 
+const STATUS_STYLES = {
+    critical: { color: '#dc3545', bg: '#fff5f5', borderColor: '#dc3545', label: 'Critical', barColor: '#dc3545' },
+    low: { color: '#fd7e14', bg: '#fff8f0', borderColor: '#fd7e14', label: 'Low', barColor: '#fd7e14' },
+    healthy: { color: '#28a745', bg: '#f0fff4', borderColor: '#28a745', label: 'Healthy', barColor: '#28a745' },
+};
+
 /**
  * Returns stock status styling based on qty vs min_qty
  */
@@ -20,7 +26,7 @@ const getStockStatus = (qty, minQty) => {
  *   - items    {Array}          : Array of inventory items in this bin
  *                                 Each item: { id, qty, stock_item: { name, code, min_qty, size, supplier, lead_time, unit_price, ... } }
  */
-const WarehouseBinCard = ({ binLabel, items, highlightedIds = [] }) => {
+const WarehouseBinCard = ({ binLabel, items, highlightedIds = [], materialStatusMap = null }) => {
     const hasBinMatch = highlightedIds.length > 0 && items && items.some(item => highlightedIds.includes(item.stock_item.id));
     return (
         <div
@@ -78,7 +84,8 @@ const WarehouseBinCard = ({ binLabel, items, highlightedIds = [] }) => {
                 {items && items.length > 0 ? (
                     items.map((item) => {
                         const s = item.stock_item;
-                        const status = getStockStatus(item.qty, s.min_qty);
+                        const mappedStatus = materialStatusMap ? materialStatusMap.get(s.id) : null;
+                        const status = mappedStatus ? STATUS_STYLES[mappedStatus] : getStockStatus(item.qty, s.min_qty);
                         const isMatch = highlightedIds.length > 0 && highlightedIds.includes(s.id);
                         // Progress bar: caps at 100%, reference point is 2× min_qty = full bar
                         const pct = Math.min(100, Math.round((item.qty / Math.max(s.min_qty * 2, 1)) * 100));
