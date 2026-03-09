@@ -23,6 +23,7 @@ const Material = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
     config["gridMaterials"].event.onRowCustomButton = handleRowEditClick;
+    config["gridMaterials"].event.onRowDelete = handleStkMatDelete;
 
 
     /*********************************************************/
@@ -102,6 +103,56 @@ const Material = () => {
         config["CONTROL_CENTER"].state.new = true;
     }
 
+    async function handleStkMatDelete(event, rowId) {
+        const row = config["gridMaterials"].data[rowId];
+        if (!row) return;
+
+        const materialId = row.id;
+        if (!materialId || materialId === 0) return;
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete material "${row.name}"?`
+        );
+
+        if (!confirmed) {
+            row._rowstate = undefined;
+            reRender();
+            return;
+        }
+
+        try {
+            document.getElementById("spinner").style.display = "";
+            const response = await API.delete(`/stock-materials/${materialId}`);
+
+            if (response.status === 200 || response.status === 204) {
+                config["CONTROL_CENTER"].promptBaseMessage("Material deleted successfully", "");
+
+                resetInputForm();
+                await getAllMaterials(uoms);
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error deleting material", "");
+                row._rowstate = undefined;
+                reRender();
+            }
+        } catch (error) {
+            console.log(error);
+            row._rowstate = undefined;
+            reRender();
+
+            try {
+                if (error.response && error.response.data && error.response.data.message) {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", error.response.data.message || "Please Contact System Administrator");
+                } else {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+                }
+            } catch (err) {
+                config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+            }
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
     function resetInputForm() {
         config['inputId'].setValue('');
         config['inputMatName'].setValue('');
@@ -176,6 +227,7 @@ const Material = () => {
     const getAllMaterials = async (uomsX) => {
         document.getElementById("spinner").style.display = "";
         try {
+            config['gridMaterials'].setData([]);
             const response = await API.get('/stock-materials');
 
             if (response.data && response.data.length > 0) {
