@@ -389,7 +389,7 @@ componentListConfig["gridMainModels"] = {
         ReadAPI: "",
         Update: true,
         UpdateAPI: "",
-        delete: false,
+        delete: true,
         DeleteAPI: "",
         State: {
             Populated: false,
@@ -439,7 +439,7 @@ componentListConfig["gridModels"] = {
         ReadAPI: "",
         Update: true,
         UpdateAPI: "",
-        delete: false,
+        delete: true,
         DeleteAPI: "",
         State: {
             Populated: false,
