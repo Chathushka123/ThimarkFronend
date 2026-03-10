@@ -22,7 +22,9 @@ import Material from './components/pages/Material/MaterialES';
 import Warehouse from './components/pages/Warehouse/WarehouseES';
 import Model from './components/pages/Model/ModelES';
 import Batch from './components/pages/Batch/BatchES';
-import Grn from './components/pages/Grn/MarkerES';
+import Grn from './components/pages/Grn/GrnES';
+import Mrn from './components/pages/Mrn/MrnES';
+import MrnIssuance from './components/pages/MrnIssuance/MrnIssuanceES';
 // import Style from './components/pages/Style/StyleES';
 // import Marker from './components/pages/Marker/MarkerES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
@@ -57,6 +59,8 @@ const App = () => {
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
           <PrivateRoute path="/grn" screen="GRN" component={Grn} theme={Theme} />
+          <PrivateRoute path="/mrnCreation" screen="MRN Creation" component={Mrn} theme={Theme} />
+          <PrivateRoute path="/mrnIssuance" screen="MRN Issuance" component={MrnIssuance} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *

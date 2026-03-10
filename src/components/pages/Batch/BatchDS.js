@@ -1,7 +1,7 @@
 import React from 'react'
 import {HandsOnTable,MultiSelectDropDown, TextBox, DropDown, Label, TextArea, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
-export function generateBuyerDisplay(componentList, control) {
+export function generateBatchDisplay(componentList, control) {
 
     return (
         <>
@@ -58,7 +58,7 @@ export function generateBuyerDisplay(componentList, control) {
                             <div className="col-12">
                                 <div className='table-wrp background-white'>
                                     <h5>Size Grid</h5>
-                                    <Grid item={componentList["gridSize"]}  className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                    <Grid item={componentList["gridSize"]}   className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                         <div className="row">
                                             <div className="col-12">
                                                 <div className="master-table-wrp">

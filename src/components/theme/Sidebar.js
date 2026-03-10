@@ -96,7 +96,7 @@ const Sidebar = () => {
       <div className="sidebar-inner-wrap">
         <div className="sidenav-logo-toggleicon-wrap">
           <a className="navbar-brand" href={`${process.env.PUBLIC_URL}/home`}>
-            <img className="sidenav-logo" src={Logo} alt="InQube Logo" />
+            <img className="sidenav-logo" src={Logo} alt="PMS Logo" />
           </a>
           {user && (
             <button className="btn btn-link btn-sm order-1 order-lg-0 toggle-btn" onClick={handleSidebarToggle} id="sidebarToggle" href="#!">
