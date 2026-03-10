@@ -200,5 +200,54 @@ componentListConfig["gridMaterials"] = {
     event: {}
 }
 
+let gridReturnCols = [];
+
+gridReturnCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "is", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["item_name"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "item_name", placeholder: "Material Name", editable: false, sqlColumn: "item_name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridReturnCols["item_code"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "item_code", placeholder: "Material Code", editable: false, sqlColumn: "item_code", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridReturnCols["issued_to"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "issued_to", placeholder: "Issued To", editable: false, sqlColumn: "issued_to", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["issued_qty"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "issued_qty", placeholder: "Issued Qty", editable: false, sqlColumn: "issued_qty", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["return_qty"] = { objectType: "TextBox", colIndex: 5, datatype: "text", name: "return_qty", placeholder: "Return Qty", editable: false, sqlColumn: "return_qty", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["issued_by"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "issued_by", placeholder: "Issued By", editable: false, sqlColumn: "issued_by", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["issued_at"] = { objectType: "TextBox", colIndex: 7, datatype: "text", name: "issued_at", placeholder: "Issued At", editable: false, sqlColumn: "issued_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["updated_by"] = { objectType: "TextBox", colIndex: 8, datatype: "text", name: "updated_by", placeholder: "Last Updated By", editable: false, sqlColumn: "updated_by", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridReturnCols["updated_at"] = { objectType: "TextBox", colIndex: 9, datatype: "text", name: "updated_at", placeholder: "Last Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+
+componentListConfig["gridReturnables"] = {
+    objectType: "Grid",
+    schema: {
+        name: "gridReturnables",
+        visible: true,
+        insertable: false,
+        sorting: true,
+        filterring: true,
+        updateAllowed: false,
+        mandetory: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    controller: {
+        id: "gridReturnables",
+        name: "gridReturnables",
+        descriptoin: "Pending Returnables",
+        type: "table",
+        keyField: "id",
+        visible: true,
+        Create: false,
+        CreateAPI: "",
+        Read: true,
+        ReadAPI: "",
+        Update: false,
+        UpdateAPI: "",
+        delete: false,
+        DeleteAPI: "",
+        State: { Populated: false, Modified: false },
+        Actions: { Save: "", Delete: "", Read: "" }
+    },
+    defaultRowCount: 0,
+    columns: gridReturnCols,
+    data: [],
+    event: {}
+}
+
 
 export default componentListConfig

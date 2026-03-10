@@ -12,6 +12,8 @@ const Inventory = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [activeFilter, setActiveFilter] = useState(null); // 'low' | 'critical' | null
+    const [pendingReturnables, setPendingReturnables] = useState([]);
+    const [showReturnablesModal, setShowReturnablesModal] = useState(false);
 
     function toggleFullscreen() {
         setIsFullscreen(prev => !prev);
@@ -421,6 +423,40 @@ const Inventory = () => {
         }
     }
 
+    const viewPendingReturnables = async () => {
+        document.getElementById('spinner').style.display = '';
+        try {
+            const response = await API.get('/returnable/getPendingReturnables');
+            const data = Array.isArray(response.data) ? response.data : [];
+            // Dynamically build column config from the first row's keys
+            
+            const tblData = data.map(item => {
+                return {
+                    id: item.id,
+                    item_name: item.stock_item?.name || "",
+                    item_code: item.stock_item?.code || "",
+                    issued_to: item.issued_to?.email || "",
+                    issued_qty: item.issued_qty || "0",
+                    return_qty: item.return_qty || "0",
+                    issued_by: item.created_by?.email || "",
+                    issued_at: item.created_at || "",
+                    updated_by: item.updated_by?.email || "",
+                    updated_at: item.updated_at || ""
+                }
+            })
+console.log(data);
+
+            config['gridReturnables'].data = tblData;
+            setPendingReturnables(tblData);
+            setShowReturnablesModal(true);
+        } catch (error) {
+            console.log(error);
+            config['CONTROL_CENTER'].promptErrorMessage('Error', 'Failed to load pending returnables. Please Contact System Administrator');
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    };
+
     return generateInventoryDisplay(config, inventoryData, {
         searchTerm,
         setSearchTerm,
@@ -429,7 +465,11 @@ const Inventory = () => {
         isFullscreen,
         toggleFullscreen,
         activeFilter,
-        setActiveFilter
+        setActiveFilter,
+        viewPendingReturnables,
+        pendingReturnables,
+        showReturnablesModal,
+        setShowReturnablesModal
     })
 }
 

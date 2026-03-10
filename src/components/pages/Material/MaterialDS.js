@@ -80,7 +80,10 @@ export function generateMaterialDisplay(componentList, control) {
                     <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>
-                                <Grid item={componentList["gridMaterials"]} customButton={<i className="fa fa-edit"></i>} className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                <Grid item={componentList["gridMaterials"]} 
+                                deleteButton={<i className="fa fa-trash"></i>}
+                                customButton={<i className="fa fa-edit"></i>} 
+                                className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
                                         <div className="col-12">
                                             <div className="master-table-wrp">

@@ -293,6 +293,8 @@ componentListConfig["gridWarehouses"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: true,
+        filterring : true,
+        sorting : true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
@@ -331,6 +333,7 @@ let locationCols = [];
 locationCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
 locationCols["rack"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "rack", placeholder: "Rack", editable: true, sqlColumn: "rack", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 locationCols["bin"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "bin", placeholder: "Bin", editable: true, sqlColumn: "bin", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+locationCols["stock_item_id"] = { objectType: "DropDown", colIndex: 3, datatype: "dropdown", name: "stock_item_id", placeholder: "Material", editable: true, sqlColumn: "stock_item_id", options: [{ value: 0, text: "- Select Material -" }], style: { textAlign: "left", minWidth: "200px", width: "200px" } };
 
 componentListConfig["gridLocations"] = {
     objectType: "Grid",
@@ -340,6 +343,8 @@ componentListConfig["gridLocations"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: false,
+        filterring : false,
+        sorting : true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
@@ -364,49 +369,6 @@ componentListConfig["gridLocations"] = {
     },
     defaultRowCount: 1,
     columns: locationCols,
-    data: [],
-    event: {}
-}
-
-let whlItemCols = [];
-
-whlItemCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
-whlItemCols["whl_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "whl_id", placeholder: "Warehouse Location", editable: true, sqlColumn: "whl_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-whlItemCols["stock_item_id"] = { objectType: "DropDown", colIndex: 2, datatype: "dropdown", name: "stock_item_id", placeholder: "Stock Material", editable: true, sqlColumn: "stock_item_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-whlItemCols["qty"] = { objectType: "IntegerField", colIndex: 3, datatype: "number", name: "qty", placeholder: "Quantity", editable: true, sqlColumn: "qty", style: { textAlign: "right", minWidth: "150px", width: "150px" } };
-
-componentListConfig["gridWHLItems"] = {
-    objectType: "Grid",
-    schema: {
-        name: "gridWHLItems",
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    controller: {
-        id: "gridWHLItems",
-        name: "gridWHLItems",
-        descriptoin: "Warehouse Location Items",
-        type: "table",
-        keyField: "id",
-        visible: true,
-        Create: true,
-        CreateAPI: "",
-        Read: true,
-        ReadAPI: "",
-        Update: true,
-        UpdateAPI: "",
-        delete: true,
-        DeleteAPI: "",
-        State: {
-            Populated: false,
-            Modified: false
-        }
-    },
-    defaultRowCount: 3,
-    columns: whlItemCols,
     data: [],
     event: {}
 }

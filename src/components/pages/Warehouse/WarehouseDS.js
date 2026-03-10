@@ -76,23 +76,6 @@ export function generateWarehouseDisplay(componentList, control) {
                         </div>
                     </div>
 
-                    {/* <div className="row pb-4">
-                        <div className="col-12">
-                            <div className='table-wrp background-white'>
-                                <Grid item={componentList["gridWHLItems"]} deleteButton={<i className="fa fa-trash"></i>} className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
-                                    <div className="row">
-                                        <div className="col-12">
-                                            <div className="master-table-wrp">
-                                                <GridHeader typeName="GridHeader" columns={componentList["gridWHLItems"].columns} />
-                                                <GridBody typeName="GridBody" rows={componentList["gridWHLItems"].data} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </Grid>
-                            </div>
-                        </div>
-                    </div> */}
-
                     <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>

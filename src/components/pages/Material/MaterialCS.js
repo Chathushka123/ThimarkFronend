@@ -517,6 +517,8 @@ componentListConfig["gridMaterials"] = {
         name: "gridMaterials",
         visible: true,
         insertable: true,
+        sorting: true,
+        filterring : true,
         updateAllowed: true,
         mandetory: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
