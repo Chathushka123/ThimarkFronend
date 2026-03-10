@@ -19,12 +19,14 @@ const Warehouse = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
+    config["CONTROL_CENTER"].event.onPopulate = handlePopulate;
     config["gridWarehouses"].event.onRowCustomButton = handleRowEditClick;
     config["gridWarehouses"].event.onRowCustomButton2 = handleDownloadStickers;
     config["gridWarehouses"].event.onRowDelete = handleWarehouseDelete;
     config["buttonSaveInventory"].event.onClick = handleSaveInventory;
     config["inputLocationBasis"].event.onClick = handleChangeLocationBasis;
     config["gridLocations"].event.onRowCustomButton = handleAddNewLocaionRow;
+    config["gridLocations"].event.onRowDelete = handleDeleteLocation;
 
 
     /*********************************************************/
@@ -43,7 +45,7 @@ const Warehouse = () => {
     useEffect(() => {
         getAllWarehouses();
         getAllStockMaterials();
-        config["gridLocations"].setData([{ id: 0, bin: "", rack: "" }])
+        // config["gridLocations"].setData([{ id: 0, bin: "", rack: "", stock_item_id: 0 }])
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -57,87 +59,6 @@ const Warehouse = () => {
     /*********************************************************/
     /********        User Defined Functions         **********/
     /*********************************************************/
-
-    async function handleDownloadStickers(e, r) {
-        const warehouseId = config["gridWarehouses"].getValueWiltColName(r, 'id');
-        const warehouseName = config["gridWarehouses"].getValueWiltColName(r, 'name');
-        if (!warehouseId) return;
-
-        try {
-            document.getElementById("spinner").style.display = "";
-            const response = await API.get(`/warehouses/${warehouseId}/stickers`, { responseType: 'blob' });
-
-            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `stickers-${warehouseName || warehouseId}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.log(error);
-            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to download stickers. Please Contact System Administrator");
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
-
-    async function handleWarehouseDelete(event, rowId) {
-        const row = config["gridWarehouses"].data[rowId];
-        if (!row) return;
-
-        const warehouseId = row.id;
-        if (!warehouseId || warehouseId === 0) return;
-
-        const confirmed = window.confirm(
-            `Are you sure you want to delete warehouse "${row.name}"? All associated locations will also be deleted.`
-        );
-
-        if (!confirmed) {
-            // Revert the _rowstate set by the framework since user cancelled
-            row._rowstate = undefined;
-            reRender();
-            return;
-        }
-
-        try {
-            document.getElementById("spinner").style.display = "";
-            const response = await API.delete(`/warehouses/${warehouseId}`);
-
-            if (response.status === 200 || response.status === 204) {
-                config["CONTROL_CENTER"].promptBaseMessage("Warehouse deleted successfully", "");
-
-                // If this warehouse was loaded in the form, clear the form
-                const currentId = config['inputId'].data.value;
-                if (currentId && String(currentId) === String(warehouseId)) {
-                    resetInputForm();
-                }
-
-                await getAllWarehouses();
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Error deleting warehouse", "");
-                row._rowstate = undefined;
-                reRender();
-            }
-        } catch (error) {
-            console.log(error);
-            row._rowstate = undefined;
-            reRender();
-
-            try {
-                if (error.response && error.response.data && error.response.data.message) {
-                    config["CONTROL_CENTER"].promptErrorMessage("Error", error.response.data.message || "Please Contact System Administrator");
-                } else {
-                    config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
-                }
-            } catch (err) {
-                config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
-            }
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
 
     function handleRowEditClick(e, r) {
         const id = config["gridWarehouses"].getValueWiltColName(r, 'id');
@@ -171,6 +92,18 @@ const Warehouse = () => {
         }
     }
 
+    function handleDeleteLocation(event, rowId) {
+        const row = config['gridLocations'].data[rowId];
+        if (!row) return;
+
+        const isEmpty = !row.bin && !row.rack && (!row.stock_item_id || row.stock_item_id === 0);
+        if (!isEmpty) {
+            // Revert - row has data, disallow deletion
+            row._rowstate = undefined;
+            reRender();
+        }
+    }
+
     function handleAddNewLocaionRow() {
         const currentData = config['gridLocations'].data || [];
         const newRow = { id: 0, bin: "", rack: "" };
@@ -183,18 +116,28 @@ const Warehouse = () => {
         config['inputCode'].setValue('');
         config['inputLocationBasis'].setValue("0");
         setLocationBasis(0);
-        config["gridLocations"].setData([{ id: 0, bin: "", rack: "" }])
-        // config['gridWHLItems'].setData([]);
+        // config["gridLocations"].setData([{ id: 0, bin: "", rack: "", stock_item_id: 0 }])
+        config['gridLocations'].setData([]);
 
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
     }
 
-    const loadWarehouseData = async (warehouseId) => {
+    function handlePopulate() {
+        const selected = config['inputId'].data.value;
+
+        if(!selected || selected == 0 || selected == ""){
+            config["CONTROL_CENTER"].promptWarningMessage("Please select a material first!", "");
+        }
+
+        loadWarehouseData(selected);
+    }
+
+    async function loadWarehouseData(warehouseId) {
         try {
             const response = await API.get(`/warehouses/${warehouseId}`);
             if (response.data && response.data.locations) {
-                config['gridLocations'].setData(response.data.locations.length > 0 ? response.data.locations : [{ id: 0, bin: "", rack: "" }]);
+                config['gridLocations'].setData(response.data.locations.length > 0 ? response.data.locations : [{ id: 0, bin: "", rack: "", stock_item_id: 0 }]);
 
                 // Set location basis checkbox
                 const isLocationBased = response.data.location_basis == 1;
@@ -330,11 +273,13 @@ const Warehouse = () => {
             const materials = response.data.map(item => ({ value: item.id, text: item.name }));
             setStockMaterials(materials);
 
-            // Set stock material dropdown options for WHL items grid
-            // config['gridWHLItems'].columns.stock_item_id.options = [
-            //     { value: 0, text: '- Select Material -' },
-            //     ...materials
-            // ];
+            config['gridLocations'].columns.stock_item_id.options = [
+                { value: 0, text: '- Select Material -' },
+                ...materials
+            ];
+
+            //  config['gridLocations'].reRender()
+
         } catch (error) {
             console.log(error);
         }
@@ -437,7 +382,8 @@ const Warehouse = () => {
                 .map(row => {
                     const loc = {
                         rack: row.rack || null,
-                        bin: row.bin || null
+                        bin: row.bin || null,
+                        stock_item_id: row.stock_item_id || null
                     };
                     if (row.id && row.id !== 0) {
                         loc.id = row.id;
@@ -527,6 +473,87 @@ const Warehouse = () => {
             config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
         }
         finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleDownloadStickers(e, r) {
+        const warehouseId = config["gridWarehouses"].getValueWiltColName(r, 'id');
+        const warehouseName = config["gridWarehouses"].getValueWiltColName(r, 'name');
+        if (!warehouseId) return;
+
+        try {
+            document.getElementById("spinner").style.display = "";
+            const response = await API.get(`/warehouses/${warehouseId}/stickers`, { responseType: 'blob' });
+
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `stickers-${warehouseName || warehouseId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to download stickers. Please Contact System Administrator");
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleWarehouseDelete(event, rowId) {
+        const row = config["gridWarehouses"].data[rowId];
+        if (!row) return;
+
+        const warehouseId = row.id;
+        if (!warehouseId || warehouseId === 0) return;
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete warehouse "${row.name}"? All associated locations will also be deleted.`
+        );
+
+        if (!confirmed) {
+            // Revert the _rowstate set by the framework since user cancelled
+            row._rowstate = undefined;
+            reRender();
+            return;
+        }
+
+        try {
+            document.getElementById("spinner").style.display = "";
+            const response = await API.delete(`/warehouses/${warehouseId}`);
+
+            if (response.status === 200 || response.status === 204) {
+                config["CONTROL_CENTER"].promptBaseMessage("Warehouse deleted successfully", "");
+
+                // If this warehouse was loaded in the form, clear the form
+                const currentId = config['inputId'].data.value;
+                if (currentId && String(currentId) === String(warehouseId)) {
+                    resetInputForm();
+                }
+
+                await getAllWarehouses();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error deleting warehouse", "");
+                row._rowstate = undefined;
+                reRender();
+            }
+        } catch (error) {
+            console.log(error);
+            row._rowstate = undefined;
+            reRender();
+
+            try {
+                if (error.response && error.response.data && error.response.data.message) {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", error.response.data.message || "Please Contact System Administrator");
+                } else {
+                    config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+                }
+            } catch (err) {
+                config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+            }
+        } finally {
             document.getElementById("spinner").style.display = "none";
         }
     }
