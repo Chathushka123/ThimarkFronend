@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { generateBuyerDisplay } from './BatchDS';
+import { generateBatchDisplay } from './BatchDS';
 import config from './BatchCS';
 import API from '../../../api/API';
 
-const Buyer = () => {
+const Batch = () => {
     let [rendered, setRendered] = useState(true);
 
     function reRender() {
@@ -484,7 +484,7 @@ const Buyer = () => {
 
     
 
-    return generateBuyerDisplay(config)
+    return generateBatchDisplay(config)
 }
 
-export default Buyer;
+export default Batch;

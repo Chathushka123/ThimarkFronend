@@ -1,0 +1,556 @@
+import React, { useEffect, useState } from 'react';
+import { generateGrnDisplay } from './GrnDS';
+import config from './GrnCS';
+import API from '../../../api/API';
+
+const Grn = () => {
+    let [rendered, setRendered] = useState(true);
+    let [grnTransactions, setGrnTransactions] = useState([]);
+
+    function reRender() {
+        setRendered(!rendered);
+    }
+
+    /*********************************************************/
+    /********      Framework Action Definitions     **********/
+    /*********************************************************/
+
+    config["CONTROL_CENTER"].renderFunction = reRender;
+    
+    // Button Events
+    config["buttonCreateGrn"].event.onClick = handleCreateGrn;
+    config["buttonAddTransaction"].event.onClick = handleAddTransaction;
+    config["buttonCompleteGrn"].event.onClick = handleCompleteGrn;
+    config["buttonNewGrn"].event.onClick = handleNewGrn;
+    config["buttonDeleteTransactionYes"].event.onClick = handleDeleteTransactionYes;
+    config["buttonDeleteTransactionNo"].event.onClick = handleDeleteTransactionNo;
+    config["buttonCompleteGrnYes"].event.onClick = handleCompleteGrnYes;
+    config["buttonCompleteGrnNo"].event.onClick = handleCompleteGrnNo;
+    
+    // Advance Search
+    config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
+    config["CONTROL_CENTER"].event.onAdvanceSearch = handleAdvanceSearch;
+    config["CONTROL_CENTER"].event.onAdvanceSearchDone = handleAdvanceSearchDone;
+
+    // Expose delete function globally for card buttons
+    window.handleDeleteTransaction = handleDeleteTransaction;
+
+    /*********************************************************/
+    /********       User Defined Declarations       **********/
+    /*********************************************************/
+
+    // Executes when Page Load 
+    useEffect(() => {
+        __checkIsAuthorized();
+        __setFormReadWrite(true);
+        __getWarehouses();
+    }, []);
+
+    function __checkIsAuthorized() {
+        const apiRequest = { "screen": "grn" }
+        API.post(`permissions/isAuthorized`, apiRequest).then(response => {
+            const isAuthorized = response.data;
+            __setFormReadWrite(isAuthorized);
+        }).catch(error => {
+            __setFormReadWrite("r");
+        });
+    }
+
+    function __setFormReadWrite(status) {
+        if (status === "r") {
+            config["buttonCreateGrn"].schema.visible = false;
+            config["buttonAddTransaction"].schema.visible = false;
+            config["buttonCompleteGrn"].schema.visible = false;
+        }
+    }
+
+    // Enable navigation prompt
+    window.onbeforeunload = function () {
+        if (config["CONTROL_CENTER"].state.modified || 
+            config["CONTROL_CENTER"].state.new || 
+            config["CONTROL_CENTER"].state.deleted) {
+            return true;
+        }
+    };
+
+    /*********************************************************/
+    /********        User Defined Functions         **********/
+    /*********************************************************/
+
+    async function __getWarehouses() {
+        try {
+            const response = await API.get(`warehouses`);
+            let warehouses = [];
+            warehouses.push({
+                    "value": "",
+                    "text": "Select Warehouse"
+                });
+            response.data.forEach((value) => {
+                warehouses.push({
+                    "value": value.id,
+                    "text": value.name
+                });
+            });
+            config['inputWarehouse'].setOptions(warehouses);
+        } catch(err) {
+            console.log(err);
+            config["CONTROL_CENTER"].promptWarningMessage("Error loading warehouses", "");
+        }
+    }
+
+    async function handleCreateGrn() {
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            // Get form values
+            const rmpo_no = config['inputRmpoNo'].data.value;
+            const remarks = config['inputRemarks'].data.value;
+            const warehouse_id = config['inputWarehouse'].data.value;
+
+            // Validations 
+            if (!rmpo_no || rmpo_no.trim() === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("RMPO No is required", "");
+                return;
+            }
+            if (!warehouse_id) {
+                config["CONTROL_CENTER"].promptWarningMessage("Please select a Warehouse", "");
+                return;
+            }
+
+            // Prepare API request
+            const apiRequest = {
+                rmpono: rmpo_no,
+                remark: remarks,
+                warehouse_id: parseInt(warehouse_id),
+                status: "open"
+            };
+
+            // Call API to create GRN
+            let response = await API.post(`grns`, apiRequest);
+
+            if (response.status === 200 || response.status === 201) {
+                const grnData = response.data;
+                config['inputGrnID'].setValue(grnData.id);
+                config['inputStatus'].setValue(grnData.status);
+                
+                config["CONTROL_CENTER"].promptBaseMessage("GRN created successfully", "");
+                config["CONTROL_CENTER"].state.modified = false;
+                config["CONTROL_CENTER"].state.new = false;
+                
+                // Show transaction entry section
+                config["buttonAddTransaction"].schema.visible = true;
+                config["buttonCompleteGrn"].schema.visible = true;
+                config["buttonCreateGrn"].schema.visible = false;
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in creating GRN", "");
+            }
+
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleAddTransaction() {
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            // Get form values
+            const grn_id = config['inputGrnID'].data.value;
+            const location_id = config['inputLocationId'].data.value;
+            const stock_item_id = config['inputStockItemId'].data.value;
+            const quantity = config['inputQuantity'].data.value;
+            const price = config['inputPrice'].data.value;
+
+            // Validations 
+            if (!grn_id) {
+                config["CONTROL_CENTER"].promptWarningMessage("Please create GRN first", "");
+                return;
+            }
+            if (!location_id || location_id.trim() === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("Location ID is required", "");
+                return;
+            }
+            // if (!stock_item_id || stock_item_id.trim() === "") {
+            //     config["CONTROL_CENTER"].promptWarningMessage("Stock Item ID is required", "");
+            //     return;
+            // }
+            if (!quantity || quantity.trim() === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("Quantity is required", "");
+                return;
+            }
+            if (!price || parseFloat(price) <= 0) {
+                config["CONTROL_CENTER"].promptWarningMessage("Price must be greater than 0", "");
+                return;
+            }
+
+            // Prepare API request
+            const apiRequest = {
+                grn_id: parseInt(grn_id),
+                location_id: location_id,
+                stock_item_id: stock_item_id,
+                quantity: parseInt(quantity),
+                grn_price: parseFloat(price)
+            };
+
+            // Call API to add transaction
+            let response = await API.post(`grns/addTransaction`, apiRequest);
+
+            if (response.status === 200 || response.status === 201) {
+                config["CONTROL_CENTER"].promptBaseMessage("Transaction added successfully", "");
+                
+                // Clear transaction fields
+                config['inputLocationId'].setValue("");
+                config['inputStockItemId'].setValue("");
+                config['inputQuantity'].setValue("");
+                config['inputPrice'].setValue("");
+                
+                // Reload transactions
+                await loadGrnTransactions(grn_id);
+                
+                // Focus on location field for next scan
+                const locationInput = document.querySelector('input[name="inputLocationId"]');
+                if (locationInput) locationInput.focus();
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in adding transaction", "");
+            }
+
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleDeleteTransaction(transactionId) {
+        // Show confirmation popup
+        config["inputDeleteTransactionId"].data.value = transactionId;
+        config["deleteTransactionPopUp"].showPopUp();
+    }
+
+    async function handleDeleteTransactionYes() {
+        try {
+            const transactionId = config["inputDeleteTransactionId"].data.value;
+            
+            if (!transactionId) return;
+
+            document.getElementById("spinner").style.display = "";
+            config["deleteTransactionPopUp"].closePopUp();
+
+            // Call API to delete transaction
+            let response = await API.post(`grns/deleteTransaction`, { id: parseInt(transactionId) });
+
+            if (response.status === 200 || response.status === 201) {
+                config["CONTROL_CENTER"].promptBaseMessage("Transaction deleted successfully", "");
+                
+                // Reload transactions
+                const grn_id = config['inputGrnID'].data.value;
+                await loadGrnTransactions(grn_id);
+                
+                // Clear the delete transaction ID
+                config["inputDeleteTransactionId"].data.value = "";
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in deleting transaction", "");
+            }
+
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    function handleDeleteTransactionNo() {
+        config["deleteTransactionPopUp"].closePopUp();
+        config["inputDeleteTransactionId"].data.value = "";
+    }
+
+    async function handleCompleteGrn() {
+        // Get form values
+        const grn_id = config['inputGrnID'].data.value;
+
+        if (!grn_id) {
+            config["CONTROL_CENTER"].promptWarningMessage("No GRN to complete", "");
+            return;
+        }
+
+        // Check if there are transactions
+        if (grnTransactions.length === 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("Cannot complete GRN without any transactions", "");
+            return;
+        }
+
+        // Show confirmation popup
+        config["completeGrnPopUp"].showPopUp();
+    }
+
+    async function handleCompleteGrnYes() {
+        try {
+            document.getElementById("spinner").style.display = "";
+            config["completeGrnPopUp"].closePopUp();
+
+            // Get form values
+            const grn_id = config['inputGrnID'].data.value;
+
+            // Prepare API request
+            const apiRequest = {
+                id: parseInt(grn_id),
+                status: "completed"
+            };
+
+            // Call API to complete GRN
+            let response = await API.post(`grns/complete`, apiRequest);
+
+            if (response.status === 200 || response.status === 201) {
+                config['inputStatus'].setValue("completed");
+                config["CONTROL_CENTER"].promptBaseMessage("GRN completed successfully", "");
+                
+                // Hide transaction entry and complete button
+                config["buttonAddTransaction"].schema.visible = false;
+                config["buttonCompleteGrn"].schema.visible = false;
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in completing GRN", "");
+            }
+
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    function handleCompleteGrnNo() {
+        config["completeGrnPopUp"].closePopUp();
+    }
+
+    function handleNewGrn() {
+        // Clear all fields
+        config['inputGrnID'].setValue("");
+        config['inputRmpoNo'].setValue("");
+        config['inputRemarks'].setValue("");
+        config['inputWarehouse'].setValue("");
+        config['inputStatus'].setValue("");
+        
+        // Reset transactions
+        setGrnTransactions([]);
+        
+        // Reset buttons visibility through schema
+        config["buttonCreateGrn"].schema.visible = true;
+        config["buttonAddTransaction"].schema.visible = false;
+        config["buttonCompleteGrn"].schema.visible = false;
+        
+        config["CONTROL_CENTER"].state.new = true;
+        reRender();
+    }
+
+    async function loadGrnTransactions(grn_id) {
+        try {
+            const response = await API.get(`grns/${grn_id}/transactions`);
+            if (response.status === 200) {
+                setGrnTransactions(response.data.data || []);
+            }
+        } catch(err) {
+            console.log(err);
+            setGrnTransactions([]);
+        }
+    }
+
+    async function handleAdvanceSearchPopup() {
+        try {
+            let data = [];
+            const getData = await __getAll();
+
+            if (getData && getData !== "Error" && getData.length > 0) {
+                const listData = getData[0].Grn;
+                listData.forEach((value, index) => {
+                    
+                    data.push({
+                        "grn_id_search": value.id,
+                        "rmpo_no_search": value.rmpono,
+                        "status_search": value.status,
+                    });
+                });
+            }
+            
+            let msg = "";
+            if (data.length > 20) {
+                msg = "Only 20 records are loaded. Please narrow your search";
+                data = data.slice(0, 20);
+            }
+
+            config["CONTROL_CENTER"].showAdvanceSearch(data, msg);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptWarningMessage("Error loading GRNs", "");
+        }
+    }
+
+    async function __getAll() {
+        try {
+            const key = "Grn";
+            const distinct = false;
+            const select = ["*"];
+            const where = [{"active":true}];
+            const orderby = "created_at:desc";
+            const limit = 25;
+            const relations = [
+                
+            ];
+
+
+            const data = await __getDetails(key, distinct, select, where, relations, orderby, limit);
+
+            return data;
+
+        } catch (error) {
+            console.log("***********GetAll Error**********");
+            console.log(error.response);
+            return "Error";
+        }
+    }
+
+    async function __getDetails(key, distinct, select, where, relations, orderby, limit) {
+        try {
+            const apiRequest = {
+                [key]: {
+                    "distinct": distinct,
+                    "select": select,
+                    "where": where,
+                    "relations": relations,
+                    "orderby": orderby,
+                    "limit": limit
+                }
+            };
+
+            const getDetails = await API.post(`searchByParameters`, apiRequest);
+            const details = getDetails.data;
+
+            return details;
+
+        } catch (error) {
+            console.log("***********GetDetails Error**********");
+            console.log(error.response);
+            return "Error";
+        }
+    }
+
+    async function handleAdvanceSearch(event, searchCriteria, callback) {
+        try {
+            const response = await API.post(`grns/search`, searchCriteria);
+            
+            let data = [];
+            if (response.data.data && response.data.data.length > 0) {
+                response.data.data.forEach((value) => {
+                    data.push({
+                        "grn_id_search": value.id,
+                        "rmpo_no_search": value.rmpono,
+                        "status_search": value.status
+                    });
+                });
+            }
+
+            let msg = data.length === 0 ? "No records found" : "";
+            callback(data, msg);
+        } catch (error) {
+            console.log(error);
+            callback([], "Error searching GRNs");
+        }
+    }
+
+    async function handleAdvanceSearchDone(event, selectedRow) {
+        const grn_id = selectedRow.grn_id_search;
+        await formPopulate(grn_id);
+    }
+
+    async function formPopulate(grn_id) {
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            const response = await API.get(`grns/${grn_id}`);
+
+            if (response.status === 200) {
+                let data = response.data;
+                config['inputGrnID'].setValue(data.id);
+                config['inputRmpoNo'].setValue(data.rmpo_no);
+                config['inputRemarks'].setValue(data.remarks || "");
+                config['inputWarehouse'].setValue(data.warehouse_id);
+                config['inputStatus'].setValue(data.status);
+                
+                // Load transactions
+                await loadGrnTransactions(grn_id);
+                
+                // Set button visibility based on status
+                if (data.status === "open") {
+                    config["buttonAddTransaction"].schema.visible = true;
+                    config["buttonCompleteGrn"].schema.visible = true;
+                    config["buttonCreateGrn"].schema.visible = false;
+                } else {
+                    config["buttonAddTransaction"].schema.visible = false;
+                    config["buttonCompleteGrn"].schema.visible = false;
+                    config["buttonCreateGrn"].schema.visible = false;
+                }
+                
+                config["CONTROL_CENTER"].state.populated = true;
+                reRender();
+            }
+
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+
+
+    function handleError(error) {
+        try {
+            if (error.response && error.response.data && error.response.data.message) {
+                try {
+                    let errors = [];
+                    const errorData = typeof error.response.data.message === 'string'
+                        ? JSON.parse(error.response.data.message)
+                        : error.response.data.message;
+
+                    Object.entries(errorData).forEach(([index, data]) => {
+                        if (Array.isArray(data)) {
+                            data.forEach(error => errors.push(error));
+                        } else {
+                            errors.push(data);
+                        }
+                    });
+
+                    const errorMessage = errors.join('\n');
+                    config["CONTROL_CENTER"].promptWarningMessage(errorMessage, "");
+                } catch (parseError) {
+                    config["CONTROL_CENTER"].promptWarningMessage(error.response.data.message, "");
+                }
+            } else if (error.message) {
+                config["CONTROL_CENTER"].promptWarningMessage(error.message, "");
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("An unexpected error occurred", "");
+            }
+        } catch (err) {
+            console.error("Error in handleError:", err);
+            config["CONTROL_CENTER"].promptWarningMessage("An unexpected error occurred", "");
+        }
+    }
+
+    return generateGrnDisplay(config, grnTransactions);
+}
+
+export default Grn;
