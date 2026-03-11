@@ -6,6 +6,7 @@ import API from '../../../api/API';
 const Inventory = () => {
     let [rendered, setRendered] = useState(true);
     const [warehouses, SetWarehouses] = useState([]);
+    const [selectedWarehouse, setSelectedWarehouse] = useState(0);
     const [inventoryData, setInventoryData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [highlightedIds, setHighlightedIds] = useState([]);
@@ -67,7 +68,7 @@ const Inventory = () => {
 
         if (searchTerm.trim().length >= 3) {
             const timer = setTimeout(() => {
-                searchMaterials(searchTerm.trim());
+                searchMaterials(searchTerm.trim(), selectedWarehouse);
             }, 400);
             return () => clearTimeout(timer);
         }
@@ -86,10 +87,10 @@ const Inventory = () => {
         return () => clearTimeout(timer);
     }, [highlightedIds]);
 
-    const searchMaterials = async (term) => {
+    const searchMaterials = async (term, selectedWarehouse) => {
         setIsSearching(true);
         try {
-            const response = await API.get(`/stock-materials/search?q=${encodeURIComponent(term)}`);
+            const response = await API.get(`/stock-materials/search?q=${encodeURIComponent(term)}&wh=${selectedWarehouse}`);
             if (Array.isArray(response.data)) {
                 setHighlightedIds(response.data);
             } else {
@@ -124,6 +125,7 @@ const Inventory = () => {
         const selectedWH = config["inputWH"].data.value;
         if (selectedWH > 0) {
             getWarehouseRelatedData(selectedWH);
+            setSelectedWarehouse(selectedWH)
         }
         else {
             setInventoryData([]);
@@ -444,7 +446,6 @@ const Inventory = () => {
                     updated_at: item.updated_at || ""
                 }
             })
-console.log(data);
 
             config['gridReturnables'].data = tblData;
             setPendingReturnables(tblData);
