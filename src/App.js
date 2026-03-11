@@ -31,6 +31,8 @@ import UserRoles from './components/pages/UserRoles/UserRolesES';
 import CreateUser from './components/pages/CreateUser/CreateUserES';
 import Permissions from './components/pages/Permissions/PermissionsES';
 import Inventory from './components/pages/Inventory/InventoryES';
+import CostSheetView from './components/pages/CostSheetView/CostSheetES';
+
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
@@ -61,6 +63,7 @@ const App = () => {
           <PrivateRoute path="/grn" screen="GRN" component={Grn} theme={Theme} />
           <PrivateRoute path="/mrnCreation" screen="MRN Creation" component={Mrn} theme={Theme} />
           <PrivateRoute path="/mrnIssuance" screen="MRN Issuance" component={MrnIssuance} theme={Theme} />
+          <PrivateRoute path="/costSheetView" screen="Cost Sheet View" component={CostSheetView} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
