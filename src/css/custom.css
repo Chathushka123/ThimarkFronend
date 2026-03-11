@@ -1809,3 +1809,192 @@ input[type=checkbox].form-check-input {
 .modal-header{
   padding: 1px 1px !important;
 }
+
+/* Mobile-Friendly MRN Issuance Styles */
+@media (max-width: 768px) {
+  /* Make cards full width on mobile */
+  .col-md-6.col-lg-4.col-12.mb-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  /* Increase font size for better mobile readability */
+  .form-control-lg {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+  
+  /* Make buttons full width on mobile */
+  .btn-block {
+    display: block;
+    width: 100%;
+  }
+  
+  /* Better touch targets for mobile */
+  .card-body {
+    padding: 15px !important;
+  }
+  
+  /* Larger input fields for scanning */
+  .form-control-sm {
+    font-size: 14px !important;
+    padding: 8px !important;
+  }
+  
+  /* Stack form groups vertically on mobile */
+  .form-row .form-group {
+    margin-bottom: 15px;
+  }
+}
+
+/* Card hover effects */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* Scan input highlight */
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #638ad6 !important;
+  box-shadow: 0 0 0 0.2rem rgba(99, 138, 214, 0.25) !important;
+}
+
+/* Success/Error states for cards */
+.card-body .bg-success-light {
+  background-color: #d4edda;
+  border-left: 4px solid #28a745;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.card-body .bg-danger-light {
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* Better spacing for mobile cards */
+@media (max-width: 576px) {
+  .page-header-wrp {
+    padding: 10px !important;
+    margin: 0 8px 12px !important;
+  }
+  
+  .custom-container-padding {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+  
+  .form-wrp {
+    padding: 15px !important;
+  }
+  
+  h5 {
+    font-size: 16px !important;
+  }
+  
+  /* Larger buttons for touch */
+  .btn {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+  
+  .btn-sm {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Loading indicator positioning */
+.loading {
+  position: fixed;
+  z-index: 9999;
+  height: 2em;
+  width: 2em;
+  overflow: visible;
+  margin: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.loading:before {
+  content: '';
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+  background: -webkit-radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+}
+
+.loading:not(:required):after {
+  content: '';
+  display: block;
+  font-size: 10px;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.5em;
+  -webkit-animation: spinner 1500ms infinite linear;
+  animation: spinner 1500ms infinite linear;
+  border-radius: 0.5em;
+  box-shadow: rgba(255, 255, 255, 0.75) 1.5em 0 0 0, rgba(255, 255, 255, 0.75) 1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) 0 1.5em 0 0, rgba(255, 255, 255, 0.75) -1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) -1.5em 0 0 0, rgba(255, 255, 255, 0.75) -1.1em -1.1em 0 0, rgba(255, 255, 255, 0.75) 0 -1.5em 0 0, rgba(255, 255, 255, 0.75) 1.1em -1.1em 0 0;
+}
+
+@-webkit-keyframes spinner {
+  0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+@keyframes spinner {
+  0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+
+/* Simplified text visibility fix for inputs */
+input.form-control,
+input[type="text"],
+input[type="number"],
+textarea.form-control,
+textarea {
+  color: #1e293b !important;
+}
+
+/* Select dropdowns - simple approach */
+select.form-control,
+select {
+  color: #1e293b !important;
+}
+
+/* Disabled inputs should still be readable */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  color: #1e293b !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #1e293b !important;
+}
+
+/* Placeholder styling */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.7;
+}
+
+/* Autofill override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1e293b !important;
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}

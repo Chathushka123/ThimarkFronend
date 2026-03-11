@@ -1,5 +1,4 @@
-
-let componentListConfig = []
+let componentListConfig = [];
 
 componentListConfig["CONTROL_CENTER"] = {
     objectType: "Controller",
@@ -22,8 +21,8 @@ componentListConfig["CONTROL_CENTER"] = {
             name: "labelMrnIssuance",
             type: "text",
             visible: true,
-            value: "MRN - Issuance"
-        },
+            value: "MRN Issuance"
+        }
     },
     state: {
         populated: false,
@@ -32,16 +31,51 @@ componentListConfig["CONTROL_CENTER"] = {
         new: false
     },
     actions: {
-        save: "buttonSave",
-        delete: "buttonDelete",
-        populate: "buttonPopulate",
-        refresh: "buttonRefresh"
+        save: "",
+        delete: "",
+        populate: "",
+        refresh: ""
     },
-    event: {
-    }
-}
+    event: {}
+};
 
-// MRN ID (auto-generated, readonly)
+// MRN Scan Section
+componentListConfig["inputMrnScan"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputMrnScan",
+        placeholder: "Scan or Enter MRN ID",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        disabled: false,
+        searchable: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelMrnScan",
+            type: "text",
+            visible: true,
+            value: "Scan MRN ID"
+        }
+    },
+    data: {
+        sqlcolumn: "mrn_scan",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+};
+
+
+
+// MRN Details (Read-only Display)
 componentListConfig["inputMrnID"] = {
     objectType: "TextBox",
     schema: {
@@ -73,9 +107,8 @@ componentListConfig["inputMrnID"] = {
         value: ""
     },
     event: {}
-}
+};
 
-// MRN Status (readonly)
 componentListConfig["inputStatus"] = {
     objectType: "TextBox",
     schema: {
@@ -107,22 +140,55 @@ componentListConfig["inputStatus"] = {
         value: ""
     },
     event: {}
-}
+};
 
-// Warehouse Dropdown
-componentListConfig["inputWarehouse"] = {
-    objectType: "DropDown",
+componentListConfig["inputBatchNo"] = {
+    objectType: "TextBox",
     schema: {
-        name: "inputWarehouse",
-        placeholder: "Select Warehouse",
+        name: "inputBatchNo",
+        placeholder: "",
         type: "text",
         length: 100,
         showLabel: true,
         visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        searchable:true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelBatchNo",
+            type: "text",
+            visible: true,
+            value: "Batch No"
+        }
+    },
+    data: {
+        sqlcolumn: "batch_no",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+};
+
+componentListConfig["inputWarehouse"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputWarehouse",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     label: {
@@ -134,600 +200,116 @@ componentListConfig["inputWarehouse"] = {
             value: "Warehouse"
         }
     },
-    options: [],
     data: {
-        sqlcolumn: "warehouse_id",
+        sqlcolumn: "warehouse",
         oldValue: "",
         value: ""
     },
     event: {}
-}
-
-// Batch Multi-Select
-componentListConfig["inputBatch"] = {
-    objectType: "Multiselect",
-    schema: {
-        name: "inputBatch",
-        id: "inputBatch",
-        placeholder: "Select Batch",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandatory: true,
-        searchable: true,
-        avoidHighlightFirstOption: true,
-        showCheckbox: true,
-        disable: false,
-        onSearch: "",
-        loading: false,
-        style: "",
-        selectionLimit: 1,
-        endpoint: "",
-        singleSelect: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelBatch",
-            type: "text",
-            visible: true,
-            value: "Batch"
-        }
-    },
-    options: [],
-    data: {
-        sqlcolumn: "batch",
-        oldValue: "",
-        value: []
-    },
-    event: {}
-}
-
-// Material Multi-Select
-componentListConfig["inputMaterial"] = {
-    objectType: "Multiselect",
-    schema: {
-        name: "inputMaterial",
-        id: "inputMaterial",
-        placeholder: "Select Material",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandatory: true,
-        searchable: true,
-        avoidHighlightFirstOption: true,
-        showCheckbox: true,
-        disable: false,
-        onSearch: "",
-        loading: false,
-        style: "",
-        selectionLimit: 1,
-        endpoint: "",
-        singleSelect: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelMaterial",
-            type: "text",
-            visible: true,
-            value: "Material"
-        }
-    },
-    options: [],
-    data: {
-        sqlcolumn: "material",
-        oldValue: "",
-        value: []
-    },
-    event: {}
-}
-
-// Quantity Input
-componentListConfig["inputQuantity"] = {
-    objectType: "IntegerField",
-    schema: {
-        name: "inputQuantity",
-        placeholder: "Enter Quantity",
-        type: "number",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        searchable:true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelQuantity",
-            type: "text",
-            visible: true,
-            value: "Quantity"
-        }
-    },
-    data: {
-        sqlcolumn: "quantity",
-        oldValue: "",
-        value: ""
-    },
-    event: {}
-}
-
-// Material Grid Configuration
-let materialGridCols = [];
-materialGridCols["mrn_detail_id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "mrn_detail_id", placeholder: "MRN Detail ID", visible: false, editable: false, sqlColumn: "mrn_detail_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-materialGridCols["material_id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "material_id", placeholder: "Material ID", visible: false, editable: false, sqlColumn: "material_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-materialGridCols["material_name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "material_name", placeholder: "Material", visible: true, editable: false, sqlColumn: "material_name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-materialGridCols["quantity"] = { objectType: "IntegerField", colIndex: 3, datatype: "number", name: "quantity", placeholder: "Quantity", editable: false, sqlColumn: "quantity", style: { textAlign: "right", minWidth: "120px", width: "120px" } };
-
-componentListConfig["gridMaterials"] = {
-    objectType: "Grid",
-    schema: {
-        name: "gridMaterials",
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    controller: {
-        id: "gridMaterials",
-        name: "gridMaterials",
-        description: "Materials Grid",
-        type: "table",
-        keyField: "id",
-        visible: true,
-        Create: false,
-        CreateAPI: "",
-        Read: true,
-        ReadAPI: "",
-        Update: true,
-        UpdateAPI: "",
-        delete: true,
-        DeleteAPI: "",
-        State: {
-            Populated: false,
-            Modified: false
-        }
-    },
-    defaultRowCount: 3,
-    columns: materialGridCols,
-    data: [],
-    event: {}
-}
+};
 
 // Buttons
-componentListConfig["buttonNew"] = {
+componentListConfig["buttonCompleteIssuance"] = {
     objectType: "Button",
     schema: {
-        id: "buttonNew",
-        name: "buttonNew",
-        type: "button",
-        visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    event: {}
-}
-
-componentListConfig["buttonSave"] = {
-    objectType: "Button",
-    schema: {
-        id: "buttonSave",
-        name: "buttonSave",
-        type: "button",
-        visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    event: {}
-}
-
-componentListConfig["buttonAddToGrid"] = {
-    objectType: "Button",
-    schema: {
-        id: "buttonAddToGrid",
-        name: "buttonAddToGrid",
-        type: "button",
-        visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelAddToGrid",
-            type: "text",
-            visible: true,
-            value: "Add to Grid"
-        }
-    },
-    event: {}
-}
-
-componentListConfig["buttonFinalize"] = {
-    objectType: "Button",
-    schema: {
-        id: "buttonFinalize",
-        name: "buttonFinalize",
+        name: "buttonCompleteIssuance",
         type: "button",
         visible: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
+        disabled: false,
+        value: "Complete Issuance"
     },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelFinalize",
-            type: "text",
-            visible: true,
-            value: "Finalize MRN"
-        }
-    },
-    event: {}
-}
+    event: {
+        onClick: () => { }
+    }
+};
 
-componentListConfig["buttonReopen"] = {
-    objectType: "Button",
-    schema: {
-        id: "buttonReopen",
-        name: "buttonReopen",
-        type: "button",
-        visible: false,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelReopen",
-            type: "text",
-            visible: true,
-            value: "Re-open MRN"
-        }
-    },
-    event: {}
-}
 
-componentListConfig["buttonAdvanceSearch"] = {
-    objectType: "Button",
-    schema: {
-        id: "buttonAdvanceSearch",
-        name: "buttonAdvanceSearch",
-        type: "button",
-        visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    event: {}
-}
 
-// Advance Search Fields
-componentListConfig["inputMrnIDSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputMrnIDSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: false,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "MRN ID",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelMrnIDSearch",
-            type: "text",
-            visible: true,
-            value: "MRN ID"
-        }
-    },
-    data: {
-        sqlcolumn: "mrn_id_search",
-        oldValue: "",
-        value: ""
-    },
-    event: {}
-}
-
-componentListConfig["inputStatusSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputStatusSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: false,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "Status",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelStatusSearch",
-            type: "text",
-            visible: true,
-            value: "Status"
-        }
-    },
-    data: {
-        sqlcolumn: "status_search",
-        oldValue: "",
-        value: ""
-    },
-    event: {}
-}
-
-componentListConfig["inputWarehouseSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputWarehouseSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: false,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "Warehouse",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelWarehouseSearch",
-            type: "text",
-            visible: true,
-            value: "Warehouse"
-        }
-    },
-    data: {
-        sqlcolumn: "warehouse_search",
-        oldValue: "",
-        value: ""
-    },
-    event: {}
-}
-
-// Confirmation Popups
-componentListConfig["finalizePopUp"] = {
+// Popups
+componentListConfig["completePopUp"] = {
     objectType: "PopUpPage",
-    schema:{
-        name: "finalizePopUp",
+    schema: {
+        name: "completePopUp",
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     data: {
         sqlcolumn: "",
         oldValue: "",
-        value: "",
-    },
-    event:{}
-}
-
-componentListConfig["buttonFinalizeYes"] = {
-    objectType: "Button",
-    schema: {
-        name: "buttonFinalizeYes",
-        type: "button",
-        visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelFinalizeYes",
-            type: "text",
-            visible: true,
-            value: "Yes, Finalize"
-        }
+        value: ""
     },
     event: {}
-}
+};
 
-componentListConfig["buttonFinalizeNo"] = {
+componentListConfig["buttonCompleteYes"] = {
     objectType: "Button",
     schema: {
-        name: "buttonFinalizeNo",
+        name: "buttonCompleteYes",
         type: "button",
         visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
+        disabled: false,
+        value: "Yes"
     },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelFinalizeNo",
-            type: "text",
-            visible: true,
-            value: "Cancel"
-        }
-    },
-    event: {}
-}
+    event: {
+        onClick: () => { }
+    }
+};
 
-componentListConfig["reopenPopUp"] = {
+componentListConfig["buttonCompleteNo"] = {
+    objectType: "Button",
+    schema: {
+        name: "buttonCompleteNo",
+        type: "button",
+        visible: true,
+        disabled: false,
+        value: "No"
+    },
+    event: {
+        onClick: () => { }
+    }
+};
+
+componentListConfig["deleteTransactionPopUp"] = {
     objectType: "PopUpPage",
-    schema:{
-        name: "reopenPopUp",
+    schema: {
+        name: "deleteTransactionPopUp",
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     data: {
         sqlcolumn: "",
         oldValue: "",
-        value: "",
+        value: ""
     },
-    event:{}
-}
+    event: {}
+};
 
-componentListConfig["buttonReopenYes"] = {
+componentListConfig["buttonDeleteYes"] = {
     objectType: "Button",
     schema: {
-        name: "buttonReopenYes",
+        name: "buttonDeleteYes",
         type: "button",
         visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
+        disabled: false,
+        value: "Yes"
     },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelReopenYes",
-            type: "text",
-            visible: true,
-            value: "Yes, Re-open"
-        }
-    },
-    event: {}
-}
+    event: {
+        onClick: () => { }
+    }
+};
 
-componentListConfig["buttonReopenNo"] = {
+componentListConfig["buttonDeleteNo"] = {
     objectType: "Button",
     schema: {
-        name: "buttonReopenNo",
+        name: "buttonDeleteNo",
         type: "button",
         visible: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
+        disabled: false,
+        value: "No"
     },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelReopenNo",
-            type: "text",
-            visible: true,
-            value: "Cancel"
-        }
-    },
-    event: {}
-}
+    event: {
+        onClick: () => { }
+    }
+};
 
-/////////////////// ADVANCE SEARCH CONFIGURATION ///////////////////////
-componentListConfig["inputMrnIDSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputMrnIDSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "ID",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelMrnID",
-            type: "text",
-            visible: true,
-            value: "ID"
-        },
-        class: ""
-    },
-    data: {
-        sqlcolumn: "mrn_id_search",
-        oldValue: "",
-        value: ""
-    },
-    class: "",
-    event: {}
-}
-
-componentListConfig["inputBatchNoSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputBatchNoSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "Batch No",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelBatchNo",
-            type: "text",
-            visible: true,
-            value: "Batch No"
-        },
-        class: ""
-    },
-    data: {
-        sqlcolumn: "batch_no_search",
-        oldValue: "",
-        value: ""
-    },
-    class: "",
-    event: {}
-}
-
-componentListConfig["inputModelSearch"] = {
-    objectType: "TextBox",
-    schema: {
-        name: "inputModelSearch",
-        placeholder: "",
-        type: "text",
-        length: 100,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        searchable: true,
-        advanceSearch: true,
-        labelValue: "Model",
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: {
-            name: "labelModel",
-            type: "text",
-            visible: true,
-            value: "Part"
-        },
-        class: ""
-    },
-    data: {
-        sqlcolumn: "model_search",
-        oldValue: "",
-        value: ""
-    },
-    class: "",
-    event: {}
-}
-
-export default componentListConfig
+export default componentListConfig;

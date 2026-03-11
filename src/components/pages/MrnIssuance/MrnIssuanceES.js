@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { generateMrnDisplay } from './MrnIssuanceDS';
+import { generateMrnIssuanceDisplay } from './MrnIssuanceDS';
 import config from './MrnIssuanceCS';
 import API from '../../../api/API';
 
-const Mrn = () => {
+const MrnIssuance = () => {
     let [rendered, setRendered] = useState(true);
+    let [mrnDetails, setMrnDetails] = useState([]);
+    let [issuanceStatus, setIssuanceStatus] = useState(""); // "open" or "completed"
+    let [selectedDetailId, setSelectedDetailId] = useState(null);
 
     function reRender() {
         setRendered(!rendered);
@@ -17,22 +20,20 @@ const Mrn = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     
     // Button Events
-    config["buttonNew"].event.onClick = handleNew;
-    config["CONTROL_CENTER"].event.onSave = handleSave;
-    config["buttonAddToGrid"].event.onClick = handleAddToGrid;
-    config["buttonFinalize"].event.onClick = handleFinalize;
-    config["buttonFinalizeYes"].event.onClick = handleFinalizeYes;
-    config["buttonFinalizeNo"].event.onClick = handleFinalizeNo;
-    config["buttonReopen"].event.onClick = handleReopen;
-    config["buttonReopenYes"].event.onClick = handleReopenYes;
-    config["buttonReopenNo"].event.onClick = handleReopenNo;
+    config["buttonCompleteIssuance"].event.onClick = handleCompleteIssuancePopup;
+    config["buttonCompleteYes"].event.onClick = handleCompleteIssuance;
+    config["buttonCompleteNo"].event.onClick = handleCompleteIssuanceCancel;
+    config["buttonDeleteYes"].event.onClick = handleDeleteIssuanceYes;
+    config["buttonDeleteNo"].event.onClick = handleDeleteIssuanceCancel;
     
-    // Advance Search
-    config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
-    config["CONTROL_CENTER"].event.onAdvanceSearch = handleAdvanceSearch;
-    config["CONTROL_CENTER"].event.onAdvanceSearchDone = handleAdvanceSearchDone;
+    // Input Events - Load MRN on Enter key
+    config["inputMrnScan"].event.onEnterKey = handleMrnScanKeyPress;
 
-
+    // Expose functions for card buttons
+    window.handleLocationScan = handleLocationScan;
+    window.handleIssueQtyChange = handleIssueQtyChange;
+    window.handleIssueTransaction = handleIssueTransaction;
+    window.handleDeleteIssuance = handleDeleteIssuance;
 
     /*********************************************************/
     /********       User Defined Declarations       **********/
@@ -42,13 +43,10 @@ const Mrn = () => {
     useEffect(() => {
         __checkIsAuthorized();
         __setFormReadWrite(true);
-        __getWarehouses();
-        __getBatches();
-        __getMaterials();
     }, []);
 
     function __checkIsAuthorized() {
-        const apiRequest = { "screen": "mrn" }
+        const apiRequest = { "screen": "mrn_issuance" }
         API.post(`permissions/isAuthorized`, apiRequest).then(response => {
             const isAuthorized = response.data;
             __setFormReadWrite(isAuthorized);
@@ -59,13 +57,16 @@ const Mrn = () => {
 
     function __setFormReadWrite(status) {
         if (status === "r") {
-            // Set read-only mode if needed
+            config["inputMrnScan"].schema.disabled = true;
+            config["buttonCompleteIssuance"].schema.visible = false;
         }
     }
 
     // Enable navigation prompt
     window.onbeforeunload = function () {
-        if (config["CONTROL_CENTER"].state.modified || config["CONTROL_CENTER"].state.new || config["CONTROL_CENTER"].state.deleted) {
+        if (config["CONTROL_CENTER"].state.modified || 
+            config["CONTROL_CENTER"].state.new || 
+            config["CONTROL_CENTER"].state.deleted) {
             return true;
         }
     };
@@ -74,462 +75,77 @@ const Mrn = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
-    function handleNew() {
-        // Clear all fields
-        config["inputMrnID"].setValue("");
-        config["inputStatus"].setValue("");
-        config["inputWarehouse"].setValue("");
-        config["inputBatch"].setValue([]);
-        config["inputMaterial"].setValue([]);
-        config["inputQuantity"].setValue("");
+    function handleMrnScanKeyPress(event) {
         
-        // Clear grid
-        config["gridMaterials"].setData([]);
-        
-        // Hide finalize and reopen buttons
-        config["buttonFinalize"].schema.visible = false;
-        config["buttonReopen"].schema.visible = false;
-        
-        config["CONTROL_CENTER"].state.modified = false;
-        config["CONTROL_CENTER"].state.new = true;
-        
-        reRender();
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleLoadMrn();
+        }
     }
 
-    async function handleSave() {
+    async function handleLoadMrn() {
         try {
-            document.getElementById("spinner").style.display = "";
-
-            if(!(config["inputStatus"].data.value == "" || config["inputStatus"].data.value == "open")){
-                config["CONTROL_CENTER"].promptWarningMessage("Updates are allowed only for open MRNs.", "");
-                document.getElementById("spinner").style.display = "none";
-                return;
-            }
-            // Validate warehouse selection
-            const warehouseId = config["inputWarehouse"].data.value;
-            const batch = config["inputBatch"].getValue() || [];
-            if (!warehouseId) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please select a warehouse", "");
-                document.getElementById("spinner").style.display = "none";
-                return;
-            }
-            if (batch.length === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please select a batch", "");
-                document.getElementById("spinner").style.display = "none";
-                return;
-            }
+            const mrnId = config["inputMrnScan"].data.value;
             
-            // Get grid data
-            const materials = config["gridMaterials"].data;
-            if (!materials || materials.length === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please add at least one material to the grid", "");
-                document.getElementById("spinner").style.display = "none";
+            if (!mrnId || mrnId.trim() === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("Please scan or enter MRN ID", "");
                 return;
             }
-            
-            // Prepare payload
-            const mrnId = config["inputMrnID"].data.value;
-            const status = config["inputStatus"].data.value || "open";
-            console.log('====================================');
-            console.log(materials);
-            console.log('====================================');
-            const apiRequest = {
-                mrn_id: mrnId,
-                warehouse_id: warehouseId,
-                status: status,
-                batch_id: batch[0],
-                mrn_details: materials.map(material => ({
-                    stock_item_id: material.material_id,
-                    qty: material.quantity,
-                    id: material.mrn_detail_id || "",
-                    status:material._rowstate
-                }))
-            };
-            
-            // Call API to save MRN
-            let response = await API.post(`mrns/createAndUpdate`, apiRequest);
 
-            document.getElementById("spinner").style.display = "none";
-
-            if (response.status === 200 || response.status === 201) {
-                const mrnData = response.data.data;
-                
-                await formPopulate(mrnData.id);
-                
-                config["CONTROL_CENTER"].promptBaseMessage("MRN saved successfully", "");
-                config["CONTROL_CENTER"].state.modified = false;
-                config["CONTROL_CENTER"].state.new = false;
-                
-                // Show finalize button for open status
-                config["buttonFinalize"].schema.visible = true;
-                config["buttonReopen"].schema.visible = false;
-                
-                reRender();
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Failed to save MRN", "");
-            }
+            await loadMrnDetails(mrnId);
+            
         } catch (error) {
-            document.getElementById("spinner").style.display = "none";
-            handleError(error, "Error saving MRN");
+            handleError(error, "Error loading MRN");
         }
     }
 
-    function handleAddToGrid() {
-        // Get values from multiselects
-        
-        const selectedMaterials = config["inputMaterial"].getSelectedArray() || [];
-        const quantity = config["inputQuantity"].data.value;
-        
-        
-        if (selectedMaterials.length === 0) {
-            config["CONTROL_CENTER"].promptWarningMessage("Please select  material", "");
-            return;
-        }
-        
-        if (!quantity || quantity === "") {
-            config["CONTROL_CENTER"].promptWarningMessage("Please enter quantity", "");
-            return;
-        }
-        
-        if (quantity === 0) {
-            config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be zero", "");
-            return;
-        }
-        
-        let newRows ={
-            
-            material_id: selectedMaterials[0].id,
-            material_name: selectedMaterials[0].name,
-            quantity: quantity,
-            mrn_detail_id: "" 
-        }
-        
-         config["gridMaterials"].addRow(newRows);
-            
-            // Clear selection fields
-            
-            config["inputMaterial"].setValue([]);
-            config["inputQuantity"].setValue("");
-    }
-
-    function handleFinalize() {
-        // Validate MRN exists
-        const mrnId = config["inputMrnID"].data.value;
-        if (!mrnId) {
-            config["CONTROL_CENTER"].promptWarningMessage("Please save the MRN first", "");
-            return;
-        }
-        
-        // Check status
-        const status = config["inputStatus"].data.value;
-        if (status !== "open") {
-            config["CONTROL_CENTER"].promptWarningMessage("Only open MRNs can be finalized", "");
-            return;
-        }
-        
-        // Show confirmation popup
-        config["finalizePopUp"].showPopUp();
-    }
-
-    async function handleFinalizeYes() {
-        const mrnId = config["inputMrnID"].data.value;
-        
-        try {
-            config["finalizePopUp"].closePopUp();
-            document.getElementById("spinner").style.display = "";
-            
-            let response = await API.post(`mrns/finalize`, { mrn_id: mrnId });
-            
-            document.getElementById("spinner").style.display = "none";
-            
-            if (response.status === 200) {
-                config["CONTROL_CENTER"].promptBaseMessage("MRN finalized successfully", "");
-                
-                // Update status
-                config["inputStatus"].setValue("finalized");
-                
-                // Update button visibility
-                config["buttonFinalize"].schema.visible = false;
-                config["buttonReopen"].schema.visible = true;
-                
-                config["CONTROL_CENTER"].state.modified = false;
-                
-                reRender();
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Failed to finalize MRN", "");
-            }
-        } catch (error) {
-            document.getElementById("spinner").style.display = "none";
-            handleError(error, "Error finalizing MRN");
-        }
-    }
-
-    function handleFinalizeNo() {
-        config["finalizePopUp"].closePopUp();
-    }
-
-    function handleReopen() {
-        // Validate MRN exists
-        const mrnId = config["inputMrnID"].data.value;
-        if (!mrnId) {
-            config["CONTROL_CENTER"].promptWarningMessage("Please select an MRN first", "");
-            return;
-        }
-        
-        // Check status
-        const status = config["inputStatus"].data.value;
-        if (status !== "finalized") {
-            config["CONTROL_CENTER"].promptWarningMessage("Only finalized MRNs can be re-opened", "");
-            return;
-        }
-        
-        // Show confirmation popup
-        config["reopenPopUp"].showPopUp();
-    }
-
-    async function handleReopenYes() {
-        const mrnId = config["inputMrnID"].data.value;
-        
-        try {
-            config["reopenPopUp"].closePopUp();
-            document.getElementById("spinner").style.display = "";
-            
-            let response = await API.post(`mrns/reopen`, { mrn_id: mrnId });
-            
-            document.getElementById("spinner").style.display = "none";
-            
-            if (response.status === 200) {
-                config["CONTROL_CENTER"].promptBaseMessage("MRN re-opened successfully", "");
-                
-                // Update status
-                config["inputStatus"].setValue("open");
-                
-                // Update button visibility
-                config["buttonFinalize"].schema.visible = true;
-                config["buttonReopen"].schema.visible = false;
-                
-                config["CONTROL_CENTER"].state.modified = false;
-                
-                reRender();
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Failed to re-open MRN", "");
-            }
-        } catch (error) {
-            document.getElementById("spinner").style.display = "none";
-            handleError(error, "Error re-opening MRN");
-        }
-    }
-
-    function handleReopenNo() {
-        config["reopenPopUp"].closePopUp();
-    }
-
-    // async function handleAdvanceSearchPopup() {
-    //     try {
-    //         document.getElementById("spinner").style.display = "";
-    //         let response = await API.get(`mrns`);
-    //         document.getElementById("spinner").style.display = "none";
-            
-    //         if (response.status === 200) {
-    //             // Map response data to grid columns
-    //             const gridData = response.data.map(mrn => ({
-    //                 mrn_id: mrn.mrn_id || mrn.id,
-    //                 warehouse_name: mrn.warehouse_name,
-    //                 status: mrn.status,
-    //                 created_date: mrn.created_date || ""
-    //             }));
-                
-    //             config["CONTROL_CENTER"].setOptions(JSON.stringify(gridData));
-    //         } else {
-    //             config["CONTROL_CENTER"].promptWarningMessage("Failed to load MRNs", "");
-    //         }
-    //     } catch (error) {
-    //         document.getElementById("spinner").style.display = "none";
-    //         handleError(error, "Error loading MRNs");
-    //     }
-    // }
-
-    async function handleAdvanceSearchPopup() {
-            let data = [];
-            const getData = await __getAll();
-    
-            if (getData && getData !== "Error" && getData[0].Mrn.length > 0) {
-                const listData = getData[0].Mrn;
-                listData.forEach((value, index) => {
-                    
-                    data.push({
-                        "mrn_id_search": value.id,
-                        "batch_no_search": value.batch.batch_no,
-                        "model_search": value.batch.model.name,
-                        "warehouse_search": value.warehouse.name,
-                        "status_search": value.status,
-                    })
-                });
-            }
-    
-            console.log("*******All Data********");
-            console.log(data);
-    
-            let msg = "";
-            if (data.length > 20) {
-                msg = "Only 20 records are loaded. Please narrow your search";
-                data = data.slice(0, 20);
-            }
-    
-            config["CONTROL_CENTER"].showAdvanceSearch(data, msg);
-        }
-    
-        async function __getAll() {
-            try {
-                const key = "Mrn";
-                const distinct = false;
-                const select = ["*"];
-                const where = [{"active":true}];
-                const orderby = "created_at:desc";
-                const limit = 25;
-                const relations = [
-                    "batch",
-                    "batch.model",
-                    "warehouse",
-                ];
-
-    
-                const data = await __getDetails(key, distinct, select, where, relations, orderby, limit);
-    
-                return data;
-    
-            } catch (error) {
-                console.log("***********GetAll Error**********");
-                console.log(error.response);
-                return "Error";
-            }
-        }
-    
-        async function __getDetails(key, distinct, select, where, relations, orderby, limit) {
-            try {
-                const apiRequest = {
-                    [key]: {
-                        "distinct": distinct,
-                        "select": select,
-                        "where": where,
-                        "relations": relations,
-                        "orderby": orderby,
-                        "limit": limit
-                    }
-                };
-    
-                const getDetails = await API.post(`searchByParameters`, apiRequest);
-                const details = getDetails.data;
-    
-                return details;
-    
-            } catch (error) {
-                console.log("***********GetDetails Error**********");
-                console.log(error.response);
-                return "Error";
-            }
-        }
-
-        async function handleAdvanceSearch(event, searchCriteria, callback) {
-            console.log("*******Search Criteria********");
-            console.log(searchCriteria);
-    
-            let data = [];
-            let searchDetails = await __getAdvanceSearchDetails(searchCriteria);
-    
-            if (searchDetails.length > 0) {
-                searchDetails.forEach((value, index) => {
-                    data.push({
-                        "mrn_id_search": value.id,
-                        "batch_no_search": value.batch_no,
-                        "model_search": value.model_name,
-                        "warehouse_search": value.warehouse_name,
-                        "status_search": value.status,
-                    }) })
-                ;
-            }
-    
-            console.log("*******Search Results********");
-            console.log(data);
-    
-            let msg = "";
-            if (data.length > 20) {
-                msg = "Only 20 records are loaded. Please narrow your search";
-                data = data.slice(0, 20);
-            }
-    
-            callback(data, msg);
-        }
-    
-            // Get Advance Search Details
-        async function __getAdvanceSearchDetails(searchCriteria) {
-                try {
-                    const apiRequest = {
-                        
-                            "id": searchCriteria.mrn_id_search === "" ? "%" : searchCriteria.mrn_id_search,
-                            "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
-                            "model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search,
-                            "warehouse_name": searchCriteria.warehouse_search === "" ? "%" : searchCriteria.warehouse_search,
-                            "status": searchCriteria.status_search === "" ? "%" : searchCriteria.status_search
-                        
-                    };
-                    const getSearchDetails = await API.post(`mrns/getSearchByMrn`, apiRequest);
-                    const details = getSearchDetails.data.data;
-        
-                    return details;
-        
-                } catch (error) {
-                    console.log("***********GetDetails Error**********");
-                    console.log(error.response);
-                    return "Error";
-                }
-            }
-
-    async function handleAdvanceSearchDone(event, selectedRow){
-        const id = selectedRow.mrn_id_search;
-        await formPopulate(id);
-
-    }
-
-    async function formPopulate(mrnId) {
+    async function loadMrnDetails(mrnId) {
         try {
             document.getElementById("spinner").style.display = "";
+            
+            // Call mrns/{id} API
             let response = await API.get(`mrns/${mrnId}`);
+            
             document.getElementById("spinner").style.display = "none";
             
             if (response.status === 200) {
                 const mrnData = response.data.data;
-                 
-                // Populate header fields
-                config["inputMrnID"].data.value =mrnData.id;
-                config["inputStatus"].setValue(mrnData.status);
-                config["inputWarehouse"].setValue(mrnData.warehouse_id);
-                let selectBAtch = {id:mrnData.batch_id,name:mrnData.batch.batch_no}
-                config["inputBatch"].setValue([selectBAtch]);
                 
-                // Populate grid with materials
-                let rows = [];
-                mrnData.details.forEach(element => {
-                    rows.push({
-                        mrn_detail_id: element.id,
-                        material_id: element.stock_item_id,
-                        material_name: element.stock_item.name,
-                        quantity: element.qty
-                    });
-                });
-                config["gridMaterials"].setData(rows);
-                
-                // Set button visibility based on status
+                // Check if MRN is open - not allowed
                 if (mrnData.status === "open") {
-                    config["buttonFinalize"].schema.visible = true;
-                    config["buttonReopen"].schema.visible = false;
-                } else if (mrnData.status === "finalized") {
-                    config["buttonFinalize"].schema.visible = false;
-                    config["buttonReopen"].schema.visible = true;
-                } else {
-                    config["buttonFinalize"].schema.visible = false;
-                    config["buttonReopen"].schema.visible = false;
+                    config["CONTROL_CENTER"].promptWarningMessage("MRN is not finalized", "Cannot issue from an open MRN");
+                    // Clear the scan field
+                    config["inputMrnScan"].data.value = "";
+                    reRender();
+                    return;
                 }
+                
+                // Populate MRN header details
+                config["inputMrnID"].data.value = mrnData.id;
+                config["inputStatus"].data.value = mrnData.status;
+                config["inputBatchNo"].data.value = mrnData.batch?.batch_no || "";
+                config["inputWarehouse"].data.value = mrnData.warehouse?.name || "";
+                
+                // Transform MRN details into card data
+                let detailsData = [];
+                if (mrnData.details && mrnData.details.length > 0) {
+                    detailsData = mrnData.details.map(detail => ({
+                        mrn_detail_id: detail.id,
+                        material_id: detail.stock_item_id,
+                        material_name: detail.stock_item?.name || 'Unknown',
+                        mrn_qty: detail.qty,
+                        location_id: '',
+                        available_balance: undefined,
+                        issue_qty: '',
+                        is_issued: false
+                    }));
+                }
+                
+                setMrnDetails(detailsData);
+                setIssuanceStatus("open");
+                
+                // Show complete button
+                config["buttonCompleteIssuance"].schema.visible = true;
                 
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
@@ -541,87 +157,268 @@ const Mrn = () => {
             }
         } catch (error) {
             document.getElementById("spinner").style.display = "none";
-            handleError(error, "Error loading MRN");
+            handleError(error, "Error loading MRN details");
         }
     }
 
-    // Load dropdown options
-    async function __getWarehouses() {
+    async function handleLocationScan(detailId, locationId) {
         try {
-            let response = await API.get(`warehouses`);
+            // Update the location_id in state
+            setMrnDetails(prevDetails => {
+                const updatedDetails = prevDetails.map(detail => {
+                    if (detail.mrn_detail_id === detailId) {
+                        return { ...detail, location_id: locationId };
+                    }
+                    return detail;
+                });
+                return updatedDetails;
+            });
             
-            if (response.status === 200) {
-                const warehouses = response.data.map(warehouse => ({
-                    value: warehouse.warehouse_id || warehouse.id,
-                    text: warehouse.warehouse_name || warehouse.name
-                }));
-                
-                warehouses.unshift({ value: "", text: "Select Warehouse" });
-                config["inputWarehouse"].setOptions(warehouses);
-                
-
+            // If location is set and valid, fetch available balance
+            if (locationId && locationId.trim() !== "") {
+                await fetchAvailableBalance(detailId, locationId);
             }
         } catch (error) {
-            handleError(error, "Error loading warehouses");
+            console.error("Error handling location scan:", error);
         }
     }
 
-    async function __getBatches() {
+    async function fetchAvailableBalance(detailId, locationId) {
         try {
-            let response = await API.get(`Batch/getBatches`);
+            // Find the detail to get material_id
+            const detail = mrnDetails.find(d => d.mrn_detail_id === detailId);
+            if (!detail) return;
             
-            if (response.status === 200) {
-                const batches = response.data.map(batch => ({
-                    id: batch.batch_id || batch.id,
-                    name: batch.batch_no || batch.batch_name
-                }));
-                
-                config["inputBatch"].setOptions(batches);
-            }
-        } catch (error) {
-            handleError(error, "Error loading batches");
-        }
-    }
-
-    async function __getMaterials() {
-        try {
-            let response = await API.get(`stock-materials`);
+            document.getElementById("spinner").style.display = "";
             
-            if (response.status === 200) {
-                const materials = response.data.map(material => ({
-                    id: material.material_id || material.id,
-                    name: material.material_name || material.name
-                }));
-                
-                config["inputMaterial"].setOptions(materials);
-            }
-        } catch (error) {
-            handleError(error, "Error loading materials");
-        }
-    }
-
-    function handleError(error, defaultMessage) {
-        try {
-            if (error.response) {
-                if (error.response.data && error.response.data.message) {
-                    config["CONTROL_CENTER"].promptWarningMessage(error.response.data.message, "");
-                } else if (error.response.statusText) {
-                    config["CONTROL_CENTER"].promptWarningMessage(error.response.statusText, "");
-                } else {
-                    config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An error occurred", "");
+            // API call to get available balance
+            // Adjust the API endpoint based on your backend
+            const response = await API.get(`inventory/balance`, {
+                params: {
+                    location_id: locationId,
+                    stock_item_id: detail.material_id
                 }
-            } else if (error.message) {
-                config["CONTROL_CENTER"].promptWarningMessage(error.message, "");
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An unexpected error occurred", "");
+            });
+            
+            document.getElementById("spinner").style.display = "none";
+            
+            if (response.status === 200) {
+                const balance = response.data.available_balance || 0;
+                
+                // Update available balance in state
+                setMrnDetails(prevDetails => {
+                    const updatedDetails = prevDetails.map(d => {
+                        if (d.mrn_detail_id === detailId) {
+                            return { ...d, available_balance: balance };
+                        }
+                        return d;
+                    });
+                    return updatedDetails;
+                });
+                
+                reRender();
             }
-        } catch (err) {
-            console.error("Error in handleError:", err);
-            config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An unexpected error occurred", "");
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            config["CONTROL_CENTER"].promptWarningMessage("Error fetching available balance", "");
+            console.error("Error fetching balance:", error);
         }
     }
 
-    return generateMrnDisplay(config);
-}
+    function handleIssueQtyChange(detailId, qty) {
+        // Update issue_qty in state
+        setMrnDetails(prevDetails => {
+            const updatedDetails = prevDetails.map(detail => {
+                if (detail.mrn_detail_id === detailId) {
+                    return { ...detail, issue_qty: qty };
+                }
+                return detail;
+            });
+            return updatedDetails;
+        });
+        reRender();
+    }
 
-export default Mrn;
+    async function handleIssueTransaction(detailId) {
+        try {
+            const detail = mrnDetails.find(d => d.mrn_detail_id === detailId);
+            if (!detail) return;
+            
+            // Validations
+            if (!detail.location_id || detail.location_id.trim() === "") {
+                config["CONTROL_CENTER"].promptWarningMessage("Location ID is required", "");
+                return;
+            }
+            
+            if (!detail.issue_qty || parseInt(detail.issue_qty) <= 0) {
+                config["CONTROL_CENTER"].promptWarningMessage("Issue quantity must be greater than 0", "");
+                return;
+            }
+            
+            if (parseInt(detail.issue_qty) > parseInt(detail.available_balance)) {
+                config["CONTROL_CENTER"].promptWarningMessage("Issue quantity cannot exceed available balance", "");
+                return;
+            }
+            
+            document.getElementById("spinner").style.display = "";
+            
+            // API call to update/issue transaction
+            const apiRequest = {
+                mrn_detail_id: detail.mrn_detail_id,
+                location_id: detail.location_id,
+                qty: parseInt(detail.issue_qty)
+            };
+            
+            const response = await API.post(`mrn-issuance/issue`, apiRequest);
+            
+            document.getElementById("spinner").style.display = "none";
+            
+            if (response.status === 200 || response.status === 201) {
+                // Mark as issued
+                setMrnDetails(prevDetails => {
+                    const updatedDetails = prevDetails.map(d => {
+                        if (d.mrn_detail_id === detailId) {
+                            return { ...d, is_issued: true };
+                        }
+                        return d;
+                    });
+                    return updatedDetails;
+                });
+                
+                config["CONTROL_CENTER"].promptBaseMessage("Transaction issued successfully", "");
+                config["CONTROL_CENTER"].state.modified = true;
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Failed to issue transaction", "");
+            }
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            handleError(error, "Error issuing transaction");
+        }
+    }
+
+    function handleDeleteIssuance(detailId) {
+        if (issuanceStatus === "completed") {
+            config["CONTROL_CENTER"].promptWarningMessage("Cannot delete transactions after completion", "");
+            return;
+        }
+        
+        setSelectedDetailId(detailId);
+        config["deleteTransactionPopUp"].showPopUp();
+    }
+
+    async function handleDeleteIssuanceYes() {
+        try {
+            if (!selectedDetailId) return;
+            
+            config["deleteTransactionPopUp"].closePopUp();
+            document.getElementById("spinner").style.display = "";
+            
+            // API call to delete issued transaction
+            const response = await API.delete(`mrn-issuance/delete/${selectedDetailId}`);
+            
+            document.getElementById("spinner").style.display = "none";
+            
+            if (response.status === 200) {
+                // Reset the transaction to not issued
+                setMrnDetails(prevDetails => {
+                    const updatedDetails = prevDetails.map(d => {
+                        if (d.mrn_detail_id === selectedDetailId) {
+                            return { 
+                                ...d, 
+                                is_issued: false,
+                                location_id: '',
+                                available_balance: undefined,
+                                issue_qty: ''
+                            };
+                        }
+                        return d;
+                    });
+                    return updatedDetails;
+                });
+                
+                config["CONTROL_CENTER"].promptBaseMessage("Transaction deleted successfully", "");
+                setSelectedDetailId(null);
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Failed to delete transaction", "");
+            }
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            handleError(error, "Error deleting transaction");
+            setSelectedDetailId(null);
+        }
+    }
+
+    function handleDeleteIssuanceCancel() {
+        config["deleteTransactionPopUp"].closePopUp();
+        setSelectedDetailId(null);
+    }
+
+    function handleCompleteIssuancePopup() {
+        // Check if at least one transaction is issued
+        const hasIssuedTransactions = mrnDetails.some(detail => detail.is_issued);
+        
+        if (!hasIssuedTransactions) {
+            config["CONTROL_CENTER"].promptWarningMessage("Please issue at least one transaction before completing", "");
+            return;
+        }
+        
+        config["completePopUp"].showPopUp();
+    }
+
+    async function handleCompleteIssuance() {
+        try {
+            config["completePopUp"].closePopUp();
+            document.getElementById("spinner").style.display = "";
+            
+            const mrnId = config["inputMrnID"].data.value;
+            
+            // API call to complete issuance
+            const response = await API.post(`mrn-issuance/complete`, { mrn_id: mrnId });
+            
+            document.getElementById("spinner").style.display = "none";
+            
+            if (response.status === 200) {
+                setIssuanceStatus("completed");
+                config["buttonCompleteIssuance"].schema.visible = false;
+                
+                config["CONTROL_CENTER"].promptBaseMessage("MRN Issuance completed successfully", "");
+                config["CONTROL_CENTER"].state.modified = false;
+                
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Failed to complete issuance", "");
+            }
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            handleError(error, "Error completing issuance");
+        }
+    }
+
+    function handleCompleteIssuanceCancel() {
+        config["completePopUp"].closePopUp();
+    }
+
+    function handleError(error, message) {
+        console.error(message, error);
+        
+        if (error.response) {
+            const errorMsg = error.response.data?.message || error.response.data?.error || "An error occurred";
+            config["CONTROL_CENTER"].promptWarningMessage(message, errorMsg);
+        } else if (error.request) {
+            config["CONTROL_CENTER"].promptWarningMessage(message, "No response from server");
+        } else {
+            config["CONTROL_CENTER"].promptWarningMessage(message, error.message);
+        }
+    }
+
+    /*********************************************************/
+    /********              Render Display           **********/
+    /*********************************************************/
+
+    return generateMrnIssuanceDisplay(config, mrnDetails, issuanceStatus);
+};
+
+export default MrnIssuance;
