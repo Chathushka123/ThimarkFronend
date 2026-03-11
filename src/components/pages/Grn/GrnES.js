@@ -87,11 +87,12 @@ const Grn = () => {
                 });
             response.data.forEach((value) => {
                 warehouses.push({
-                    "value": value.id,
+                    "value": String(value.id),  // Convert to string for consistency
                     "text": value.name
                 });
             });
             config['inputWarehouse'].setOptions(warehouses);
+            console.log("Loaded warehouse options:", warehouses); // Debug options
         } catch(err) {
             console.log(err);
             config["CONTROL_CENTER"].promptWarningMessage("Error loading warehouses", "");
@@ -483,17 +484,27 @@ const Grn = () => {
 
             if (response.status === 200) {
                 let data = response.data;
+                console.log("GRN Data from API:", data); // Debug log
+                console.log("Setting warehouse_id to:", data.warehouse_id); // Debug warehouse
+                
                 config['inputGrnID'].setValue(data.id);
-                config['inputRmpoNo'].setValue(data.rmpo_no);
-                config['inputRemarks'].setValue(data.remarks || "");
-                config['inputWarehouse'].setValue(data.warehouse_id);
+                config['inputRmpoNo'].setValue(data.rmpono || data.rmpo_no || "");
+                config['inputRemarks'].setValue(data.remark || data.remarks || "");
                 config['inputStatus'].setValue(data.status);
+                
+                // Set warehouse with proper type matching
+                const warehouseValue = data.warehouse_id ? String(data.warehouse_id) : "";
+                config['inputWarehouse'].setValue(warehouseValue);
+                
+                console.log("Warehouse value after set:", config['inputWarehouse'].data.value); // Debug value after set
+                console.log("Warehouse options:", config['inputWarehouse'].data.options); // Debug options
                 
                 // Load transactions
                 await loadGrnTransactions(grn_id);
                 
                 // Set button visibility based on status
                 if (data.status === "open") {
+                    
                     config["buttonAddTransaction"].schema.visible = true;
                     config["buttonCompleteGrn"].schema.visible = true;
                     config["buttonCreateGrn"].schema.visible = false;
@@ -504,7 +515,10 @@ const Grn = () => {
                 }
                 
                 config["CONTROL_CENTER"].state.populated = true;
+                
+                // Force double render to ensure button visibility changes are applied
                 reRender();
+                setTimeout(() => reRender(), 0);
             }
 
         } catch (error) {

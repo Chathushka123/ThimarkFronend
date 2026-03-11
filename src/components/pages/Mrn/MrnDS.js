@@ -29,6 +29,15 @@ export function generateMrnDisplay(componentList) {
                 </div>
             </PopUpPage>
 
+            <PopUpPage item={componentList["printPdfPopUp"]} headerText="Print Preview" className="print-popup">
+                <div className="row p-3">
+                    <div className="col-12">
+                        <iframe id="pdfviewer" src="" type="application/pdf" width="100%" height="500px"></iframe>
+                        
+                    </div>
+                </div>
+            </PopUpPage>
+
             {/* Reopen Confirmation Popup */}
             <PopUpPage item={componentList["reopenPopUp"]} headerText="Confirm Re-open" className="">
                 <div className="p-4">
@@ -83,6 +92,7 @@ export function generateMrnDisplay(componentList) {
                                     <i className="fas fa-folder-open fa-lg"></i>
                                 </Button>
                             )}
+                            <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonPrint"]}><i className="fas fa-print fa-lg"></i></Button>
                         </ControlCenter>
                     </div>
                 </div>

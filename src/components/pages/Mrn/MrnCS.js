@@ -730,4 +730,33 @@ componentListConfig["inputModelSearch"] = {
     event: {}
 }
 
+componentListConfig["printPdfPopUp"] = {
+    objectType: "PopUpPage",
+    schema: {
+        name: "printPdfPopUp",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    data: {
+        sqlcolumn: "",
+        oldValue: "",
+        value: "",
+    },
+    event: {}
+}
+
+componentListConfig["buttonPrint"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonPrint",
+        name: "buttonPrint",
+        type: "submit",
+        label: "Print Invoice",
+        disabled: false,
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
 export default componentListConfig
