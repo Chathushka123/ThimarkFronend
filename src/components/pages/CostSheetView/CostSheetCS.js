@@ -66,7 +66,7 @@ componentListConfig["buttonExcel"] = {
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
-    event: {}
+    event: {} 
 }
 
 /////////////////// ADVANCE SEARCH CONFIGURATION ///////////////////////
