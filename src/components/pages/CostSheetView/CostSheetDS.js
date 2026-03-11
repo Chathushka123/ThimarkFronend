@@ -45,7 +45,7 @@ const S = {
         overflow: 'hidden',
     },
     cardHeader: {
-        background: 'linear-gradient(135deg, #000841 0%, #020f75 100%)',
+        background: 'linear-gradient(135deg, #0C2C55 0%, #296374 100%)',
         color: '#fff',
         padding: '12px 20px',
         fontSize: '14px',
@@ -59,9 +59,12 @@ const S = {
     fieldWrap: { padding: '6px 10px', marginBottom: '4px' },
     fieldInner: (hi) => ({
         padding: '10px 14px',
-        background: hi ? '#AEDEFC' : '#AEDEFC',
+        background:'linear-gradient(135deg, #BDE8F5 0%, #4988C4 100%)',
         borderRadius: '8px',
-        borderLeft: hi ? '4px solid #0f014b' : '4px solid #0f014b',
+        borderLeft: '4px solid #1D4ED8',
+        borderRight: '1px solid #1D4ED8',
+        borderTop: '1px solid #1D4ED8',
+        borderBottom: '1px solid #1D4ED8',
         height: '100%',
     }),
     fieldLabel: (hi) => ({
@@ -89,7 +92,7 @@ const S = {
     table: { width: '100%', borderCollapse: 'collapse', fontSize: '12px' },
     thead: { position: 'sticky', top: 0, zIndex: 2 },
     th: {
-        background: '#0f014b    ',
+        background: '#1A3263    ',
         color: '#fff',
         padding: '10px',
         textAlign: 'left',
@@ -164,7 +167,7 @@ const S = {
     underIssued: { background: '#fffbeb', color: '#b45309' },
     warnIcon:    { color: '#e53e3e', marginLeft: '5px', fontSize: '10px' },
     grandRow: {
-        background: '#1e3c72',
+        background: '#1A3263',
         borderTop: '3px solid #4fc3f7',
     },
     grandLabel: {
@@ -178,12 +181,12 @@ const S = {
         padding: '12px 10px',
         color: '#fff',
         fontWeight: '700',
-        fontSize: '13px',
+        fontSize: '15px',
         textAlign: 'right',
         fontFamily: "'Courier New', monospace",
         whiteSpace: 'nowrap',
     },
-    varNote: { fontSize: '10px', fontWeight: '400', marginTop: '2px', opacity: 0.85 },
+    varNote: { fontSize: '12px', fontWeight: '400', marginTop: '2px', opacity: 0.85 },
     emptyWrap: { textAlign: 'center', padding: '80px 20px' },
     emptyIcon: { fontSize: '64px', color: '#dee2e6', marginBottom: '20px', display: 'block' },
     emptyText: { fontSize: '16px', color: '#adb5bd', margin: 0 },
@@ -211,8 +214,9 @@ const TABLE_COLS = [
     { label: 'Material Code',     width: '12%', numeric: false },
     { label: 'Material Name',     width: '19%', numeric: false },
     { label: 'Req. Qty',          width: '10%', numeric: true  },
+    { label: 'Consumption',       width: '10%', numeric: true  },
     { label: 'Issued Qty',        width: '10%', numeric: true  },
-    { label: 'Consumption', width: '10%', numeric: true},
+    { label: 'Actual Consumption',  width: '10%', numeric: true  },
     { label: 'Unit Cost (LKR)',         width: '13%', numeric: true  },
     { label: 'Total Req. Cost (LKR)',   width: '13%', numeric: true  },
     { label: 'Total Issued Cost (LKR)', width: '13%', numeric: true  },
@@ -270,6 +274,14 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                 >
                                     <i className="fas fa-file-excel fa-lg"></i> Download Excel
                                 </Button>
+                                <button
+                                    className="btn btn-info btn-sm mr-2"
+                                    style={{background: "#1D4ED8", borderColor: "#1D4ED8", color: "#fff"}}
+                                    disabled={!costSheetData?.model_id}
+                                    onClick={() => window.open(`/csCharts/${costSheetData.model_id}`, '_blank')}
+                                >
+                                    <i className="fas fa-chart-line fa-lg"></i> View Charts
+                                </button>
                             </ControlCenter>
                         </div>
                     </div>
@@ -292,7 +304,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                 <div style={S.cardHeader}>
                                     <span>
                                         <i className="fas fa-file-invoice" style={{ marginRight: '8px' }}></i>
-                                        Part Information
+                                        Meta Information
                                     </span>
                                 </div>
                                 <div style={S.infoBody}>
@@ -357,7 +369,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                                             onClick={() => toggleGroup(group.category)}
                                                             title={`Click to ${isExpanded ? 'collapse' : 'expand'} ${group.category}`}
                                                         >
-                                                            <td colSpan={6} style={S.groupCell}>
+                                                            <td colSpan={7} style={S.groupCell}>
                                                                 <span style={S.groupBadge(color)}>{group.category}</span>
                                                                 <span style={S.groupCount}>{(group.items || []).length} items</span>
                                                                 <i
@@ -394,6 +406,9 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                                                     <td style={{ ...S.td, ...S.tdNum }}>
                                                                         {fmt(item.required_qty)}
                                                                     </td>
+                                                                    <td style={{ ...S.td, ...S.tdNum }}>
+                                                                        {fmt(item.consumption)}
+                                                                    </td>
                                                                     <td style={{
                                                                         ...S.td, ...S.tdNum,
                                                                         ...(isOver  ? S.overIssued  : {}),
@@ -409,7 +424,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                                                         )}
                                                                     </td>
                                                                     <td style={{ ...S.td, ...S.tdNum }}>
-                                                                        {fmt(item.consumption)}
+                                                                        {fmt(item.actual_consumption)}
                                                                     </td>
                                                                     <td style={{ ...S.td, ...S.tdNum }}>
                                                                         {fmt(item.unit_cost)}
@@ -433,7 +448,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
 
                                             {/* ── Grand Total Row ── */}
                                             <tr style={S.grandRow}>
-                                                <td colSpan={6} style={S.grandLabel}>
+                                                <td colSpan={7} style={S.grandLabel}>
                                                     <i className="fas fa-calculator" style={{ marginRight: '8px' }}></i>
                                                     GRAND TOTAL
                                                 </td>
