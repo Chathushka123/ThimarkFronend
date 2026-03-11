@@ -1,7 +1,8 @@
 {
   "files": {
-    "main.css": "./static/css/main.e186beee.css",
-    "main.js": "./static/js/main.bdf535c1.js",
+    "main.css": "./static/css/main.c125457a.css",
+    "main.js": "./static/js/main.0f7a0a1c.js",
+    "static/media/logo.png": "./static/media/logo.4c1a323cd12c4e492919.png",
     "static/media/job-card-blue.svg": "./static/media/job-card-blue.06d7fd9343dadd0fd28f3cff0a4b8751.svg",
     "static/media/job-card-purple.svg": "./static/media/job-card-purple.753b959e85421bbfd46a5dd49945202c.svg",
     "static/media/job-card-red.svg": "./static/media/job-card-red.38d7f149690b84cb046d8068708a067f.svg",
@@ -12,15 +13,15 @@
     "static/media/ornage-outline-shirt.svg": "./static/media/ornage-outline-shirt.44ec166efcea415d7a229ad0ff6fc97d.svg",
     "static/media/green-outlne-shirt.svg": "./static/media/green-outlne-shirt.c9b8dea828012a77086aecb039983ebf.svg",
     "static/media/red-outline-shirt.svg": "./static/media/red-outline-shirt.56802e5c3c34b8747fee4e222ba251e4.svg",
-    "index.html": "./index.html",
     "static/media/green-background-shirt.svg": "./static/media/green-background-shirt.70afaf0f9965d3063ddf2b5d8436bb27.svg",
     "static/media/red-background-shirt.svg": "./static/media/red-background-shirt.8f794461173fe00b729dd8869efd2099.svg",
+    "index.html": "./index.html",
     "static/media/power.svg": "./static/media/power.1de6b3c45ab6e815b52643f0382a506c.svg",
-    "main.e186beee.css.map": "./static/css/main.e186beee.css.map",
-    "main.bdf535c1.js.map": "./static/js/main.bdf535c1.js.map"
+    "main.c125457a.css.map": "./static/css/main.c125457a.css.map",
+    "main.0f7a0a1c.js.map": "./static/js/main.0f7a0a1c.js.map"
   },
   "entrypoints": [
-    "static/css/main.e186beee.css",
-    "static/js/main.bdf535c1.js"
+    "static/css/main.c125457a.css",
+    "static/js/main.0f7a0a1c.js"
   ]
 }

@@ -129,16 +129,20 @@ const MrnIssuance = () => {
                 // Transform MRN details into card data
                 let detailsData = [];
                 if (mrnData.details && mrnData.details.length > 0) {
-                    detailsData = mrnData.details.map(detail => ({
-                        mrn_detail_id: detail.id,
-                        material_id: detail.stock_item_id,
-                        material_name: detail.stock_item?.name || 'Unknown',
-                        mrn_qty: detail.qty,
-                        location_id: '',
-                        available_balance: undefined,
-                        issue_qty: '',
-                        is_issued: false
-                    }));
+                    detailsData = mrnData.details.map(detail => {
+                        const alreadyIssued = detail.issued_qty !== null && detail.issued_qty !== undefined;
+                        return {
+                            mrn_detail_id: detail.id,
+                            material_id: detail.stock_item_id,
+                            material_name: detail.stock_item?.name || 'Unknown',
+                            mrn_qty: detail.qty,
+                            issued_qty: detail.issued_qty || null,
+                            location_id: alreadyIssued ? '' : '',
+                            available_balance: alreadyIssued ? undefined : undefined,
+                            issue_qty: alreadyIssued ? '' : '',
+                            is_issued: alreadyIssued
+                        };
+                    });
                 }
                 
                 setMrnDetails(detailsData);
@@ -151,7 +155,7 @@ const MrnIssuance = () => {
                 config["CONTROL_CENTER"].state.new = false;
                 
                 reRender();
-                config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
+               // config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to load MRN", "");
             }
@@ -203,13 +207,15 @@ const MrnIssuance = () => {
             document.getElementById("spinner").style.display = "none";
             
             if (response.status === 200) {
-                const balance = response.data.available_balance || 0;
+                const balance = response.data.data.qty || 0;
                 
-                // Update available balance in state
+                // Update available balance and auto-set issue qty
                 setMrnDetails(prevDetails => {
                     const updatedDetails = prevDetails.map(d => {
                         if (d.mrn_detail_id === detailId) {
-                            return { ...d, available_balance: balance };
+                            // Set issue_qty based on comparison: if mrn_qty >= available_balance, use available_balance, otherwise use mrn_qty
+                            const issueQty = d.mrn_qty >= balance ? balance : d.mrn_qty;
+                            return { ...d, available_balance: balance, issue_qty: issueQty };
                         }
                         return d;
                     });
@@ -265,20 +271,27 @@ const MrnIssuance = () => {
             // API call to update/issue transaction
             const apiRequest = {
                 mrn_detail_id: detail.mrn_detail_id,
+                stock_item_id: detail.material_id,
                 location_id: detail.location_id,
                 qty: parseInt(detail.issue_qty)
             };
             
-            const response = await API.post(`mrn-issuance/issue`, apiRequest);
+            const response = await API.post(`inventory/issue`, apiRequest);
             
             document.getElementById("spinner").style.display = "none";
             
             if (response.status === 200 || response.status === 201) {
-                // Mark as issued
+                // Mark as issued and clear input fields + hide available balance
                 setMrnDetails(prevDetails => {
                     const updatedDetails = prevDetails.map(d => {
                         if (d.mrn_detail_id === detailId) {
-                            return { ...d, is_issued: true };
+                            return { 
+                                ...d, 
+                                is_issued: true,
+                                location_id: '',
+                                available_balance: undefined,
+                                issue_qty: ''
+                            };
                         }
                         return d;
                     });
@@ -289,6 +302,7 @@ const MrnIssuance = () => {
                 config["CONTROL_CENTER"].state.modified = true;
                 
                 reRender();
+                await loadMrnDetails(config["inputMrnID"].data.value); // Refresh details to get updated issued_qty
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to issue transaction", "");
             }
@@ -321,26 +335,27 @@ const MrnIssuance = () => {
             document.getElementById("spinner").style.display = "none";
             
             if (response.status === 200) {
-                // Reset the transaction to not issued
-                setMrnDetails(prevDetails => {
-                    const updatedDetails = prevDetails.map(d => {
-                        if (d.mrn_detail_id === selectedDetailId) {
-                            return { 
-                                ...d, 
-                                is_issued: false,
-                                location_id: '',
-                                available_balance: undefined,
-                                issue_qty: ''
-                            };
-                        }
-                        return d;
-                    });
-                    return updatedDetails;
-                });
+                await loadMrnDetails(config["inputMrnID"].data.value);
+                // // Reset the transaction to not issued
+                // setMrnDetails(prevDetails => {
+                //     const updatedDetails = prevDetails.map(d => {
+                //         if (d.mrn_detail_id === selectedDetailId) {
+                //             return { 
+                //                 ...d, 
+                //                 is_issued: false,
+                //                 location_id: '',
+                //                 available_balance: undefined,
+                //                 issue_qty: ''
+                //             };
+                //         }
+                //         return d;
+                //     });
+                //     return updatedDetails;
+                // });
                 
-                config["CONTROL_CENTER"].promptBaseMessage("Transaction deleted successfully", "");
-                setSelectedDetailId(null);
-                reRender();
+                // config["CONTROL_CENTER"].promptBaseMessage("Transaction deleted successfully", "");
+                // setSelectedDetailId(null);
+                // reRender();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to delete transaction", "");
             }

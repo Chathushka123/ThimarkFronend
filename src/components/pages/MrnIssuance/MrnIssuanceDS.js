@@ -549,8 +549,8 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                     margin: '16px 0'
                                                 }}></div>
 
-                                                {/* Location Scan Section */}
-                                                <div className="mb-3">
+                                                {/* Location Scan Section - hide when already issued */}
+                                                {!detail.is_issued && <div className="mb-3">
                                                     <label style={{
                                                         color: '#4a5568', 
                                                         fontWeight: '700',
@@ -573,7 +573,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                                 window.handleLocationScan(detail.mrn_detail_id, e.target.value);
                                                             }
                                                         }}
-                                                        disabled={issuanceStatus === "completed" || detail.is_issued}
+                                                        disabled={issuanceStatus === "completed"}
                                                         style={{
                                                             fontSize: '14px',
                                                             padding: '12px 16px',
@@ -593,7 +593,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                             e.currentTarget.style.boxShadow = 'none';
                                                         }}
                                                     />
-                                                </div>
+                                                </div>}
 
                                                 {/* Available Balance - Show only when location is scanned */}
                                                 {detail.location_id && detail.available_balance !== undefined && (
@@ -763,7 +763,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                                     fontWeight: '600'
                                                                 }}>
                                                                     <i className="fas fa-cube mr-1"></i>
-                                                                    {detail.issue_qty} units from location {detail.location_id}
+                                                                    {detail.issued_qty} units issued
                                                                 </div>
                                                             </div>
                                                         </div>
