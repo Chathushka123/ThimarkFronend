@@ -206,6 +206,10 @@ export function MultiSelectDropDownOriginal(props) {
         }
         reRender();
     }    
+
+    function getSelectedArray(){
+        return props.item.data.value;
+    }
    
     // Attach functions to props.item
     props.item.getValue = getSelectedItems;
@@ -215,6 +219,7 @@ export function MultiSelectDropDownOriginal(props) {
     props.item.selectAll = selectAll; // Add selectAll to props.item
     props.item.removeAll = removeAll; // Add removeAll to props.item
     props.item.handleSearch = handleSearch;
+    props.item.getSelectedArray = getSelectedArray;
  
     const selectedValues = props.item.data.value;
  

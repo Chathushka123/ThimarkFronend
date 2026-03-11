@@ -30,7 +30,7 @@ const Header = () => {
 
     return (
         <nav className="sb-topnav navbar navbar-expand navbar-dark bg-dark main-header">
-            <a className="navbar-brand" href="#!">InQube</a>
+            <a className="navbar-brand" href="#!">PMS</a>
             {
                 user && <button className="btn btn-link btn-sm order-1 order-lg-0" onClick={handleSidebarToggle} id="sidebarToggle" href="#!"><i className="fas fa-bars"></i></button>
             }
