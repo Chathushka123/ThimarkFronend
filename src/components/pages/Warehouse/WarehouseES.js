@@ -121,6 +121,8 @@ const Warehouse = () => {
 
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
+        reRender();
+
     }
 
     function handlePopulate() {

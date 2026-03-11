@@ -2784,9 +2784,25 @@ export function _nativeGrid(props) {
       if (dataList[rowId]["_rowstate"] === "DELETED")
         style = { style: style, textDecorationLine: "line-through" };
     }
+    // Exclusive options: exclude values already selected in other non-deleted rows
+    let effectiveProperties = properties;
+    if (properties.exclusiveOptions && properties.options && rowId >= 0) {
+      const selectedInOtherRows = new Set(
+        dataList
+          .filter((row, idx) => idx !== rowId && row["_rowstate"] !== "DELETED")
+          .map(row => row[properties.sqlColumn])
+          .filter(v => v !== undefined && v !== null && v !== "" && v !== 0)
+      );
+      if (selectedInOtherRows.size > 0) {
+        const filteredOptions = properties.options.filter(opt =>
+          !selectedInOtherRows.has(opt.value) || opt.value === data
+        );
+        effectiveProperties = { ...properties, options: filteredOptions };
+      }
+    }
     let item = _react["default"].createElement(_Components.TbDropDown, {
       key: properties.name + rowId + colId,
-      item: properties,
+      item: effectiveProperties,
       name: properties.name,
       disabled: disabled,
       className: "form-control form-control-sm",

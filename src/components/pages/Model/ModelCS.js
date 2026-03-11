@@ -460,7 +460,7 @@ componentListConfig["gridModels"] = {
 let stockItemCols = [];
 
 stockItemCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
-stockItemCols["stock_item_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "stock_item_id", placeholder: "Material", editable: true, sqlColumn: "stock_item_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+stockItemCols["stock_item_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "stock_item_id", placeholder: "Material", editable: true, exclusiveOptions: true, sqlColumn: "stock_item_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
 stockItemCols["consumption"] = { objectType: "NumberField", colIndex: 2, datatype: "number", name: "consumption", placeholder: "Consumption", editable: true, sqlColumn: "consumption", style: { textAlign: "right", minWidth: "150px", width: "150px" } };
 
 componentListConfig["gridModelStockItems"] = {

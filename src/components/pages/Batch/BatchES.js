@@ -75,6 +75,17 @@ const Batch = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
+    function resetInputForm () {
+        config['inputBatchID'].setValue("");
+        config['inputBatchNo'].setValue("");
+        config['inputModel'].setValue([{}]);
+        config['gridSize'].setData([]);
+        config["CONTROL_CENTER"].state.modified = false;
+        config["CONTROL_CENTER"].state.new = false;
+        config["CONTROL_CENTER"].state.deleted = true;
+        reRender();
+    }
+
     async function handleSave() {
         try {
             document.getElementById("spinner").style.display = "";
@@ -117,9 +128,10 @@ const Batch = () => {
                 if (!id || id == "") {
                     config['inputBatchID'].setValue(response.data.data.id);
                 }
+
                 config["CONTROL_CENTER"].promptBaseMessage("Batch saved successfully", "");
-                config["CONTROL_CENTER"].state.modified = false;
-                config["CONTROL_CENTER"].state.new = false;
+                resetInputForm()
+
                
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in saving Batch", "");
@@ -160,13 +172,8 @@ const Batch = () => {
             if (response.status === 200 || response.status === 201) {
 
                 config["CONTROL_CENTER"].promptBaseMessage("Batch Deleted successfully", "");
-                config['inputBatchID'].setValue("");
-                config['inputBatchNo'].setValue("");
-                config['inputModel'].setValue([{}]);
-                config['gridSize'].setData([]);
-                config["CONTROL_CENTER"].state.modified = false;
-                config["CONTROL_CENTER"].state.new = false;
-                config["CONTROL_CENTER"].state.deleted = true;
+                
+                resetInputForm();
                
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in deleting Batch", "");
