@@ -26,6 +26,8 @@ const Mrn = () => {
     config["buttonReopen"].event.onClick = handleReopen;
     config["buttonReopenYes"].event.onClick = handleReopenYes;
     config["buttonReopenNo"].event.onClick = handleReopenNo;
+
+    config["buttonPrint"].event.onClick = handleInvoicePrint;
     
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
@@ -619,6 +621,71 @@ const Mrn = () => {
             console.error("Error in handleError:", err);
             config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An unexpected error occurred", "");
         }
+    }
+
+    async function handleInvoicePrint(){
+        try {
+            const mrn_id = config["inputMrnID"].data.value;
+            const status = config["inputStatus"].data.value;
+    
+            if (mrn_id !== "" && status !== "open") {
+                const apiRequest = {
+                    "id" : mrn_id
+                }
+                document.getElementById("spinner").style.display = "";
+                const printBundleTagReport = await API.post(`mrns/getMrnPrint`, apiRequest,
+                    {
+                        responseType: 'arraybuffer',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/pdf'
+                        }
+                    });
+                document.getElementById("spinner").style.display = "none";
+    
+                console.log("********printTrimsReport*********");
+                console.log(printBundleTagReport);
+                
+                if (printBundleTagReport && printBundleTagReport.data !== null) {
+                    config["printPdfPopUp"].showPopUp();
+                    let blob = new Blob([printBundleTagReport.data], { type: 'application/pdf' });
+                    let blobUrl = window.URL.createObjectURL(blob);
+                    document.getElementById("pdfviewer").setAttribute('src', blobUrl);
+                } else {
+                    config["CONTROL_CENTER"].promptWarningMessage("No Data Available", "");
+                }
+    
+            } else {
+                if (mrn_id === "") {
+                    config["CONTROL_CENTER"].promptWarningMessage("Please Select MRN", "");
+                } else if (status === "open") {
+                    config["CONTROL_CENTER"].promptWarningMessage("MRN is still open", "");
+                }
+            }
+    
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            // console.log(error);
+            try {
+                if (error.response.data.message) {
+                    try {
+                        let errors = [];
+    
+                        Object.entries(JSON.parse(error.response.data.message)).forEach(([index, data]) => {
+                            data.forEach(error => errors.push(error));
+                        });
+    
+                        config["CONTROL_CENTER"].promptWarningMessage(errors[0], "");
+                    } catch (error) {
+                        config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+                    }
+                }
+            } catch (error) {
+                config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+            }
+    
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+        } 
     }
 
     return generateMrnDisplay(config);

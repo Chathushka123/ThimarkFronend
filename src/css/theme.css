@@ -2209,6 +2209,13 @@ label {
   opacity: 1;
 }
 
+select.form-control:disabled,
+select.form-control[readonly] {
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #1e293b;
+  opacity: 1;
+}
+
 select.form-control:focus::-ms-value {
   color: #495057;
   background-color: #fff;
