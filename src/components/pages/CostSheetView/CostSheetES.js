@@ -134,7 +134,7 @@ const CostSheetView = () => {
       ["Total Qty",           costSheetData.total_qty],
       ["Total Material Cost", costSheetData.total_material_cost],
       [], // blank separator
-      ["Category", "Material Code", "Material Name", "Req. Qty", "Issued Qty", "Unit Cost", "Total Req. Cost", "Total Issued Cost"],
+      ["Category", "Material Code", "Material Name", "Req. Qty", "Issued Qty", "Consumption", "Unit Cost", "Total Req. Cost", "Total Issued Cost"],
     ];
 
     (costSheetData.material_groups || []).forEach((group) => {
@@ -145,6 +145,7 @@ const CostSheetView = () => {
           item.material_name,
           item.required_qty,
           item.issued_qty,
+          item.consumption,
           item.unit_cost,
           item.total_required_cost,
           item.total_issued_cost,
@@ -161,6 +162,7 @@ const CostSheetView = () => {
       { wch: 28 }, // C: Material Name
       { wch: 12 }, // D: Req. Qty
       { wch: 12 }, // E: Issued Qty
+      { wch: 12 }, // E: Consumption
       { wch: 15 }, // F: Unit Cost
       { wch: 18 }, // G: Total Req. Cost
       { wch: 18 }, // H: Total Issued Cost
