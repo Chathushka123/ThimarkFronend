@@ -73,7 +73,15 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
                     fontSize: '20px',
                     flexShrink: 0,
                     boxShadow: `0 2px 6px ${accentColor}88`
-                }}>{rack}</div>
+                }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#212529" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="2" width="2.5" height="20" rx="1"/>
+                        <rect x="19.5" y="2" width="2.5" height="20" rx="1"/>
+                        <rect x="2" y="5.5" width="20" height="2.5" rx="1"/>
+                        <rect x="2" y="12" width="20" height="2.5" rx="1"/>
+                        <rect x="2" y="18.5" width="20" height="2.5" rx="1"/>
+                    </svg>
+                </div>
 
                 {/* Rack Info */}
                 <div style={{ flex: 1 }}>

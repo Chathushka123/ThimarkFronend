@@ -7,6 +7,7 @@ const Model = () => {
     let [rendered, setRendered] = useState(true);
     const [mainModels, setMainModels] = useState([]);
     const [stockMaterials, setStockMaterials] = useState([]);
+    const [selectedModelSI, setSelectedModelSI] = useState(0);
 
     function reRender() {
         setRendered(!rendered);
@@ -19,6 +20,7 @@ const Model = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["CONTROL_CENTER"].event.onSave = handleSave;
     config["CONTROL_CENTER"].event.onNew = handleNew;
+    config["CONTROL_CENTER"].event.onPopulate = handlePopulate;
     config["gridModels"].event.onRowCustomButton = handleRowEditClick;
     config["gridMainModels"].event.onRowCustomButton = handleMainModelRowEdit;
     config["gridModelStockItems"].event.onRowCustomButton = handleAddNewItemRow;
@@ -55,6 +57,15 @@ const Model = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
+    function handlePopulate() {
+        if(selectedModelSI > 0){
+            loadModelStockItems(selectedModelSI);
+        }
+        else{
+            getAllMainModels();
+            getAllModels();
+        }
+    }
 
     function handleAddNewItemRow() {
         const currentData = config['gridModelStockItems'].data || [];
@@ -82,6 +93,7 @@ const Model = () => {
 
         // Load model stock items for this model
         loadModelStockItems(id);
+        setSelectedModelSI(id);
 
         config["CONTROL_CENTER"].state.modified = true;
         config["CONTROL_CENTER"].state.new = true;
@@ -191,6 +203,7 @@ const Model = () => {
 
     const loadModelStockItems = async (modelId) => {
         try {
+            document.getElementById("spinner").style.display = "";
             const response = await API.get(`/models/${modelId}`);
             if (response.data && response.data.model_stock_items) {
 
@@ -205,6 +218,9 @@ const Model = () => {
             }
         } catch (error) {
             console.log(error);
+        }
+        finally{
+            document.getElementById("spinner").style.display = "none";
         }
     }
 

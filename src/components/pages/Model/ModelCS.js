@@ -374,6 +374,8 @@ componentListConfig["gridMainModels"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: true,
+        sorting: true,
+        filterring : true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
@@ -424,6 +426,8 @@ componentListConfig["gridModels"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: true,
+        sorting: true,
+        filterring : true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
@@ -471,6 +475,8 @@ componentListConfig["gridModelStockItems"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: false,
+        sorting: true,
+        // filterring : true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
