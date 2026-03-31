@@ -23,7 +23,7 @@ const Login = ({ ...props }) => {
         id: data.id,
         name: data.name,
         email: data.email,
-        common_user:data.common_user,
+        common_user: data.common_user,
       }
       console.log("************user**********");
       console.log(user);
@@ -35,19 +35,21 @@ const Login = ({ ...props }) => {
       console.log(error);
       setLoading(false);
       try {
-        if (error.response.data.message) {
+        if (error.response && error.response.data && error.response.data.message) {
           try {
             let errors = [];
             Object.entries(JSON.parse(error.response.data.message)).forEach(([index, data]) => {
               data.forEach(error => errors.push(error));
             });
             setError(errors[0]);
-          } catch (error) {
-            setError(error);
+          } catch (parseError) {
+            setError(error.response.data.message);
           }
+        } else {
+          setError('Login failed. Please try again.');
         }
-      } catch (error) {
-        setError(error);
+      } catch (e) {
+        setError('Login failed. Please try again.');
       }
       removeUserSession();
     });

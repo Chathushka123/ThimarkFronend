@@ -495,21 +495,35 @@ componentListConfig["inputMatSize"] = {
 
 let gridCols = [];
 
-gridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "is", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["name"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "name", placeholder: "Name", editable: false, sqlColumn: "name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-gridCols["code"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "code", placeholder: "Code", editable: false, sqlColumn: "code", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-gridCols["supplier"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "suppllier", placeholder: "Supplier", editable: false, sqlColumn: "supplier", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["lead_time"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "lead_time", placeholder: "Lead Time", editable: false, sqlColumn: "lead_time", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["min_qty"] = { objectType: "TextBox", colIndex: 5, datatype: "text", name: "min_qty", placeholder: "Min Qty", editable: false, sqlColumn: "min_qty", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["size"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "size", placeholder: "Sizes", editable: false, sqlColumn: "size", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["unit_price"] = { objectType: "TextBox", colIndex: 7, datatype: "text", name: "unit_price", placeholder: "Unit Price", editable: false, sqlColumn: "unit_price", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["uom"] = { objectType: "TextBox", colIndex: 8, datatype: "text", name: "uom", placeholder: "UOM", editable: false, sqlColumn: "uom", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["real_category"] = { objectType: "TextBox", colIndex: 9, datatype: "text", name: "real_category", placeholder: "Category", editable: false, sqlColumn: "real_category", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["active"] = { objectType: "TextBox", colIndex: 10, datatype: "text", name: "active", placeholder: "Active Status", editable: false, sqlColumn: "active", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["created_at"] = { objectType: "TextBox", colIndex: 11, datatype: "text", name: "created_at", placeholder: "Careated At", editable: false, sqlColumn: "created_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["updated_at"] = { objectType: "TextBox", colIndex: 12, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["uom_id"] = { objectType: "TextBox", colIndex: 13, datatype: "text", name: "uom_id", placeholder: "UOM", editable: false, visible: false, sqlColumn: "uom_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["category"] = { objectType: "TextBox", colIndex: 14, datatype: "text", name: "category", placeholder: "UOM", editable: false, visible: false, sqlColumn: "category", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+// Add checkbox column for row selection
+gridCols["_select"] = {
+    objectType: "CheckBox",
+    colIndex: 0,
+    datatype: "boolean",
+    name: "_select",
+    placeholder: "Select",
+    editable: true,
+    sqlColumn: "_select",
+    checkedValue: true,
+    uncheckedValue: false,
+    style: { textAlign: "center", minWidth: "50px", width: "50px" }
+};
+
+gridCols["id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "is", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "name", placeholder: "Name", editable: false, sqlColumn: "name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridCols["code"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "code", placeholder: "Code", editable: false, sqlColumn: "code", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridCols["supplier"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "suppllier", placeholder: "Supplier", editable: false, sqlColumn: "supplier", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["lead_time"] = { objectType: "TextBox", colIndex: 5, datatype: "text", name: "lead_time", placeholder: "Lead Time", editable: false, sqlColumn: "lead_time", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["min_qty"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "min_qty", placeholder: "Min Qty", editable: false, sqlColumn: "min_qty", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["size"] = { objectType: "TextBox", colIndex: 7, datatype: "text", name: "size", placeholder: "Sizes", editable: false, sqlColumn: "size", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["unit_price"] = { objectType: "TextBox", colIndex: 8, datatype: "text", name: "unit_price", placeholder: "Unit Price", editable: false, sqlColumn: "unit_price", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["uom"] = { objectType: "TextBox", colIndex: 9, datatype: "text", name: "uom", placeholder: "UOM", editable: false, sqlColumn: "uom", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["real_category"] = { objectType: "TextBox", colIndex: 10, datatype: "text", name: "real_category", placeholder: "Category", editable: false, sqlColumn: "real_category", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["active"] = { objectType: "TextBox", colIndex: 11, datatype: "text", name: "active", placeholder: "Active Status", editable: false, sqlColumn: "active", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["created_at"] = { objectType: "TextBox", colIndex: 12, datatype: "text", name: "created_at", placeholder: "Careated At", editable: false, sqlColumn: "created_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["updated_at"] = { objectType: "TextBox", colIndex: 13, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["uom_id"] = { objectType: "TextBox", colIndex: 14, datatype: "text", name: "uom_id", placeholder: "UOM", editable: false, visible: false, sqlColumn: "uom_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["category"] = { objectType: "TextBox", colIndex: 15, datatype: "text", name: "category", placeholder: "UOM", editable: false, visible: false, sqlColumn: "category", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 
 componentListConfig["gridMaterials"] = {
     objectType: "Grid",
@@ -518,7 +532,7 @@ componentListConfig["gridMaterials"] = {
         visible: true,
         insertable: true,
         sorting: true,
-        filterring : true,
+        filterring: true,
         updateAllowed: true,
         mandetory: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]

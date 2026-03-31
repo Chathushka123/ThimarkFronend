@@ -813,18 +813,18 @@ export function generateInventoryDisplay(
                         left: "9px",
                         top: "50%",
                         transform: "translateY(-50%)",
-                        color: isSearching ? "#b58ef7" : "#adb5bd",
+                        color: isSearching ? "#000000" : "#000000",
                         fontSize: "13px",
                         pointerEvents: "none",
                       }}
                     >
-                      🔍
+                      🔍︎
                     </span>
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search material…"
+                      // placeholder="Search material…"
                       style={{
                         paddingLeft: "30px",
                         paddingRight: searchTerm ? "28px" : "10px",
@@ -835,8 +835,8 @@ export function generateInventoryDisplay(
                           highlightedIds.length > 0
                             ? "1.5px solid #6f42c1"
                             : "1.5px solid #495057",
-                        backgroundColor: "#343a40",
-                        color: "#fff",
+                        // color: "#e0e0e0 !important",
+                        backgroundColor: "#90AACB",
                         outline: "none",
                         width: "220px",
                         boxShadow:
@@ -857,7 +857,7 @@ export function generateInventoryDisplay(
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          color: "#adb5bd",
+                          color: "#1f0000",
                           fontSize: "13px",
                           padding: 0,
                           lineHeight: 1,
