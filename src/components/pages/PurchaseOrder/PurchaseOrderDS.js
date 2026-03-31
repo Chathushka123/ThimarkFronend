@@ -1,8 +1,11 @@
 import React from 'react'
+import Select from 'react-select'
 import {
     TextBox, DateField, DropDown, Label, TextArea,
     Button, ControlCenter, NewButton, SaveButton,
-    AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton
+    AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton,
+    MultiSelectDropDown,
+    MultiSelectDropDownOriginal
 } from '../../../BASE/Components'
 
 // ── Status colour map ─────────────────────────────────────────────────────────
@@ -50,7 +53,8 @@ const S = {
         borderRadius: '10px',
         boxShadow: '0 2px 14px rgba(0,0,0,0.08)',
         marginBottom: '22px',
-        overflow: 'hidden',
+        minHeight: '300px',
+        overflow: 'scroll',
     },
     cardHeader: {
         background: 'linear-gradient(135deg, #000841 0%, #020f75 100%)',
@@ -249,6 +253,13 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
         .map((row, idx) => ({ ...row, _realIndex: idx }))
         .filter(row => row._rowstate !== 'DELETED')
 
+    // IDs already chosen in other rows — used to exclude from each row's options
+    const selectedIds = new Set(
+        visibleItems.filter(r => r.material_id).map(r => String(r.material_id))
+    )
+
+    const allOptions = (materialsData || []).map(m => ({ value: m.id, label: `${m.code} – ${m.name}` }))
+
     return (
         <div>
             <div style={{ overflowX: 'auto' }}>
@@ -256,11 +267,11 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
                     <thead>
                         <tr>
                             <th style={S.itemTh} width="35">#</th>
-                            <th style={S.itemTh}>Material</th>
+                            <th style={S.itemTh} width="40%"> Material</th>
                             <th style={S.itemTh} width="80">UOM</th>
                             <th style={{ ...S.itemTh, textAlign: 'right' }} width="100">Qty</th>
                             <th style={{ ...S.itemTh, textAlign: 'right' }} width="140">Unit Price (LKR)</th>
-                            <th style={S.itemTh} width="145">Exp. Delivery</th>
+                            <th hidden style={S.itemTh} width="145">Exp. Delivery</th>
                             <th style={{ ...S.itemTh, textAlign: 'right' }} width="140">Line Total (LKR)</th>
                             <th style={{ ...S.itemTh, textAlign: 'center' }} width="45"></th>
                         </tr>
@@ -280,16 +291,36 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
                                 <tr key={ri} style={dispIdx % 2 === 0 ? S.itemRowEven : S.itemRowOdd}>
                                     <td style={{ ...S.itemTd, textAlign: 'center', color: '#aaa', fontWeight: '700', fontSize: '11px' }}>{dispIdx + 1}</td>
                                     <td style={S.itemTd}>
-                                        <select
-                                            value={row.material_id || ''}
-                                            onChange={e => handlers.onLineItemChange(ri, 'material_id', e.target.value)}
-                                            style={S.itemSelect}
-                                        >
-                                            <option value="">— Select Material —</option>
-                                            {(materialsData || []).map(m => (
-                                                <option key={m.id} value={m.id}>{m.code} – {m.name}</option>
-                                            ))}
-                                        </select>
+                                        <Select
+                                            value={allOptions.find(o => String(o.value) === String(row.material_id)) || null}
+                                            onChange={opt => handlers.onLineItemChange(ri, 'material_id', opt ? opt.value : '')}
+                                            options={allOptions.filter(o => !selectedIds.has(String(o.value)) || String(o.value) === String(row.material_id))}
+                                            placeholder="— Select Material —"
+                                            isClearable
+                                            isSearchable
+                                            menuPortalTarget={document.body}
+                                            styles={{
+                                                control: (base, state) => ({
+                                                    ...base,
+                                                    minHeight: '30px',
+                                                    height: '30px',
+                                                    fontSize: '12px',
+                                                    // minWidth: '180px',
+                                                    borderColor: state.isFocused ? '#90cdf4' : '#e2e8f0',
+                                                    boxShadow: state.isFocused ? '0 0 0 2px rgba(66,153,225,0.25)' : 'none',
+                                                }),
+                                                valueContainer: base => ({ ...base, padding: '0 8px', height: '30px' }),
+                                                input: base => ({ ...base, margin: 0, padding: 0, fontSize: '12px' }),
+                                                indicatorsContainer: base => ({ ...base, height: '30px' }),
+                                                option: (base, state) => ({
+                                                    ...base,
+                                                    fontSize: '12px',
+                                                    backgroundColor: state.isSelected ? '#0f014b' : state.isFocused ? '#e8eaf6' : '#fff',
+                                                    color: state.isSelected ? '#fff' : '#2d3748',
+                                                }),
+                                                menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                            }}
+                                        />
                                     </td>
                                     <td style={{ ...S.itemTd, textAlign: 'center' }}>
                                         {row.uom
@@ -317,14 +348,14 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
                                             placeholder="0.00"
                                         />
                                     </td>
-                                    <td style={S.itemTd}>
+                                    {/* <td style={S.itemTd}>
                                         <input
                                             type="date"
                                             value={row.item_expected_delivery || ''}
                                             onChange={e => handlers.onLineItemChange(ri, 'item_expected_delivery', e.target.value)}
                                             style={S.itemInput}
                                         />
-                                    </td>
+                                    </td> */}
                                     <td style={{ ...S.itemTd, textAlign: 'right' }}>
                                         <span style={S.lineTotalVal}>
                                             {row.total
@@ -431,9 +462,10 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12">
                                     <span style={S.label}>
                                         <i className="fas fa-hashtag" style={{ marginRight: '4px' }}></i>
-                                        PO Number <span style={{ color: '#e53e3e' }}>*</span>
+                                        PO Number
                                     </span>
                                     <TextBox
+
                                         item={componentList["inputPoNumber"]}
                                         className="form-control form-control-sm"
                                         style={{ fontWeight: '600', letterSpacing: '0.5px' }}
@@ -446,7 +478,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                         <i className="fas fa-truck" style={{ marginRight: '4px' }}></i>
                                         Supplier <span style={{ color: '#e53e3e' }}>*</span>
                                     </span>
-                                    <DropDown
+                                    <MultiSelectDropDownOriginal
                                         item={componentList["inputSupplier"]}
                                         className="form-control form-control-sm"
                                     />
@@ -465,7 +497,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 </div>
 
                                 {/* Expected Delivery */}
-                                <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12">
+                                <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12" >
                                     <span style={S.label}>
                                         <i className="fas fa-shipping-fast" style={{ marginRight: '4px' }}></i>
                                         Expected Delivery
@@ -497,7 +529,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                     <TextArea
                                         item={componentList["inputNotes"]}
                                         className="form-control form-control-sm"
-                                        rows={2}
+                                        rows={4}
                                         style={{ resize: 'vertical' }}
                                     />
                                 </div>
