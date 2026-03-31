@@ -19,11 +19,15 @@ const STATUS_COLORS = {
 
 function StatusBadge({ status }) {
     const c = STATUS_COLORS[status] || { bg: '#adb5bd', text: '#fff' }
-    if (!status) return null
+    const label = !status ? 'New'
+        : status === 'Partial' ? 'Partial Receipt'
+            : status === 'Received' ? 'Fully Received'
+                : status
+    const color = !status ? { bg: '#adb5bd', text: '#fff' } : c
     return (
         <span style={{
-            background: c.bg,
-            color: c.text,
+            background: color.bg,
+            color: color.text,
             padding: '4px 14px',
             borderRadius: '20px',
             fontSize: '12px',
@@ -33,7 +37,7 @@ function StatusBadge({ status }) {
             marginLeft: '12px',
             verticalAlign: 'middle',
         }}>
-            {status === 'Partial' ? 'Partial Receipt' : status === 'Received' ? 'Fully Received' : status}
+            {label}
         </span>
     )
 }
@@ -289,7 +293,7 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
                                     </td>
                                     <td style={{ ...S.itemTd, textAlign: 'center' }}>
                                         {row.uom
-                                            ? <span style={S.uomBadge}>{row.uom}</span>
+                                            ? <span style={S.uomBadge}>{typeof row.uom === 'object' ? (row.uom?.name || '') : row.uom}</span>
                                             : <span style={{ color: '#ccc' }}>–</span>}
                                     </td>
                                     <td style={{ ...S.itemTd, textAlign: 'right' }}>
@@ -381,6 +385,14 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonAdvanceSearch"]}>
                                     <i className="fas fa-search fa-lg"></i>
                                 </Button>
+                                <button
+                                    className="btn btn-secondary btn-sm mr-2"
+                                    type="button"
+                                    title="Print / Save PDF"
+                                    onClick={handlers.onPrint}
+                                >
+                                    <i className="fas fa-print fa-lg"></i>
+                                </button>
                                 <NewButton className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonNew"]}>
                                     <i className="far fa-file fa-lg"></i>
                                 </NewButton>
@@ -511,14 +523,14 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                     {/* ── Card 3: Financial Summary ───────────────────────────── */}
                     <div className="row">
                         {/* Left: empty spacer on large, collapses on mobile */}
-                        <div className="col-xl-7 col-lg-6 d-none d-lg-block"></div>
+                        {/* <div className="col-xl-7 col-lg-6 d-none d-lg-block"></div> */}
 
                         {/* Right: financial box */}
                         <div className="col-xl-5 col-lg-6 col-12">
                             <div style={S.card}>
                                 <div style={S.cardHeaderGreen}>
                                     <span>
-                                        <i className="fas fa-calculator" style={{ marginRight: '8px' }}></i>
+                                        <i className="fas fa-calculator" ></i>
                                         Financial Summary
                                     </span>
                                 </div>
@@ -547,7 +559,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                             Discount
                                         </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ fontSize: '12px', color: '#888' }}>LKR</span>
+                                            <span style={{ fontSize: '12px', color: '#888' }}>%</span>
                                             <TextBox
                                                 item={componentList["inputDiscount"]}
                                                 className="form-control form-control-sm text-right"
