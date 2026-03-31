@@ -26,7 +26,7 @@ const Warehouse = () => {
     config["buttonSaveInventory"].event.onClick = handleSaveInventory;
     config["inputLocationBasis"].event.onClick = handleChangeLocationBasis;
     config["gridLocations"].event.onRowCustomButton = handleAddNewLocaionRow;
-    config["gridLocations"].event.onRowDelete = handleDeleteLocation;
+    // config["gridLocations"].event.onRowDelete = handleDeleteLocation;
 
 
     /*********************************************************/
@@ -129,7 +129,8 @@ const Warehouse = () => {
         const selected = config['inputId'].data.value;
 
         if(!selected || selected == 0 || selected == ""){
-            config["CONTROL_CENTER"].promptWarningMessage("Please select a material first!", "");
+            // config["CONTROL_CENTER"].promptWarningMessage("Please select a material first!", "");
+            getAllWarehouses();
         }
 
         loadWarehouseData(selected);
@@ -137,6 +138,7 @@ const Warehouse = () => {
 
     async function loadWarehouseData(warehouseId) {
         try {
+            document.getElementById("spinner").style.display = "";
             const response = await API.get(`/warehouses/${warehouseId}`);
             if (response.data && response.data.locations) {
                 config['gridLocations'].setData(response.data.locations.length > 0 ? response.data.locations : [{ id: 0, bin: "", rack: "", stock_item_id: 0 }]);
@@ -164,6 +166,9 @@ const Warehouse = () => {
             // loadWHLItems(warehouseId);
         } catch (error) {
             console.log(error);
+        }
+        finally{
+            document.getElementById("spinner").style.display = "none";
         }
     }
 

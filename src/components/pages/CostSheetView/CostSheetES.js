@@ -121,7 +121,7 @@ const CostSheetView = () => {
   //                      ADVANCE SEARCH APIs                         //
   //////////////////////////////////////////////////////////////////////
 
-  function handleExportExcel() {
+  async function handleExportExcel() {
     if (!costSheetData) return;
 
     const wb = XLSX.utils.book_new();
@@ -134,7 +134,7 @@ const CostSheetView = () => {
       ["Total Qty",           costSheetData.total_qty],
       ["Total Material Cost", costSheetData.total_material_cost],
       [], // blank separator
-      ["Category", "Material Code", "Material Name", "Req. Qty", "Issued Qty", "Consumption", "Unit Cost", "Total Req. Cost", "Total Issued Cost"],
+      ["Category", "Material Code", "Material Name", "Req. Qty", "Consumption", "Issued Qty", "Actual Consumption", "Unit Cost", "Total Req. Cost", "Total Issued Cost"],
     ];
 
     (costSheetData.material_groups || []).forEach((group) => {
@@ -144,8 +144,9 @@ const CostSheetView = () => {
           item.material_code,
           item.material_name,
           item.required_qty,
-          item.issued_qty,
           item.consumption,
+          item.issued_qty,
+          item.actual_consumption,
           item.unit_cost,
           item.total_required_cost,
           item.total_issued_cost,
@@ -163,7 +164,9 @@ const CostSheetView = () => {
       { wch: 12 }, // D: Req. Qty
       { wch: 12 }, // E: Issued Qty
       { wch: 12 }, // E: Consumption
-      { wch: 15 }, // F: Unit Cost
+      { wch: 12 }, // F: Issued Qty
+      { wch: 18 }, // G: Actual Consumption
+      { wch: 15 }, // H: Unit Cost
       { wch: 18 }, // G: Total Req. Cost
       { wch: 18 }, // H: Total Issued Cost
     ];
@@ -367,6 +370,14 @@ const CostSheetView = () => {
           0,
         );
 
+        // Build consumption lookup from model stock items: code → consumption
+        const consumptionMap = {};
+        (raw.model?.model_stock_items || []).forEach((msi) => {
+          if (msi.stock_item?.code) {
+            consumptionMap[msi.stock_item.code] = parseFloat(msi.consumption) || 0;
+          }
+        });
+
         // Build display items from mrn_summary
         const items = mrnSummary.map((entry) => {
           const requiredQty = parseFloat(entry.total_qty) || 0;
@@ -376,8 +387,9 @@ const CostSheetView = () => {
             material_code: entry.stock_item_code,
             material_name: entry.stock_item_name,
             required_qty: requiredQty,
+            consumption: consumptionMap[entry.stock_item_code] ?? 0,
             issued_qty: issuedQty,
-            consumption: issuedQty / totalQty || 0,
+            actual_consumption: totalQty > 0 ? issuedQty / totalQty : 0,
             unit_cost: unitCost,
             total_required_cost: requiredQty * unitCost,
             total_issued_cost: issuedQty * unitCost,
@@ -403,6 +415,7 @@ const CostSheetView = () => {
 
         const data = {
           batch_no: raw.batch_no,
+          model_id: raw.model?.id,
           main_model_name: raw.model?.main_model?.name || raw.model?.name || "",
           model_name: raw.model?.name || "",
           color: raw.model?.color || "",

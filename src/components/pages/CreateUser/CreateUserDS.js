@@ -1,7 +1,7 @@
 import React from 'react'
 import { TextBox, DropDown, Label, TextArea, PasswordField, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
-export function generateCreateUserDisplay(componentList, control) {
+export function generateCreateUserDisplay(componentList, handlers) {
 
     return (
         <>
@@ -55,6 +55,14 @@ export function generateCreateUserDisplay(componentList, control) {
                             <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonDeleteMaster"]}><i className="far fa-trash-alt fa-lg"></i></Button>
                             <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonUndo"]}><i className="fas fa-undo fa-lg"></i></Button>
                             <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonReset"]}><i className="fas fa-sync-alt fa-lg"></i></Button>
+                            <button
+                                className="btn btn-secondary btn-sm mr-2"
+                                type="button"
+                                title="Print / Save PDF"
+                                onClick={handlers.onPrint}
+                            >
+                                <i className="fas fa-print fa-lg"></i>
+                            </button>
                         </ControlCenter>
                     </div>
                 </div>
