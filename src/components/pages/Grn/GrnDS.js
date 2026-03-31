@@ -662,7 +662,7 @@ export function generateGrnDisplay(componentList, grnTransactions = []) {
                                                     <div style={{
                                                         color: '#2d3748',
                                                         fontWeight: '700',
-                                                        fontSize: '15px',
+                                                        fontSize: '11px',
                                                         marginTop: '4px'
                                                     }}>
                                                         {transaction.stock_item_name || 'N/A'}

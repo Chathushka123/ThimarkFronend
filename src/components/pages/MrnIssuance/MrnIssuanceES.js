@@ -151,7 +151,7 @@ const MrnIssuance = () => {
                         return {
                             mrn_detail_id: detail.id,
                             material_id: detail.stock_item_id,
-                            material_name: detail.stock_item?.name || 'Unknown',
+                            material_name: detail.stock_item?.code + " (" + detail.stock_item?.name + ")" || 'Unknown',
                             mrn_qty: detail.qty,
                             issued_qty: detail.issued_qty || null,
                             location_id: alreadyIssued ? '' : '',
