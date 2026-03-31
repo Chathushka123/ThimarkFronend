@@ -6,6 +6,7 @@ import API from '../../../api/API';
 const Material = () => {
     let [rendered, setRendered] = useState(true);
     const [uoms, setUoms] = useState([]);
+    const [selectedMaterial, setSelectedMaterial] = useState(0);
     const [categories, setCategories] = useState([
         { value: 'Not selected', text: '- Select Category -' },
         { value: 'material', text: 'Material' },
@@ -88,6 +89,7 @@ const Material = () => {
         const category = config["gridMaterials"].getValueWiltColName(r, 'category');
         const uom_id = config["gridMaterials"].getValueWiltColName(r, 'uom_id');
 
+        setSelectedMaterial(id);
         // Set values to form fields
         config['inputId'].setValue(id);
         config['inputMatName'].setValue(name);
@@ -294,7 +296,13 @@ const Material = () => {
     }
 
     function handlePopulate() {
-        getAllMaterials(uoms);
+        if(selectedMaterial > 0){
+            config["CONTROL_CENTER"].promptWarningMessage("Please click on the edit icon of relavant row!", "");
+        }
+        else{
+            getAllMaterials(uoms);
+        }
+        
     }
 
     async function handleSave() {

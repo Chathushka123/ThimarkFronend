@@ -71,7 +71,11 @@ const WarehouseBinCard = ({ binLabel, items, highlightedIds = [], materialStatus
                     color: '#212529',
                     flexShrink: 0
                 }}>
-                    {binLabel}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="#212529" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 3h20l-2 5H4L2 3z"/>
+                        <path d="M4 8h16v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8z"/>
+                        <path d="M9 12h6" stroke="#adb5bd" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
                 </span>
                 BIN {binLabel}
                 <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '500', color: '#adb5bd' }}>

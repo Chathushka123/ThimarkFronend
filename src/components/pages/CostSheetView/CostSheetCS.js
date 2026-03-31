@@ -22,7 +22,7 @@ componentListConfig["CONTROL_CENTER"] = {
             name: "labelCostSheet",
             type: "text",
             visible: true,
-            value: "Cost Sheet Viewer"
+            value: "Cost Sheet"
         },
     },
     state: {
@@ -66,7 +66,7 @@ componentListConfig["buttonExcel"] = {
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
-    event: {}
+    event: {} 
 }
 
 /////////////////// ADVANCE SEARCH CONFIGURATION ///////////////////////
