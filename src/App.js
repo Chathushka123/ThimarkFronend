@@ -33,7 +33,7 @@ import Permissions from './components/pages/Permissions/PermissionsES';
 import Inventory from './components/pages/Inventory/InventoryES';
 import CostSheetView from './components/pages/CostSheetView/CostSheetES';
 import PurchaseOrder from './components/pages/PurchaseOrder/PurchaseOrderES';
-
+import Supplier from './components/pages/Supplier/SupplierES';
 import CSCharts from './components/pages/CostSheetCharts/CSCharts';
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
@@ -69,7 +69,7 @@ const App = () => {
           <PrivateRoute path="/csCharts/:model_id" screen="Costsheet Charts" component={CSCharts} theme={Theme} />
 
           <PrivateRoute path="/purchaseOrder" screen="Purchase Order" component={PurchaseOrder} theme={Theme} />
-
+          <PrivateRoute path="/suppliers" screen="Supplier" component={Supplier} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *

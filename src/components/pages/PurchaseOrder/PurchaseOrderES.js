@@ -40,8 +40,8 @@ const PurchaseOrder = () => {
         config["CONTROL_CENTER"].state.new = true;
 
         config['inputId'].setValue('');
-        config['inputPoNumber'].setValue(__generatePoNumber());
-        config['inputSupplier'].setValue('');
+        config['inputPoNumber'].setValue("");
+        config['inputSupplier'].setValue([]);
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputExpectedDeliveryDate'].setDate('');
         config['inputStatus'].setValue('DRAFT');
@@ -68,7 +68,7 @@ const PurchaseOrder = () => {
         config["CONTROL_CENTER"].state.modified = false;
         __loadSuppliers();
         __loadMaterials();
-        config['inputPoNumber'].setValue(__generatePoNumber());
+        config['inputPoNumber'].setValue("");
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputStatus'].setValue('DRAFT');
         config['inputSubtotal'].setValue('0.00');
@@ -175,8 +175,7 @@ const PurchaseOrder = () => {
             setSuppliers(list);
 
             const options = [
-                { value: '', text: '- Select Supplier -' },
-                ...list.map(s => ({ value: s.id, text: s.name })),
+                ...list.map(s => ({ id: s.id, name: s.name })),
             ];
             config['inputSupplier'].setOptions(options);
         } catch (error) {
@@ -377,6 +376,23 @@ const PurchaseOrder = () => {
         await formPopulate(id);
     }
 
+    function resetForm() {
+        config['inputId'].setValue('');
+
+        config['inputPoNumber'].setValue('');
+        config['inputSupplier'].setValue('');
+        config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputExpectedDeliveryDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputStatus'].setValue('');
+        config['inputNotes'].setValue('');
+        config['inputSubtotal'].setValue('0.00');
+        config['inputDiscount'].setValue('0.00');
+        config['inputTax'].setValue('0.00');
+        config['inputShippingCost'].setValue('0.00');
+
+        setLineItems([]);
+    }
+
     // ── Form Populate ─────────────────────────────────────────────────────────
 
     async function formPopulate(id) {
@@ -405,9 +421,9 @@ const PurchaseOrder = () => {
 
             config['inputId'].setValue(po.id);
             config['inputPoNumber'].setValue(po.po_number);
-            config['inputSupplier'].setValue(po.supplier_id);
+            config['inputSupplier'].setValue([{ name: po.supplier.name, id: po.supplier_id }]);
             config['inputOrderDate'].setDate(po.order_date);
-            config['inputExpectedDeliveryDate'].setDate(po.expected_delivery_date || '');
+            config['inputExpectedDeliveryDate'].setDate(po.expected_delivery_date || null);
             config['inputStatus'].setValue(po.status);
             config['inputNotes'].setValue(po.notes || '');
 
@@ -463,11 +479,11 @@ const PurchaseOrder = () => {
             const shipping = parseFloat(config['inputShippingCost'].data.value) || 0;
 
             // ── Validation ────────────────────────────────────────────────
-            if (!poNumber || poNumber.trim() === '') {
-                config["CONTROL_CENTER"].promptWarningMessage('Please enter a PO Number', '');
-                return;
-            }
-            if (!supplierId || supplierId === '') {
+            // if (!poNumber || poNumber.trim() === '') {
+            //     config["CONTROL_CENTER"].promptWarningMessage('Please enter a PO Number', '');
+            //     return;
+            // }
+            if (!supplierId || supplierId.length === 0) {
                 config["CONTROL_CENTER"].promptWarningMessage('Please select a Supplier', '');
                 return;
             }
@@ -524,7 +540,7 @@ const PurchaseOrder = () => {
             const apiRequest = {
                 id: poId || null,
                 po_number: poNumber || null,
-                supplier_id: supplierId,
+                supplier_id: supplierId[0].id,
                 order_date: orderDate ? moment(orderDate).format('YYYY-MM-DD') : null,
                 expected_delivery_date: expDate ? moment(expDate).format('YYYY-MM-DD') : null,
                 status: status,
@@ -549,8 +565,8 @@ const PurchaseOrder = () => {
             if (response.status === 200 || response.status === 201) {
                 const savedId = response.data?.data || response.data?.id;
                 if (savedId) {
-                    config['inputId'].setValue(savedId);
-                    await formPopulate(savedId);
+                    // config['inputId'].setValue(savedId);
+                    resetForm()
                 }
                 config["CONTROL_CENTER"].promptBaseMessage('Purchase Order saved successfully', '');
             } else {
@@ -582,7 +598,7 @@ const PurchaseOrder = () => {
         const total = parseFloat(config['inputTotalAmount'].data.value) || 0
 
         const supplierId = config['inputSupplier'].data.value
-        const supplierName = suppliers.find(supplier => supplier.id == supplierId)
+        const supplierName = suppliers.find(supplier => supplier.id == supplierId[0].id)
 
         const fmt = (n) => parseFloat(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         const discAmt = subtotal * (discPct / 100)

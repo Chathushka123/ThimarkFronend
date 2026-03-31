@@ -219,7 +219,7 @@ componentListConfig["inputPoNumber"] = {
         insertable: true,
         updateAllowed: false,
         mandetory: true,
-        readOnly: false,
+        readOnly: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     label: {
@@ -232,28 +232,47 @@ componentListConfig["inputPoNumber"] = {
     event: {}
 }
 
+
 componentListConfig["inputSupplier"] = {
-    objectType: "DropDown",
+    objectType: "Multiselect",
     schema: {
         name: "inputSupplier",
-        placeholder: "",
+        id: "inputSupplier",
+        placeholder: "Select Supplier",
         type: "text",
         length: 100,
         showLabel: true,
         visible: true,
         insertable: true,
         updateAllowed: true,
-        mandetory: true,
+        mandatory: true,
+        searchable: true,
+        avoidHighlightFirstOption: false,
+        showCheckbox: true,
+        disable: false,
+        onSearch: "",
+        loading: false,
+        style: "",
+        selectionLimit: 1,
+        endpoint: "",
+        singleSelect: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     label: {
         objectType: "Label",
-        schema: { name: "labelSupplier", type: "text", visible: true, value: "Supplier" },
-        class: ""
+        schema: {
+            name: "labelSupplier",
+            type: "text",
+            visible: true,
+            value: "Supplier"
+        }
     },
     options: [],
-    data: { sqlcolumn: "supplier_id", oldValue: "", value: "" },
-    class: "",
+    data: {
+        sqlcolumn: "supplier_id",
+        oldValue: "",
+        value: []
+    },
     event: {}
 }
 
