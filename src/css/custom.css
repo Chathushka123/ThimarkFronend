@@ -1826,7 +1826,7 @@ input[type=checkbox].form-check-input {
   /* Larger input fields for scanning */
   .form-control-sm {
     font-size: 14px !important;
-    padding: 8px !important;
+    padding: 2px 8px !important;
   }
   
   /* Stack form groups vertically on mobile */
