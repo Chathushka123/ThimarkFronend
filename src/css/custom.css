@@ -351,6 +351,8 @@
 
 #layoutSidenav #layoutSidenav_nav.sidebar-collapsed {
   transform: translateX(-180px);
+    width: 45px;
+  min-width: 45px;
 }
 
 #layoutSidenav #layoutSidenav_nav.sidebar-collapsed .toggle-btn svg {
@@ -419,20 +421,18 @@
   padding-bottom: 97px;
 }
 
-@media (min-width: 375px) {
-  #layoutSidenav #layoutSidenav_nav {
-    transform: translateX(0);
-  }
-  #layoutSidenav #layoutSidenav_content {
-    margin-left: auto;
-    transition: margin 0.15s;
-  }
-  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
-    margin-left: -185px;
-  }
-  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content:before {
-    content: normal;
-  }
+#layoutSidenav #layoutSidenav_nav {
+  transform: translateX(0);
+}
+#layoutSidenav #layoutSidenav_content {
+  margin-left: auto;
+  transition: margin 0.15s;
+}
+.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
+  margin-left: -185px;
+}
+.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content:before {
+  content: normal;
 }
 
 .__react_component_tooltip {
@@ -1985,4 +1985,8 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-text-fill-color: #1e293b !important;
   -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+}
+
+td {
+  width:150px !important;
 }

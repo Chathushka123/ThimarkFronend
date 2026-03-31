@@ -278,7 +278,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                     className="btn btn-info btn-sm mr-2"
                                     style={{background: "#1D4ED8", borderColor: "#1D4ED8", color: "#fff"}}
                                     disabled={!costSheetData?.model_id}
-                                    onClick={() => window.open(`/csCharts/${costSheetData.model_id}`, '_blank')}
+                                    onClick={() => window.open(`/Thimark/frontend/csCharts/${costSheetData.model_id}`, '_blank')}
                                 >
                                     <i className="fas fa-chart-line fa-lg"></i> View Charts
                                 </button>
