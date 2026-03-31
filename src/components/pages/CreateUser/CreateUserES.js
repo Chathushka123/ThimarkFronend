@@ -84,7 +84,7 @@ const CreateUser = () => {
     const user = getUser();
     const loggedInUserEmail = user && user.email;
 
-    // Executes when Page Load 
+    // Executes when Page Load
     useEffect(() => {
         __checkIsAuthorized();
 
@@ -407,7 +407,7 @@ const CreateUser = () => {
             "role_id": "",
             "updated_at": "",
             "status": "",
-            "common_user":"",
+            "common_user": "",
         };
 
         if (userId && userId !== "") {
@@ -435,7 +435,7 @@ const CreateUser = () => {
                         "role_id": userData.role_id,
                         "updated_at": userData.updated_at,
                         "status": userData.status,
-                        "common_user":userData.common_user_state? "1" : "0",
+                        "common_user": userData.common_user_state ? "1" : "0",
                     };
 
                     if (userData.email === "sysadmin@gmail.com") {
@@ -604,7 +604,7 @@ const CreateUser = () => {
                                 "name": name,
                                 "is_active": isActive === "1" ? true : false,
                                 "role_id": roleId,
-                                "common_user_state":common_user_state,
+                                "common_user_state": common_user_state,
                             }
                         ]
                     }
@@ -695,7 +695,7 @@ const CreateUser = () => {
                                     "is_active": isActive === "1" ? true : false,
                                     "role_id": roleId,
                                     "updated_at": userUpdatedAt,
-                                    "common_user_state":common_user_state,
+                                    "common_user_state": common_user_state,
                                 }
                             }
                         ]
@@ -911,6 +911,34 @@ const CreateUser = () => {
         }
     }
 
+    async function handleDownloadStickers(e, r) {
+
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            let response = null;
+
+            const selectedUser = config["inputId"].data.value;
+
+            response = await API.get(`/user/stickers/${selectedUser}`, { responseType: 'blob' });
+
+
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `stickers-materials.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to download stickers. Please Contact System Administrator");
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
     function handleDeleteMasterNo() {
         config["deleteMasterPopUp"].closePopUp();
     }
@@ -982,7 +1010,7 @@ const CreateUser = () => {
         callback(resultArr);
     }
 
-    return generateCreateUserDisplay(config)
+    return generateCreateUserDisplay(config, { onPrint: handleDownloadStickers })
 }
 
 export default CreateUser;

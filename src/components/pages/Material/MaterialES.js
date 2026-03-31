@@ -243,7 +243,8 @@ const Material = () => {
                         ...item,
                         real_category,
                         uom,
-                        size: item.size.join(",")
+                        size: item.size.join(","),
+                        // _select: false // Ensure checkbox is unchecked by default
                     }
                 })
 
@@ -296,13 +297,49 @@ const Material = () => {
     }
 
     function handlePopulate() {
-        if(selectedMaterial > 0){
+        if (selectedMaterial > 0) {
             config["CONTROL_CENTER"].promptWarningMessage("Please click on the edit icon of relavant row!", "");
         }
-        else{
+        else {
             getAllMaterials(uoms);
         }
-        
+
+    }
+
+    async function handleDownloadStickers(e, r) {
+
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            const rows = config["gridMaterials"].data;
+            const selectedRows = rows.filter(row => row._select);
+            const selectedIds = selectedRows.map(item => item.id);
+            let response = null;
+
+            if (selectedRows.length > 0) {
+                response = await API.get(`/stock-materials/stickers/${selectedIds.join(',')}`, { responseType: 'blob' });
+
+            }
+            else {
+                response = await API.get(`/stock-materials/stickers`, { responseType: 'blob' });
+
+            }
+
+
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `stickers-materials.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to download stickers. Please Contact System Administrator");
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
     }
 
     async function handleSave() {
@@ -479,7 +516,7 @@ const Material = () => {
         }
     }
 
-    return generateMaterialDisplay(config)
+    return generateMaterialDisplay(config, { onPrint: handleDownloadStickers })
 }
 
 export default Material;

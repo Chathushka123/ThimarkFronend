@@ -1,7 +1,7 @@
 import React from 'react'
 import { HandsOnTable, TextBox, DropDown, Label, TextArea, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
-export function generateMaterialDisplay(componentList, control) {
+export function generateMaterialDisplay(componentList, handlers) {
 
     return (
         <>
@@ -23,6 +23,14 @@ export function generateMaterialDisplay(componentList, control) {
                                 <PopulateButton className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonPopulate"]}><i className="fas fa-database fa-lg"></i></PopulateButton>
                                 <NewButton className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonNew"]}><i className="far fa-file fa-lg"></i></NewButton>
                                 <SaveButton className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonSave"]}><i className="far fa-save fa-lg"></i></SaveButton>
+                                <button
+                                    className="btn btn-secondary btn-sm mr-2"
+                                    type="button"
+                                    title="Print / Save PDF"
+                                    onClick={handlers.onPrint}
+                                >
+                                    <i className="fas fa-print fa-lg"></i>
+                                </button>
                             </ControlCenter>
                         </div>
                     </div>
@@ -80,10 +88,10 @@ export function generateMaterialDisplay(componentList, control) {
                     <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>
-                                <Grid item={componentList["gridMaterials"]} 
-                                deleteButton={<i className="fa fa-trash"></i>}
-                                customButton={<i className="fa fa-edit"></i>} 
-                                className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                <Grid item={componentList["gridMaterials"]}
+                                    deleteButton={<i className="fa fa-trash"></i>}
+                                    customButton={<i className="fa fa-edit"></i>}
+                                    className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
                                         <div className="col-12">
                                             <div className="master-table-wrp">
