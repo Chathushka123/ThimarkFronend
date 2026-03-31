@@ -5,7 +5,8 @@ RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteRule ^ - [L]
 
 # Fallback all other routes to index.html
-RewriteRule ^ /inqube-dev/index.html [L]
+RewriteRule ^ /Thimark/frontend/index.html [L]
+# RewriteRule ^ /inqube-dev/index.html [L]
 # RewriteRule ^ /inqube-test/index.html [L]
 # RewriteRule ^ /inqube/index.html [L]
 # RewriteRule ^ index.html [L]

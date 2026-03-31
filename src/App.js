@@ -33,6 +33,7 @@ import Permissions from './components/pages/Permissions/PermissionsES';
 import Inventory from './components/pages/Inventory/InventoryES';
 import CostSheetView from './components/pages/CostSheetView/CostSheetES';
 import CSCharts from './components/pages/CostSheetCharts/CSCharts';
+import Returnable from './components/pages/Returnable/ReturnableES';
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
@@ -58,6 +59,7 @@ const App = () => {
           <PrivateRoute path="/warehouse" screen="Warehouse" component={Warehouse} theme={Theme} />
           <PrivateRoute path="/model" screen="Model" component={Model} theme={Theme} />
           <PrivateRoute path="/inventory" screen="Inventory" component={Inventory} theme={Theme} />
+          <PrivateRoute path="/returnable" screen="Returnable" component={Returnable} theme={Theme} />
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
           <PrivateRoute path="/grn" screen="GRN" component={Grn} theme={Theme} />

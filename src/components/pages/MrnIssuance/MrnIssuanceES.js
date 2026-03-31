@@ -8,9 +8,10 @@ const MrnIssuance = () => {
     let [mrnDetails, setMrnDetails] = useState([]);
     let [issuanceStatus, setIssuanceStatus] = useState(""); // "open" or "completed"
     let [selectedDetailId, setSelectedDetailId] = useState(null);
+    let [showQrScanner, setShowQrScanner] = useState(false);
 
     function reRender() {
-        setRendered(!rendered);
+        setRendered(prev => !prev);
     }
 
     /*********************************************************/
@@ -28,6 +29,9 @@ const MrnIssuance = () => {
     
     // Input Events - Load MRN on Enter key
     config["inputMrnScan"].event.onEnterKey = handleMrnScanKeyPress;
+
+    // Open live QR scanner overlay
+    window.openQrScanner = () => setShowQrScanner(true);
 
     // Expose functions for card buttons
     window.handleLocationScan = handleLocationScan;
@@ -76,11 +80,24 @@ const MrnIssuance = () => {
     /*********************************************************/
 
     function handleMrnScanKeyPress(event) {
-        
         if (event.key === 'Enter') {
             event.preventDefault();
             handleLoadMrn();
         }
+    }
+
+    function handleQrScanSuccess(decodedText) {
+        setShowQrScanner(false);
+        config["inputMrnScan"].data.value = decodedText;
+        reRender();
+        // Auto-load MRN after successful scan
+        setTimeout(() => {
+            loadMrnDetails(decodedText);
+        }, 100);
+    }
+
+    function handleQrScanClose() {
+        setShowQrScanner(false);
     }
 
     async function handleLoadMrn() {
@@ -146,10 +163,15 @@ const MrnIssuance = () => {
                 }
                 
                 setMrnDetails(detailsData);
-                setIssuanceStatus("open");
+                setIssuanceStatus(mrnData.status);
                 
-                // Show complete button
-                config["buttonCompleteIssuance"].schema.visible = true;
+                // Show complete button only if MRN is not completed
+                if (mrnData.status === "complete") {
+                    config["buttonCompleteIssuance"].schema.visible = false;
+                    setIssuanceStatus("completed");
+                } else {
+                    config["buttonCompleteIssuance"].schema.visible = true;
+                }
                 
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
@@ -433,7 +455,7 @@ const MrnIssuance = () => {
     /********              Render Display           **********/
     /*********************************************************/
 
-    return generateMrnIssuanceDisplay(config, mrnDetails, issuanceStatus);
+    return generateMrnIssuanceDisplay(config, mrnDetails, issuanceStatus, showQrScanner, handleQrScanSuccess, handleQrScanClose);
 };
 
 export default MrnIssuance;
