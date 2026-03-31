@@ -431,7 +431,7 @@ const Inventory = () => {
             const response = await API.get('/returnable/getPendingReturnables');
             const data = Array.isArray(response.data) ? response.data : [];
             // Dynamically build column config from the first row's keys
-            
+
             const tblData = data.map(item => {
                 return {
                     id: item.id,
@@ -452,7 +452,7 @@ const Inventory = () => {
             setShowReturnablesModal(true);
         } catch (error) {
             console.log(error);
-            config['CONTROL_CENTER'].promptErrorMessage('Error', 'Failed to load pending returnables. Please Contact System Administrator');
+            config["CONTROL_CENTER"].promptErrorMessage('Error', 'Failed to load pending returnables. Please Contact System Administrator');
         } finally {
             document.getElementById('spinner').style.display = 'none';
         }
