@@ -258,7 +258,7 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
         visibleItems.filter(r => r.material_id).map(r => String(r.material_id))
     )
 
-    const allOptions = (materialsData || []).map(m => ({ value: m.id, label: `${m.code} – ${m.name}` }))
+    const allOptions = (materialsData || []).map(m => ({ value: m.id, label: `${m.code} | ${m.name}` }))
 
     return (
         <div>
