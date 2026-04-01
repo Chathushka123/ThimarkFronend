@@ -128,7 +128,7 @@ const Warehouse = () => {
     function handlePopulate() {
         const selected = config['inputId'].data.value;
 
-        if(!selected || selected == 0 || selected == ""){
+        if (!selected || selected == 0 || selected == "") {
             // config["CONTROL_CENTER"].promptWarningMessage("Please select a material first!", "");
             getAllWarehouses();
         }
@@ -167,7 +167,7 @@ const Warehouse = () => {
         } catch (error) {
             console.log(error);
         }
-        finally{
+        finally {
             document.getElementById("spinner").style.display = "none";
         }
     }
@@ -277,7 +277,7 @@ const Warehouse = () => {
     const getAllStockMaterials = async () => {
         try {
             const response = await API.get('/stock-materials');
-            const materials = response.data.map(item => ({ value: item.id, text: item.name }));
+            const materials = response.data.map(item => ({ value: item.id, text: `${item.code} | ${item.name}` }));
             setStockMaterials(materials);
 
             config['gridLocations'].columns.stock_item_id.options = [
