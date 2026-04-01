@@ -58,22 +58,22 @@ const App = () => {
           <PrivateRoute path="/changePassword" screen="changePassword" component={ChangePassword} theme={Theme} />
           <PrivateRoute path="/userProfile" screen="userProfile" component={UserProfile} theme={Theme} />
 
-          <PrivateRoute path="/material" screen="Material" component={Material} theme={Theme} />
-          <PrivateRoute path="/warehouse" screen="Warehouse" component={Warehouse} theme={Theme} />
-          <PrivateRoute path="/model" screen="Model" component={Model} theme={Theme} />
-          <PrivateRoute path="/inventory" screen="Inventory" component={Inventory} theme={Theme} />
-          <PrivateRoute path="/returnable" screen="Returnable" component={Returnable} theme={Theme} />
-          <PrivateRoute path="/stockTransfer" screen="Stock Transfer" component={StockTransfer} theme={Theme} />
+          <PrivateRoute path="/material" screen="material" component={Material} theme={Theme} />
+          <PrivateRoute path="/warehouse" screen="warehouse" component={Warehouse} theme={Theme} />
+          <PrivateRoute path="/model" screen="model" component={Model} theme={Theme} />
+          <PrivateRoute path="/inventory" screen="inventory" component={Inventory} theme={Theme} />
+          <PrivateRoute path="/returnable" screen="returnable" component={Returnable} theme={Theme} />
+          <PrivateRoute path="/stockTransfer" screen="stockTransfer" component={StockTransfer} theme={Theme} />
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
-          <PrivateRoute path="/grn" screen="GRN" component={Grn} theme={Theme} />
-          <PrivateRoute path="/mrnCreation" screen="MRN Creation" component={Mrn} theme={Theme} />
-          <PrivateRoute path="/mrnIssuance" screen="MRN Issuance" component={MrnIssuance} theme={Theme} />
-          <PrivateRoute path="/costSheetView" screen="CostSheet View" component={CostSheetView} theme={Theme} />
-          <PrivateRoute path="/csCharts/:model_id" screen="Costsheet Charts" component={CSCharts} theme={Theme} />
+          <PrivateRoute path="/grn" screen="grn" component={Grn} theme={Theme} />
+          <PrivateRoute path="/mrnCreation" screen="mrnCreation" component={Mrn} theme={Theme} />
+          <PrivateRoute path="/mrnIssuance" screen="mrnIssuance" component={MrnIssuance} theme={Theme} />
+          <PrivateRoute path="/costSheetView" screen="costSheetView" component={CostSheetView} theme={Theme} />
+          <PrivateRoute path="/csCharts/:model_id" screen="costSheetView" component={CSCharts} theme={Theme} />
 
-          <PrivateRoute path="/purchaseOrder" screen="Purchase Order" component={PurchaseOrder} theme={Theme} />
-          <PrivateRoute path="/suppliers" screen="Supplier" component={Supplier} theme={Theme} />
+          <PrivateRoute path="/purchaseOrder" screen="purchaseOrder" component={PurchaseOrder} theme={Theme} />
+          <PrivateRoute path="/suppliers" screen="suppliers" component={Supplier} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *
