@@ -592,7 +592,7 @@ const Mrn = () => {
             if (response.status === 200) {
                 const materials = response.data.map(material => ({
                     id: material.material_id || material.id,
-                    name: material.material_name || material.name
+                    name: material.code +" ( "+ material.name+ " )"
                 }));
                 
                 config["inputMaterial"].setOptions(materials);

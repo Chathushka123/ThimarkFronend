@@ -790,7 +790,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                     <div style={{
                                                         color: '#2d3748', 
                                                         fontWeight: '700', 
-                                                        fontSize: '15px',
+                                                        fontSize: '12px',
                                                         marginTop: '4px'
                                                     }}>
                                                         {detail.material_name || 'N/A'}
