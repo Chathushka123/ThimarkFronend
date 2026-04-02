@@ -175,6 +175,167 @@ componentListConfig["inputBatchNo"] = {
     event: {}
 };
 
+componentListConfig["buttonAdvanceSearch"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonAdvanceSearch",
+        name: "buttonAdvanceSearch",
+        type: "button",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
+componentListConfig["buttonAdvanceSearch"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonAdvanceSearch",
+        name: "buttonAdvanceSearch",
+        type: "button",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
+// Advance Search Fields
+componentListConfig["inputMrnIDSearch"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputMrnIDSearch",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: true,
+        advanceSearch: true,
+        labelValue: "ID",
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelMrnIDSearch",
+            type: "text",
+            visible: true,
+            value: "ID"
+        }
+    },
+    data: {
+        sqlcolumn: "mrn_id_search",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+componentListConfig["inputStatusSearch"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputStatusSearch",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: true,
+        advanceSearch: true,
+        labelValue: "Status",
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelStatusSearch",
+            type: "text",
+            visible: true,
+            value: "Status"
+        }
+    },
+    data: {
+        sqlcolumn: "status_search",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+componentListConfig["inputRemarkSearch"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputRemarkSearch",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: true,
+        advanceSearch: true,
+        labelValue: "Issued To",
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRemarkSearch",
+            type: "text",
+            visible: true,
+            value: "Issued To"
+        }
+    },
+    data: {
+        sqlcolumn: "issued_to_search",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+componentListConfig["inputWarehouseSearch"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputWarehouseSearch",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: true,
+        advanceSearch: true,
+        labelValue: "Warehouse",
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelWarehouseSearch",
+            type: "text",
+            visible: true,
+            value: "Warehouse"
+        }
+    },
+    data: {
+        sqlcolumn: "warehouse_search",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
 componentListConfig["inputWarehouse"] = {
     objectType: "TextBox",
     schema: {
@@ -202,6 +363,39 @@ componentListConfig["inputWarehouse"] = {
     },
     data: {
         sqlcolumn: "warehouse",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+};
+
+componentListConfig["inputIssuedTo"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputIssuedTo",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelIssuedTo",
+            type: "text",
+            visible: true,
+            value: "Issued To"
+        }
+    },
+    data: {
+        sqlcolumn: "issued_to",
         oldValue: "",
         value: ""
     },

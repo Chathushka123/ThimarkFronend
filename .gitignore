@@ -3,6 +3,10 @@ node_modules/
 
 # Optional: lock file (sometimes you may want to keep it)
 package-lock.json
+build/
+dist/
+/build
+/dist
 
 # Logs
 npm-debug.log*
