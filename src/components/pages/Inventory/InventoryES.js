@@ -16,6 +16,7 @@ const Inventory = () => {
     const [pendingReturnables, setPendingReturnables] = useState([]);
     const [showReturnablesModal, setShowReturnablesModal] = useState(false);
 
+    const [formReadWrite, __setFormReadWrite] = useState(false);
     function toggleFullscreen() {
         setIsFullscreen(prev => !prev);
     }
@@ -51,9 +52,63 @@ const Inventory = () => {
 
     // Set initial values of Component Schema etc.
 
+    function __checkIsAuthorized() {
+        const apiRequest = { "screen": "Inventory" }
+        API.post(`permissions/isAuthorized`, apiRequest).then(response => {
+            const isAuthorized = response.data;
+            __setFormReadWrite(isAuthorized);
+        }).catch(error => {
+            __setFormReadWrite("r");
+        });
+    }
+
+    async function handleBinQtyChange(itemId, newQty) {
+        document.getElementById('spinner').style.display = '';
+        try {
+            await API.put(`/whl-items/${itemId}`, { qty: newQty });
+            await getWarehouseRelatedData(selectedWarehouse);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to update quantity. Please Contact System Administrator");
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    }
+
+    async function handleBinMaterialChange(sourceBinId, targetBinId, materialId, qty) {
+        document.getElementById('spinner').style.display = '';
+        try {
+            await API.post('/whl-items/move-bin', {
+                from_bin_id: sourceBinId,
+                to_bin_id: targetBinId,
+                material_id: materialId,
+                qty,
+            });
+            await getWarehouseRelatedData(selectedWarehouse);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to transfer material. Please Contact System Administrator");
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    }
+
+    async function handleAddMaterial(binId, material, qty) {
+        document.getElementById('spinner').style.display = '';
+        try {
+            await API.post('/whl-items', { whl_id: binId, stock_item_id: material.id, qty });
+            await getWarehouseRelatedData(selectedWarehouse);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to add material. Please Contact System Administrator");
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    }
+
     // Executes when Page Load
     useEffect(() => {
-        __setFormReadWrite(true);
+        __checkIsAuthorized();
         getAllWarehouses();
         // config["CONTROL_CENTER"].state.modified = true;
         // config["CONTROL_CENTER"].state.new = true;
@@ -91,8 +146,10 @@ const Inventory = () => {
         setIsSearching(true);
         try {
             const response = await API.get(`/stock-materials/search?q=${encodeURIComponent(term)}&wh=${selectedWarehouse}`);
+
+            console.log(response.data)
             if (Array.isArray(response.data)) {
-                setHighlightedIds(response.data);
+                setHighlightedIds(response.data.map(item => item.id));
             } else {
                 setHighlightedIds([]);
             }
@@ -103,12 +160,6 @@ const Inventory = () => {
             setIsSearching(false);
         }
     };
-
-    function __setFormReadWrite(status) {
-        if (status === "r") {
-
-        }
-    }
 
     // Enable navigation prompt
     window.onbeforeunload = function () {
@@ -470,7 +521,12 @@ const Inventory = () => {
         viewPendingReturnables,
         pendingReturnables,
         showReturnablesModal,
-        setShowReturnablesModal
+        setShowReturnablesModal,
+        formReadWrite,
+        handleBinQtyChange,
+        handleBinMaterialChange,
+        handleAddMaterial,
+        selectedWarehouse,
     })
 }
 

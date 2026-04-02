@@ -42,7 +42,7 @@ const Material = () => {
 
     // Executes when Page Load
     useEffect(() => {
-        // __checkIsAuthorized();
+        __checkIsAuthorized();
         __setFormReadWrite(true);
         getAllUOMs();
         config['inputCategory'].setOptions(categories);
@@ -51,7 +51,7 @@ const Material = () => {
     }, []);
 
     function __checkIsAuthorized() {
-        const apiRequest = { "screen": "marker" }
+        const apiRequest = { "screen": "Material" }
         API.post(`permissions/isAuthorized`, apiRequest).then(response => {
             const isAuthorized = response.data;
             __setFormReadWrite(isAuthorized);

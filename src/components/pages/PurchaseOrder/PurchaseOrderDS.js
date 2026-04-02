@@ -53,8 +53,7 @@ const S = {
         borderRadius: '10px',
         boxShadow: '0 2px 14px rgba(0,0,0,0.08)',
         marginBottom: '22px',
-        minHeight: '300px',
-        overflow: 'scroll',
+        overflow: 'visible',
     },
     cardHeader: {
         background: 'linear-gradient(135deg, #000841 0%, #020f75 100%)',

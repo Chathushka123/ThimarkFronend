@@ -219,7 +219,7 @@ componentListConfig["inputPoNumber"] = {
         insertable: true,
         updateAllowed: false,
         mandetory: true,
-        readOnly: true,
+        readOnly: false,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     label: {
