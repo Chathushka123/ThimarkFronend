@@ -46,6 +46,21 @@ const Grn = () => {
         __getWarehouses();
     }, []);
 
+        useEffect(() => {
+        __checkIsAuthorized();
+        __setFormReadWrite(true);
+
+        // Only auto-collapse sidebar on small screens (< 992px)
+        if (window.innerWidth < 992) {
+            // Click the sidebar toggle button so Sidebar's internal state stays in sync
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+            }
+        }
+        
+    }, []);
+
     function __checkIsAuthorized() {
         const apiRequest = { "screen": "grn" }
         API.post(`permissions/isAuthorized`, apiRequest).then(response => {

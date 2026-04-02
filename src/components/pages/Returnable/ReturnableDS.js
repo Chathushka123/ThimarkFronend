@@ -26,11 +26,15 @@ export function generateReturnableDisplay(componentList, control) {
                     <div className="row">
                         <div className="col-12">
                             <div className="form-row">
-                                <div className="form-group col-md-4 col-sm-12">
+                                <div className="form-group col-md-2 col-sm-12">
                                     <Label item={componentList["inputRequester"].label} />
                                         <PasswordField item={componentList["inputRequester"]} className="form-control form-control-sm" />        
                                 </div>
                                 <div className="form-group col-md-3 col-sm-12">
+                                    <Label item={componentList["inputRemark"].label} />
+                                    <TextBox item={componentList["inputRemark"]} className="form-control form-control-sm" />
+                                </div>
+                                <div className="form-group col-md-2 col-sm-12">
                                     <Label item={componentList["inputMaterial"].label} />
                                     <TextBox item={componentList["inputMaterial"]} className="form-control form-control-sm" />
                                 </div>

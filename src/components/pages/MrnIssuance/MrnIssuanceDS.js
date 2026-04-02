@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { 
-    TextBox, Button, ControlCenter, PopUpPage ,NumberField
+    TextBox, Button, ControlCenter, PopUpPage ,NumberField,AdvanceSearchGrid,AdvanceSearchButton,AdvanceSearch
 } from '../../../BASE/Components';
 
 // Formats for FILE decode fallback
@@ -365,6 +365,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                     </div>
                 </div>
 
+
                 <div className="container-fluid custom-container-padding">
                     {/* MRN Scan Section */}
                     <div className="form-wrp mb-4 p-4" style={{
@@ -409,47 +410,42 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                         <div className="row">
                             <div className="col-12">
                                 <div className="form-group mb-2">
-                                    <div className="input-group" style={{ display: 'flex', gap: '10px' }}>
-                                        <NumberField 
-                                            item={componentList["inputMrnScan"]} 
-                                            className="form-control form-control-lg" 
-                                            placeholder="Scan or type MRN ID and press Enter"
-                                            style={{
-                                                fontSize: '18px',
-                                                padding: '16px 20px',
-                                                borderRadius: '12px',
-                                                border: '3px solid rgba(255, 255, 255, 0.3)',
-                                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                                fontWeight: '700',
-                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                                transition: 'all 0.3s ease',
-                                                color: '#1e293b',
-                                                flex: 1
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => window.openQrScanner && window.openQrScanner()}
-                                            style={{
-                                                width: '64px',
-                                                borderRadius: '12px',
-                                                border: 'none',
-                                                backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                                                backdropFilter: 'blur(10px)',
-                                                color: 'white',
-                                                fontSize: '26px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                                                flexShrink: 0,
-                                                transition: 'background 0.2s'
-                                            }}
-                                            title="Scan QR Code"
-                                        >
-                                            <i className="fas fa-camera"></i>
-                                        </button>
+                                    <div className="row align-items-center">
+                                        <div className="col-10">
+                                            <div className="input-group">
+                                                <NumberField 
+                                                    item={componentList["inputMrnScan"]} 
+                                                    className="form-control form-control-lg" 
+                                                    placeholder="Scan or type MRN ID and press Enter"
+                                                    style={{
+                                                        fontSize: '18px',
+                                                        padding: '16px 20px',
+                                                        borderRadius: '12px',
+                                                        border: '3px solid rgba(255, 255, 255, 0.3)',
+                                                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                        fontWeight: '700',
+                                                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                                        transition: 'all 0.3s ease',
+                                                        color: '#1e293b',
+                                                        flex: 1
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-2">
+                                            {/* Advance Search Section */}
+                                            <div className="input-group d-flex justify-content-end">
+                                                <ControlCenter item={componentList["CONTROL_CENTER"]} >
+                                                    <AdvanceSearch item={componentList["CONTROL_CENTER"]} className="advance-search" >
+                                                        <AdvanceSearchGrid typeName="AdvanceSearchGrid" />
+                                                        <AdvanceSearchButton typeName="AdvanceSearchButton" text="OK" />
+                                                    </AdvanceSearch>
+                                                    <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonAdvanceSearch"]}>
+                                                        <i className="fas fa-search fa-lg"></i>
+                                                    </Button>
+                                                </ControlCenter>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div style={{
@@ -484,7 +480,12 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             border: '2px solid #e2e8f0'
                         }}>
-                            <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div
+                                className="d-flex justify-content-between align-items-center mb-0"
+                                data-toggle="collapse"
+                                data-target="#mrnDetailsCollapse"
+                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                            >
                                 <div className="d-flex align-items-center">
                                     <div style={{
                                         width: '48px',
@@ -510,29 +511,35 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                         <small style={{color: '#64748b', fontSize: '12px', fontWeight: '600'}}>Material Receipt Note Information</small>
                                     </div>
                                 </div>
-                                {componentList["buttonCompleteIssuance"].schema.visible && issuanceStatus !== "completed" && (
-                                    <Button 
-                                        item={componentList["buttonCompleteIssuance"]}
-                                        style={{
-                                            padding: '12px 24px',
-                                            borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                            color: 'white',
-                                            border: 'none',
-                                            fontWeight: '700',
-                                            fontSize: '14px',
-                                            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
-                                            transition: 'all 0.3s ease',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.5px'
-                                        }}
-                                    >
-                                        <i className="fas fa-check-double mr-2"></i> Complete Issuance
-                                    </Button>
-                                )}
+                                <div className="d-flex align-items-center" style={{gap: '10px'}}>
+                                    {componentList["buttonCompleteIssuance"].schema.visible && issuanceStatus !== "completed" && (
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <Button 
+                                                item={componentList["buttonCompleteIssuance"]}
+                                                style={{
+                                                    padding: '12px 24px',
+                                                    borderRadius: '12px',
+                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    fontWeight: '700',
+                                                    fontSize: '14px',
+                                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                                                    transition: 'all 0.3s ease',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px'
+                                                }}
+                                            >
+                                                <i className="fas fa-check-double mr-2"></i> Complete Issuance
+                                            </Button>
+                                        </div>
+                                    )}
+                                    <i className="fas fa-chevron-down" style={{color: '#3b82f6', fontSize: '14px'}}></i>
+                                </div>
                             </div>
-                            
-                            <div className="row">
+
+                            <div className="collapse" id="mrnDetailsCollapse">
+                            <div className="row mt-4">
                                 <div className="col-md-3 col-6 mb-3">
                                     <div style={{
                                         backgroundColor: '#f8fafc',
@@ -645,14 +652,47 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                         </div>
                                     </div>
                                 </div>
+                                <div className="col-md-3 col-6 mb-3">
+                                    <div style={{
+                                        backgroundColor: '#fdf2f8',
+                                        padding: '16px',
+                                        borderRadius: '12px',
+                                        border: '2px solid #f9a8d4'
+                                    }}>
+                                        <small style={{
+                                            color: '#9d174d',
+                                            fontWeight: '700',
+                                            fontSize: '11px',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px',
+                                            display: 'block',
+                                            marginBottom: '8px'
+                                        }}>
+                                            <i className="fas fa-user mr-1"></i>{componentList["inputIssuedTo"].label.schema.value}
+                                        </small>
+                                        <div style={{
+                                            color: '#831843',
+                                            fontWeight: '800',
+                                            fontSize: '16px'
+                                        }}>
+                                            {componentList["inputIssuedTo"].data.value || '-'}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            </div>{/* end mrnDetailsCollapse */}
                         </div>
                     )}
 
                     {/* MRN Details Cards - Material Items */}
                     {componentList["inputMrnID"].data.value !== "" && mrnDetails.length > 0 && (
                         <div className="form-wrp background-white p-3" style={{borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.08)'}}>
-                            <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div 
+                                className="d-flex justify-content-between align-items-center mb-3"
+                                data-toggle="collapse"
+                                data-target="#materialItemsCollapse"
+                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                            >
                                 <h5 className="mb-0" style={{
                                     color: '#2c3e50', 
                                     fontWeight: '700',
@@ -661,17 +701,21 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                 }}>
                                     <i className="fas fa-boxes mr-2" style={{color: '#638ad6'}}></i>Material Items
                                 </h5>
-                                <span style={{
-                                    backgroundColor: '#638ad6',
-                                    color: 'white',
-                                    padding: '6px 14px',
-                                    borderRadius: '20px',
-                                    fontSize: '13px',
-                                    fontWeight: '600'
-                                }}>
-                                    {mrnDetails.length} Items
-                                </span>
+                                <div className="d-flex align-items-center" style={{gap: '10px'}}>
+                                    <span style={{
+                                        backgroundColor: '#638ad6',
+                                        color: 'white',
+                                        padding: '6px 14px',
+                                        borderRadius: '20px',
+                                        fontSize: '13px',
+                                        fontWeight: '600'
+                                    }}>
+                                        {mrnDetails.length} Items
+                                    </span>
+                                    <i className="fas fa-chevron-down" style={{color: '#638ad6', fontSize: '14px'}}></i>
+                                </div>
                             </div>
+                            <div className="collapse show" id="materialItemsCollapse">
                             <div className="row">
                                 {mrnDetails.map((detail, index) => (
                                     <div key={detail.mrn_detail_id || index} className="col-md-6 col-lg-4 col-12 mb-4">
@@ -708,48 +752,86 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                     ? 'linear-gradient(90deg, #28a745 0%, #20c997 100%)'
                                                     : 'linear-gradient(90deg, #638ad6 0%, #4a90e2 100%)'
                                             }}></div>
-                                            
-                                            <div className="card-body p-4">
-                                                {/* Header with delete button */}
-                                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                                    <div className="d-flex align-items-center">
-                                                        <div style={{
-                                                            width: '36px',
-                                                            height: '36px',
-                                                            borderRadius: '10px',
-                                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                                            color: 'white',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontWeight: '700',
-                                                            fontSize: '14px',
-                                                            marginRight: '12px'
-                                                        }}>
-                                                            {index + 1}
-                                                        </div>
-                                                        <div>
-                                                            <div style={{
-                                                                fontSize: '11px',
-                                                                color: '#95a5a6',
-                                                                fontWeight: '600',
-                                                                textTransform: 'uppercase',
-                                                                letterSpacing: '0.5px'
-                                                            }}>
-                                                                Item
-                                                            </div>
-                                                        </div>
+
+                                            {/* Collapsible Card Header */}
+                                            <div
+                                                className="d-flex justify-content-between align-items-center px-4 py-3"
+                                                data-toggle="collapse"
+                                                data-target={`#cardBody-${detail.mrn_detail_id || index}`}
+                                                style={{ cursor: 'pointer', userSelect: 'none' }}
+                                            >
+                                                <div className="d-flex align-items-center">
+                                                    <div style={{
+                                                        width: '36px',
+                                                        height: '36px',
+                                                        borderRadius: '10px',
+                                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                        color: 'white',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontWeight: '700',
+                                                        fontSize: '14px',
+                                                        marginRight: '12px',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {index + 1}
                                                     </div>
+                                                    <div>
+                                                        <div style={{
+                                                            fontSize: '11px',
+                                                            color: '#95a5a6',
+                                                            fontWeight: '600',
+                                                            textTransform: 'uppercase',
+                                                            letterSpacing: '0.5px'
+                                                        }}>Item</div>
+                                                        <div style={{
+                                                            fontSize: '12px',
+                                                            color: '#2d3748',
+                                                            fontWeight: '700',
+                                                            marginTop: '2px',
+                                                            maxWidth: '140px',
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            whiteSpace: 'nowrap'
+                                                        }}>{detail.material_name || 'N/A'}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="d-flex align-items-center" style={{gap: '8px'}}>
+                                                    {detail.is_issued ? (
+                                                        <span style={{
+                                                            backgroundColor: '#28a745',
+                                                            color: 'white',
+                                                            padding: '3px 10px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '11px',
+                                                            fontWeight: '700'
+                                                        }}>
+                                                            <i className="fas fa-check-circle mr-1"></i>Issued
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{
+                                                            backgroundColor: '#ffc107',
+                                                            color: '#664d03',
+                                                            padding: '3px 10px',
+                                                            borderRadius: '12px',
+                                                            fontSize: '11px',
+                                                            fontWeight: '700'
+                                                        }}>
+                                                            <i className="fas fa-clock mr-1"></i>Pending
+                                                        </span>
+                                                    )}
                                                     {issuanceStatus !== "completed" && detail.is_issued && (
                                                         <button 
                                                             className="btn btn-sm"
-                                                            onClick={() => {
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
                                                                 if (window.handleDeleteIssuance) {
                                                                     window.handleDeleteIssuance(detail.mrn_detail_id);
                                                                 }
                                                             }}
                                                             style={{
-                                                                padding: '6px 12px',
+                                                                padding: '4px 10px',
                                                                 fontSize: '12px',
                                                                 borderRadius: '8px',
                                                                 backgroundColor: '#fff5f5',
@@ -766,12 +848,18 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                                 e.currentTarget.style.color = '#e53e3e';
                                                             }}
                                                         >
-                                                            <i className="fas fa-trash mr-1"></i> Delete
+                                                            <i className="fas fa-trash"></i>
                                                         </button>
                                                     )}
+                                                    <i className="fas fa-chevron-down" style={{color: '#94a3b8', fontSize: '12px'}}></i>
                                                 </div>
+                                            </div>
+
+                                            {/* Collapsible Card Body */}
+                                            <div className="collapse" id={`cardBody-${detail.mrn_detail_id || index}`}>
+                                            <div className="card-body p-4">
                                                 
-                                                {/* Material Info with modern badge */}
+                                                {/* Material Info */}
                                                 <div className="mb-3" style={{
                                                     backgroundColor: '#f8fafc',
                                                     padding: '12px',
@@ -797,7 +885,7 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                     </div>
                                                 </div>
                                                 
-                                                {/* Status Row with badges */}
+                                                {/* Status Row */}
                                                 <div className="row mb-3">
                                                     <div className="col-6">
                                                         <div style={{
@@ -1101,10 +1189,12 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                     </div>
                                                 )}
                                             </div>
+                                            </div>{/* end collapse card body */}
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                            </div>{/* end materialItemsCollapse */}
                         </div>
                     )}
 
