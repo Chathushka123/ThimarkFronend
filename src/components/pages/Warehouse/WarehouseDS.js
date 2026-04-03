@@ -59,7 +59,7 @@ export function generateWarehouseDisplay(componentList, control) {
                         <div className="col-12">
                             <div className='table-wrp background-white'>
                                 <h5>Warehouse Locations</h5>
-                                <Grid item={componentList["gridLocations"]} 
+                                <Grid item={componentList["gridLocations"]}
                                     deleteButton={<i className="fa fa-trash"></i>}
                                     customButton={<i className="fa fa-plus"></i>}
                                     className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
@@ -80,11 +80,11 @@ export function generateWarehouseDisplay(componentList, control) {
                         <div className="col-12">
                             <div className='table-wrp background-white'>
                                 <h5>All Warehouses</h5>
-                                <Grid item={componentList["gridWarehouses"]} 
-                                customButton={<i className="fa fa-edit"></i>} 
-                                customButton2={<i className="fa fa-print"></i>}
-                                deleteButton={<i className="fa fa-trash"></i>}
-                                className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                <Grid item={componentList["gridWarehouses"]}
+                                    customButton={<i className="fa fa-edit"></i>}
+                                    customButton2={<i className="fa fa-print"></i>}
+                                    deleteButton={<i className="fa fa-trash"></i>}
+                                    className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                     <div className="row">
                                         <div className="col-12">
                                             <div className="master-table-wrp">

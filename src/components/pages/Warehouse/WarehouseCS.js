@@ -293,8 +293,8 @@ componentListConfig["gridWarehouses"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: true,
-        filterring : true,
-        sorting : true,
+        filterring: true,
+        sorting: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {
@@ -343,8 +343,8 @@ componentListConfig["gridLocations"] = {
         insertable: true,
         updateAllowed: true,
         mandetory: false,
-        filterring : false,
-        sorting : true,
+        filterring: true,
+        sorting: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     controller: {

@@ -1,5 +1,5 @@
 import React from "react";
-import { DropDown, Grid, GridHeader, GridBody } from "../../../BASE/Components";
+import { DropDown, Grid, GridHeader, GridBody, ControlCenter } from "../../../BASE/Components";
 import WarehouseRack from "../../charts/WarehouseRack";
 import * as XLSX from "xlsx";
 
@@ -170,29 +170,37 @@ export function generateInventoryDisplay(
 ) {
   const {
     searchTerm = "",
-    setSearchTerm = () => {},
+    setSearchTerm = () => { },
     highlightedIds = [],
     isSearching = false,
     isFullscreen = false,
-    toggleFullscreen = () => {},
+    toggleFullscreen = () => { },
     activeFilter = null,
-    setActiveFilter = () => {},
-    viewPendingReturnables = () => {},
+    setActiveFilter = () => { },
+    viewPendingReturnables = () => { },
     pendingReturnables = [],
     showReturnablesModal = false,
-    setShowReturnablesModal = () => {},
+    setShowReturnablesModal = () => { },
+    formReadWrite = false,
+    handleBinMaterialChange = () => { },
+    handleBinQtyChange = () => { },
+    handleAddMaterial = () => { },
+    selectedWarehouse = 0
   } = searchOptions;
   const summary = computeSummary(inventoryData);
   const hasData = inventoryData && inventoryData.length > 0;
   const displayData = filterInventoryData(inventoryData, activeFilter);
   const materialStatusMap = buildMaterialStatusMap(inventoryData);
+  const allBins = inventoryData.flatMap(rack =>
+    (rack.bins || []).map(b => ({ id: b.id, label: b.bin, rack: rack.rack }))
+  );
 
   function toggleFilter(filter) {
     setActiveFilter((prev) => (prev === filter ? null : filter));
   }
 
   return (
-    <>
+    <ControlCenter item={componentList["CONTROL_CENTER"]}>
       <div className="loading" id="spinner" style={{ display: "none" }}>
         Loading&#8230;
       </div>
@@ -722,6 +730,12 @@ export function generateInventoryDisplay(
                     rackIndex={index}
                     highlightedIds={highlightedIds}
                     materialStatusMap={materialStatusMap}
+                    formReadWrite={formReadWrite}
+                    handleBinMaterialChange={handleBinMaterialChange}
+                    handleBinQtyChange={handleBinQtyChange}
+                    handleAddMaterial={handleAddMaterial}
+                    selectedWarehouse={selectedWarehouse}
+                    allBins={allBins}
                   />
                 ))}
               </div>
@@ -940,6 +954,12 @@ export function generateInventoryDisplay(
                       rackIndex={index}
                       highlightedIds={highlightedIds}
                       materialStatusMap={materialStatusMap}
+                      formReadWrite={formReadWrite}
+                      handleBinMaterialChange={handleBinMaterialChange}
+                      handleBinQtyChange={handleBinQtyChange}
+                      handleAddMaterial={handleAddMaterial}
+                      selectedWarehouse={selectedWarehouse}
+                      allBins={allBins}
                     />
                   ))}
                 </div>
@@ -1117,6 +1137,6 @@ export function generateInventoryDisplay(
           </div>
         </div>
       )}
-    </>
+    </ControlCenter>
   );
 }

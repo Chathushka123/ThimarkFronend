@@ -193,7 +193,7 @@ const PurchaseOrder = () => {
                     select: ['*'],
                     where: [{ active: true }],
                     relations: ['uom'],
-                    orderby: 'name:asc',
+                    orderby: 'code:asc',
                     limit: 1000,
                 }
             };
@@ -584,6 +584,15 @@ const PurchaseOrder = () => {
     // ── Print / PDF ───────────────────────────────────────────────────────────
 
     function handlePrintPo() {
+
+        const selectedId = config['inputId'].data.value;
+
+
+        if (!selectedId || selectedId === '' || selectedId == 0) {
+            config["CONTROL_CENTER"].promptErrorMessage('Please select a PO to pirint!', '');
+            return;
+        }
+
         const poNumber = config['inputPoNumber'].data.value || ''
         const _od = config['inputOrderDate'].data.value
         const orderDate = _od ? moment(_od).format('YYYY-MM-DD') : ''

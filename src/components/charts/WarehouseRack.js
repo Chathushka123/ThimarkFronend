@@ -12,7 +12,7 @@ const RACK_COLORS = ['#ffc107', '#17a2b8', '#6f42c1', '#fd7e14', '#20c997', '#e8
  *                            Each bin: { id, bin, items: [...] }
  *   - rackIndex {number}   : Index used to pick accent colour (optional, defaults to 0)
  */
-const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materialStatusMap = null }) => {
+const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materialStatusMap = null, formReadWrite = false, handleBinMaterialChange, handleBinQtyChange, handleAddMaterial, selectedWarehouse, allBins = [] }) => {
     const accentColor = RACK_COLORS[rackIndex % RACK_COLORS.length];
 
     // Summarise this rack — deduplicate by material ID using aggregated status
@@ -75,17 +75,17 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
                     boxShadow: `0 2px 6px ${accentColor}88`
                 }}>
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="#212529" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="2" width="2.5" height="20" rx="1"/>
-                        <rect x="19.5" y="2" width="2.5" height="20" rx="1"/>
-                        <rect x="2" y="5.5" width="20" height="2.5" rx="1"/>
-                        <rect x="2" y="12" width="20" height="2.5" rx="1"/>
-                        <rect x="2" y="18.5" width="20" height="2.5" rx="1"/>
+                        <rect x="2" y="2" width="2.5" height="20" rx="1" />
+                        <rect x="19.5" y="2" width="2.5" height="20" rx="1" />
+                        <rect x="2" y="5.5" width="20" height="2.5" rx="1" />
+                        <rect x="2" y="12" width="20" height="2.5" rx="1" />
+                        <rect x="2" y="18.5" width="20" height="2.5" rx="1" />
                     </svg>
                 </div>
 
                 {/* Rack Info */}
                 <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '800', fontSize: '16px', letterSpacing: '1px' }}>RACK {rack}</div>
+                    <div style={{ fontWeight: '800', fontSize: '16px', letterSpacing: '1px' }}> {rack}</div>
                     <div style={{ fontSize: '11px', color: '#adb5bd', marginTop: '2px' }}>
                         {bins.length} bin{bins.length !== 1 ? 's' : ''} &nbsp;·&nbsp; {totalItems} material{totalItems !== 1 ? 's' : ''}
                     </div>
@@ -154,10 +154,17 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
                     bins.map((bin) => (
                         <WarehouseBinCard
                             key={bin.id}
+                            binId={bin.id}
                             binLabel={bin.bin}
                             items={bin.items}
                             highlightedIds={highlightedIds}
                             materialStatusMap={materialStatusMap}
+                            formReadWrite={formReadWrite}
+                            handleBinMaterialChange={handleBinMaterialChange}
+                            handleBinQtyChange={handleBinQtyChange}
+                            handleAddMaterial={handleAddMaterial}
+                            selectedWarehouse={selectedWarehouse}
+                            allBins={allBins}
                         />
                     ))
                 ) : (
