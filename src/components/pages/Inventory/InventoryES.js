@@ -7,6 +7,7 @@ const Inventory = () => {
     let [rendered, setRendered] = useState(true);
     const [warehouses, SetWarehouses] = useState([]);
     const [selectedWarehouse, setSelectedWarehouse] = useState(0);
+    const [selectedFullWarehouse, setSelectedFullWarehouse] = useState(0);
     const [inventoryData, setInventoryData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [highlightedIds, setHighlightedIds] = useState([]);
@@ -87,7 +88,7 @@ const Inventory = () => {
             await getWarehouseRelatedData(selectedWarehouse);
         } catch (error) {
             console.log(error);
-            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to transfer material. Please Contact System Administrator");
+            config["CONTROL_CENTER"].promptErrorMessage("Error", error.response?.data?.message || error.message || "Failed to transfer material. Please Contact System Administrator");
         } finally {
             document.getElementById('spinner').style.display = 'none';
         }
@@ -100,7 +101,8 @@ const Inventory = () => {
             await getWarehouseRelatedData(selectedWarehouse);
         } catch (error) {
             console.log(error);
-            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to add material. Please Contact System Administrator");
+            config["CONTROL_CENTER"].promptErrorMessage("Error", error.response?.data?.message || error.message || "Failed to add material. Please Contact System Administrator");
+
         } finally {
             document.getElementById('spinner').style.display = 'none';
         }
@@ -176,7 +178,17 @@ const Inventory = () => {
         const selectedWH = config["inputWH"].data.value;
         if (selectedWH > 0) {
             getWarehouseRelatedData(selectedWH);
-            setSelectedWarehouse(selectedWH)
+            setSelectedWarehouse(selectedWH);
+
+            const fullWh = warehouses.find(item => item.value == selectedWH);
+            setSelectedFullWarehouse(fullWh);
+            // if (fullWh.location_basis == 1) {
+            //     __setFormReadWrite(false)
+            // }
+            // else {
+            //     __setFormReadWrite(true);
+            // }
+
         }
         else {
             setInventoryData([]);
@@ -253,7 +265,7 @@ const Inventory = () => {
             const response = await API.get('/warehouses');
 
             if (response.data && response.data.length > 0) {
-                const whs = response.data.map(item => { return { value: item.id, text: `${item.code} - ${item.name}` } })
+                const whs = response.data.map(item => { return { value: item.id, text: `${item.code} - ${item.name}`, location_basis: item.location_basis } })
                 SetWarehouses(whs);
                 config['inputWH'].setOptions([{ value: 0, text: '- Select Warehouse -' }, ...whs]);
             }
