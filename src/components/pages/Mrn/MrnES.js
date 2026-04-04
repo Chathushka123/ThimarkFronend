@@ -49,6 +49,20 @@ const Mrn = () => {
         __getMaterials();
     }, []);
 
+    useEffect(() => {
+        
+
+        // Only auto-collapse sidebar on small screens (< 992px)
+        if (window.innerWidth < 992) {
+            // Click the sidebar toggle button so Sidebar's internal state stays in sync
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+            }
+        }
+        
+    }, []);
+
     function __checkIsAuthorized() {
         const apiRequest = { "screen": "mrn" }
         API.post(`permissions/isAuthorized`, apiRequest).then(response => {
