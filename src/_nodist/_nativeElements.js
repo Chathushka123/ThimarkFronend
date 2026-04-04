@@ -96,7 +96,7 @@ const TextBoxProperty = {
 };
 // exports.TextBoxProperty = TextBoxProperty;
 export function _nativeTextBox(props) {
-  
+
   let [value, setValue] = (0, _react.useState)(props.value);
   let [oldValue, setOldValue] = (0, _react.useState)(props.value);
   let [handleChangeValue, setHandleChangeValue] = (0, _react.useState)(false);
@@ -143,30 +143,30 @@ export function _nativeTextBox(props) {
     _react["default"].Fragment,
     null,
     visible &&
-      _react["default"].createElement(
-        _react["default"].Fragment,
-        null,
-        _react["default"].createElement("input", {
-          type: props.type ? props.type : "text",
-          autoComplete: "off",
-          disabled: props.disabled,
-          id: props.id,
-          styleName:props.styleName,
-          className: className,
-          style: { ...props.style },
-          key: props.name,
-          name: props.name,
-          value: value,
-          placeholder: props.placeholder,
-          readOnly: props.readOnly,
-          onFocus: handleFocus,
-          onChange: handleChange,
-          onBlur: handleBlur,
-          onKeyPress: handleKeyPress,
-          onKeyDown: handleKeyDown,
-          onKeyUp: props.onKeyUp,
-        })
-      )
+    _react["default"].createElement(
+      _react["default"].Fragment,
+      null,
+      _react["default"].createElement("input", {
+        type: props.type ? props.type : "text",
+        autoComplete: "off",
+        disabled: props.disabled,
+        id: props.id,
+        styleName: props.styleName,
+        className: className,
+        style: { ...props.style },
+        key: props.name,
+        name: props.name,
+        value: value,
+        placeholder: props.placeholder,
+        readOnly: props.readOnly,
+        onFocus: handleFocus,
+        onChange: handleChange,
+        onBlur: handleBlur,
+        onKeyPress: handleKeyPress,
+        onKeyDown: handleKeyDown,
+        onKeyUp: props.onKeyUp,
+      })
+    )
   );
 }
 export function _nativeTextArea(props) {
@@ -193,23 +193,23 @@ export function _nativeTextArea(props) {
     _react["default"].Fragment,
     null,
     visible &&
-      _react["default"].createElement(
-        _react["default"].Fragment,
-        null,
-        _react["default"].createElement("textarea", {
-          id: props.id,
-          className: props.className,
-          style: props.style,
-          key: props.name,
-          name: props.name,
-          disabled: props.disabled,
-          readOnly: props.readOnly,
-          value: props.value,
-          placeholder: props.placeholder,
-          onChange: handleChange,
-          onBlur: handleBlur,
-        })
-      )
+    _react["default"].createElement(
+      _react["default"].Fragment,
+      null,
+      _react["default"].createElement("textarea", {
+        id: props.id,
+        className: props.className,
+        style: props.style,
+        key: props.name,
+        name: props.name,
+        disabled: props.disabled,
+        readOnly: props.readOnly,
+        value: props.value,
+        placeholder: props.placeholder,
+        onChange: handleChange,
+        onBlur: handleBlur,
+      })
+    )
   );
 }
 export function _nativeTbTextBox(props) {
@@ -253,14 +253,14 @@ export function _nativeTbTextBox(props) {
     style: props.style,
     className: props.className,
     name: props.name,
-    styleName:props.styleName,
+    styleName: props.styleName,
     value: value,
     placeholder: props.placeholder,
     visible: props.visible,
     onChange: handleChange,
     onEnterKey: handleKeyDown,
     onBlur: handlechangeOnBlur,
-    
+
   });
   return comp;
 }
@@ -332,7 +332,7 @@ export function _nativeTbNumberField(props) {
     name: props.name,
     value: props.value,
     placeholder: props.placeholder,
-    styleName:props.styleName,
+    styleName: props.styleName,
     visible: props.visible,
     onChange: handleChange,
     onKeyPress: handleKeyPress,
@@ -436,7 +436,7 @@ export function _nativeTbIntegerField(props) {
       props.onKeyPress(event);
     }
     return isNumber(event);
-    
+
   }
   function handleKeyUp(event) {
     event = event ? event : window.event;
@@ -452,14 +452,14 @@ export function _nativeTbIntegerField(props) {
   //     props.onEnterKey(event, rowId, colId);
   //   }
   //   props.onFocus(event, rowId, colId);
-    
+
   // }
   comp = _react["default"].createElement(_TextBox2["default"], {
     id: props.id,
     style: props.style,
     className: props.className,
     name: props.name,
-    styleName:props.styleName,
+    styleName: props.styleName,
     value: value,
     placeholder: props.placeholder,
     visible: props.visible,
@@ -467,13 +467,13 @@ export function _nativeTbIntegerField(props) {
     onKeyPress: handleKeyPress,
     onKeyUp: handleKeyUp,
     onBlur: handleBlur,
-    
+
   });
   return comp;
 }
 
 export function _nativeTbDropDown(props) {
-  
+
   let [rendered, setRendered] = (0, _react.useState)(true);
   function reRender() {
     setRendered(!rendered);
@@ -489,12 +489,12 @@ export function _nativeTbDropDown(props) {
     setVisible(props.visible);
   }, [props.visible]);
 
-  
-  
+
+
   function handleChange(event) {
     setValue(selectOptionArray(event.value));
 
-    event.target ={};
+    event.target = {};
     event.target.value = event.value;
     event.target.name = props.name;
     if (typeof props.onChange !== "undefined") {
@@ -503,12 +503,12 @@ export function _nativeTbDropDown(props) {
     reRender();
   }
 
-  function selectOptionArray(val){
-    let savedVal ={}
+  function selectOptionArray(val) {
+    let savedVal = {}
     Object.entries(props.options).map(([key, v]) => {
-      
-      if(v.value==val){
-        
+
+      if (v.value == val) {
+
         // return {
         //   "value": v.value,
         //   "label": v.text,
@@ -518,20 +518,20 @@ export function _nativeTbDropDown(props) {
       }
     })
     return savedVal;
-   
+
   }
   function handleBlur(event) {
-    
 
-    event.target ={};
+
+    event.target = {};
     event.target.value = event.value;
     event.target.name = props.name;
     if (typeof props.onBlur !== "undefined") {
       props.onBlur(event);
     }
   }
-  
-  let options  = props.options;
+
+  let options = props.options;
   const formattedOptions = options.map(option => ({
     value: option.value,
     label: option.text,
@@ -543,11 +543,11 @@ export function _nativeTbDropDown(props) {
       // placeholder={placeholder}
       onChange={handleChange}
       value={value}
-      isSearchable={true} 
+      isSearchable={true}
       className="react-select"
-      classNamePrefix="select" 
-      name= {props.name}
-      key= {props.key + props.rowId + props.colId}
+      classNamePrefix="select"
+      name={props.name}
+      key={props.key + props.rowId + props.colId}
       styles={{
         menuPortal: base => ({ ...base, zIndex: 9999 }), // Ensure a high z-index
       }}
@@ -556,7 +556,7 @@ export function _nativeTbDropDown(props) {
     />
   );
 
-  
+
   // return _react["default"].createElement(
   //   _react["default"].Fragment,
   //   null,
@@ -574,7 +574,7 @@ export function _nativeTbDropDown(props) {
   //         placeholder: props.placeholder,
   //         onChange: handleChange,
   //         onBlur: handleBlur,
-          
+
   //       },
   //       props.options.map((item) =>
   //         _react["default"].createElement(
@@ -613,34 +613,34 @@ export function _nativeTbDropDown26092024(props) {
     }
   }
 
-  
+
   return _react["default"].createElement(
     _react["default"].Fragment,
     null,
     (typeof visible === "undefined" ? true : visible) &&
-      _react["default"].createElement(
-        "select",
-        {
-          id: props.id,
-          disabled: props.disabled,
-          className: props.className,
-          style: props.style,
-          name: props.name,
-          key: props.key + props.rowId + props.colId,
-          value: value,
-          placeholder: props.placeholder,
-          onChange: handleChange,
-          onBlur: handleBlur,
-          
-        },
-        props.options.map((item) =>
-          _react["default"].createElement(
-            "option",
-            { key: item.value, value: item.value },
-            item.text
-          )
+    _react["default"].createElement(
+      "select",
+      {
+        id: props.id,
+        disabled: props.disabled,
+        className: props.className,
+        style: props.style,
+        name: props.name,
+        key: props.key + props.rowId + props.colId,
+        value: value,
+        placeholder: props.placeholder,
+        onChange: handleChange,
+        onBlur: handleBlur,
+
+      },
+      props.options.map((item) =>
+        _react["default"].createElement(
+          "option",
+          { key: item.value, value: item.value },
+          item.text
         )
       )
+    )
   );
 }
 export function _nativeTbCheckBox(props) {
@@ -686,8 +686,8 @@ export function _nativeTabPage(props) {
           typeof props.className === "undefined"
             ? "nav-link" + (props.disabled === true ? " disabled" : "")
             : props.className +
-              " " +
-              (props.disabled === true ? " disabled" : ""),
+            " " +
+            (props.disabled === true ? " disabled" : ""),
         id: props.id,
         "data-toggle": props.dataToggle,
         href: props.href,
@@ -727,18 +727,18 @@ export function _nativeRadio(props) {
     _react["default"].Fragment,
     null,
     visible &&
-      _react["default"].createElement("input", {
-        id: props.id,
-        type: "radio",
-        className: props.className,
-        key: props.id,
-        name: props.name,
-        disabled: props.disabled,
-        readOnly: props.readOnly,
-        checked: props.checked,
-        value: value,
-        onChange: handleChange,
-      })
+    _react["default"].createElement("input", {
+      id: props.id,
+      type: "radio",
+      className: props.className,
+      key: props.id,
+      name: props.name,
+      disabled: props.disabled,
+      readOnly: props.readOnly,
+      checked: props.checked,
+      value: value,
+      onChange: handleChange,
+    })
   );
 }
 export function _nativePopUp(props) {
@@ -912,7 +912,7 @@ export function _nativeMessageListNavigator(props) {
     setRendered(!rendered);
   }
   props.item.reRender = reRender;
-  function handleChange(event) {}
+  function handleChange(event) { }
   function extractFormatters(children) {
     _react["default"].Children.map(children, (child) => {
       if (child.props && typeof child.props.typeName !== "undefined") {
@@ -1426,16 +1426,16 @@ export function _nativeLovWindow(props) {
             },
             selectedRow === rowIdx
               ? _react["default"].createElement(
-                  "span",
-                  null,
-                  _react["default"].createElement("i", {
-                    className: "fas fa-check-circle",
-                  })
-                )
+                "span",
+                null,
+                _react["default"].createElement("i", {
+                  className: "fas fa-check-circle",
+                })
+              )
               : _react["default"].createElement(
-                  _react["default"].Fragment,
-                  null
-                )
+                _react["default"].Fragment,
+                null
+              )
           );
         }
         if (key.objectType === "CheckBox") {
@@ -1658,33 +1658,33 @@ export function _nativeLovComboBox(props) {
     _react["default"].Fragment,
     null,
     visible &&
+    _react["default"].createElement(
+      "div",
+      { className: "input-group" },
+      _react["default"].createElement("input", {
+        type: "text",
+        className: "lov-comob-input " + props.className,
+        disabled: !props.editable ? !props.editable : props.disabled,
+        placeholder: props.placeholder,
+        value: props.value,
+        onChange: handleChange,
+        onBlur: handleBlur,
+      }),
       _react["default"].createElement(
         "div",
-        { className: "input-group" },
-        _react["default"].createElement("input", {
-          type: "text",
-          className: "lov-comob-input " + props.className,
-          disabled: !props.editable ? !props.editable : props.disabled,
-          placeholder: props.placeholder,
-          value: props.value,
-          onChange: handleChange,
-          onBlur: handleBlur,
-        }),
+        { className: "input-group-append" },
         _react["default"].createElement(
-          "div",
-          { className: "input-group-append" },
-          _react["default"].createElement(
-            "button",
-            {
-              className: "btn btn-secondary btn-sm",
-              disabled: props.lovDisable ? props.lovDisable : props.disabled,
-              type: "button",
-              onClick: handleLovClick,
-            },
-            _react["default"].createElement("i", { className: "fa fa-list" })
-          )
+          "button",
+          {
+            className: "btn btn-secondary btn-sm",
+            disabled: props.lovDisable ? props.lovDisable : props.disabled,
+            type: "button",
+            onClick: handleLovClick,
+          },
+          _react["default"].createElement("i", { className: "fa fa-list" })
         )
       )
+    )
   );
 }
 export function _nativeLabel(props) {
@@ -1696,13 +1696,14 @@ export function _nativeLabel(props) {
     _react["default"].Fragment,
     null,
     props.visible &&
-      _react["default"].createElement(
-        "label",
-        { style: props.style,
-          className: props.className
-         },
-        props.value
-      )
+    _react["default"].createElement(
+      "label",
+      {
+        style: props.style,
+        className: props.className
+      },
+      props.value
+    )
   );
 }
 export function _nativeGrid(props) {
@@ -1874,10 +1875,10 @@ export function _nativeGrid(props) {
         let i;
         for (i = 0; i < dataList.length; i++) {
           if (dataList[i].hasOwnProperty('_show') && dataList[i]._show === true) {
-              dataList[i]["_rowstate"] = "MODIFIED";
-              if (toggleIcon === "fa fa-toggle-off fa-2x")
-                dataList[i][key.sqlColumn] = key.checkedValue;
-              else dataList[i][key.sqlColumn] = key.uncheckedValue;
+            dataList[i]["_rowstate"] = "MODIFIED";
+            if (toggleIcon === "fa fa-toggle-off fa-2x")
+              dataList[i][key.sqlColumn] = key.checkedValue;
+            else dataList[i][key.sqlColumn] = key.uncheckedValue;
           } else if (!dataList[i].hasOwnProperty('_show')) {
             dataList[i]["_rowstate"] = "MODIFIED";
             if (toggleIcon === "fa fa-toggle-off fa-2x")
@@ -1885,7 +1886,7 @@ export function _nativeGrid(props) {
             else dataList[i][key.sqlColumn] = key.uncheckedValue;
           }
 
-          
+
           // dataList[i]["_rowstate"] = "MODIFIED";
           // if (toggleIcon === "fa fa-toggle-off fa-2x")
           //   dataList[i][key.sqlColumn] = key.checkedValue;
@@ -2109,7 +2110,7 @@ export function _nativeGrid(props) {
         });
       }
       function renderTextBox(properties, data, rowId, colId) {
-        
+
         if (typeof properties.event === "undefined") {
           properties.event = {};
         }
@@ -2224,13 +2225,13 @@ export function _nativeGrid(props) {
               renderTextBox(columns[name], "", -1, colIdx)
             );
             break;
-            case "DateField":
-              cell = _react["default"].createElement(
-                "th",
-                { key: name + "-1" + colIdx, className: "border-top-0" },
-                // renderTextBox(columns[name], "", -1, colIdx)
-              );
-              break;
+          case "DateField":
+            cell = _react["default"].createElement(
+              "th",
+              { key: name + "-1" + colIdx, className: "border-top-0" },
+              // renderTextBox(columns[name], "", -1, colIdx)
+            );
+            break;
           case "IntegerField":
             cell = _react["default"].createElement(
               "th",
@@ -2286,7 +2287,7 @@ export function _nativeGrid(props) {
     }
   }
   function renderTableData() {
-    
+
     let data = [...dataList];
     let itemVisible = false;
     var i;
@@ -2331,8 +2332,8 @@ export function _nativeGrid(props) {
                 if (key.objectType === "CheckBox") {
                   cell = _react["default"].createElement(
                     "td",
-                    
-                    { key: name + rowIdx + colIdx,style:key.style },
+
+                    { key: name + rowIdx + colIdx, style: key.style },
                     renderCheckBox(
                       key,
                       dataItem[key.sqlColumn],
@@ -2344,8 +2345,8 @@ export function _nativeGrid(props) {
                 } else if (key.objectType === "DropDown") {
                   cell = _react["default"].createElement(
                     "td",
-                    
-                    { key: name + rowIdx + colIdx ,style:key.style},
+
+                    { key: name + rowIdx + colIdx, style: key.style },
                     renderDropDown(
                       key,
                       dataItem[key.sqlColumn],
@@ -2363,8 +2364,8 @@ export function _nativeGrid(props) {
                     null,
                     _react["default"].createElement(
                       "td",
-                      
-                      { key: name + rowIdx + colIdx ,style:key.style},
+
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderDelete(key, rowIdx),
                       renderCustomButton(key, rowIdx),
                       renderCustomButton2(key, rowIdx)
@@ -2381,7 +2382,7 @@ export function _nativeGrid(props) {
                   }
                   cell = _react["default"].createElement(
                     "td",
-                    
+
                     { key: name + rowIdx + colIdx, style: key.style },
                     _react["default"].createElement(
                       "label",
@@ -2393,8 +2394,8 @@ export function _nativeGrid(props) {
               } else {
                 cell = _react["default"].createElement(
                   "td",
-                  
-                  { key: name + rowIdx + colIdx,style: key.style },
+
+                  { key: name + rowIdx + colIdx, style: key.style },
                   _react["default"].createElement(
                     "label",
                     { key: name + "LABEL" + rowIdx + colIdx },
@@ -2408,8 +2409,8 @@ export function _nativeGrid(props) {
                   case "TextBox":
                     cell = _react["default"].createElement(
                       "td",
-                      
-                      { key: name + rowIdx + colIdx,style:key.style },
+
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderTextBox(
                         key,
                         dataItem[key.sqlColumn],
@@ -2421,7 +2422,7 @@ export function _nativeGrid(props) {
                   case "NumberField":
                     cell = _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx, style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderNumberField(
                         key,
                         dataItem[key.sqlColumn],
@@ -2433,7 +2434,7 @@ export function _nativeGrid(props) {
                   case "IntegerField":
                     cell = _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx, style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderIntegerField(
                         key,
                         dataItem[key.sqlColumn],
@@ -2442,23 +2443,23 @@ export function _nativeGrid(props) {
                       )
                     );
                     break;
-                    case "DateField":
-                      cell = _react["default"].createElement(
-                        "td",
-                        { key: name + rowIdx + colIdx, style:key.style },
-                        renderDateField(
-                          key,
-                          dataItem[key.sqlColumn],
-                          rowIdx,
-                          colIdx
-                        )
-                      );
+                  case "DateField":
+                    cell = _react["default"].createElement(
+                      "td",
+                      { key: name + rowIdx + colIdx, style: key.style },
+                      renderDateField(
+                        key,
+                        dataItem[key.sqlColumn],
+                        rowIdx,
+                        colIdx
+                      )
+                    );
 
-                      break;
+                    break;
                   case "CheckBox":
                     cell = _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx, style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderCheckBox(
                         key,
                         dataItem[key.sqlColumn],
@@ -2470,7 +2471,7 @@ export function _nativeGrid(props) {
                   case "DropDown":
                     cell = _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx, style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderDropDown(
                         key,
                         dataItem[key.sqlColumn],
@@ -2482,7 +2483,7 @@ export function _nativeGrid(props) {
                   case "Link":
                     cell = _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx, style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderLink(key, dataItem[key.sqlColumn], rowIdx, colIdx)
                     );
                     break;
@@ -2492,7 +2493,7 @@ export function _nativeGrid(props) {
                       {
                         key: name + rowIdx + colIdx,
                         style: key.style,
-                        onClick: () => {},
+                        onClick: () => { },
                       },
                       dataItem[key.sqlColumn]
                     );
@@ -2501,7 +2502,7 @@ export function _nativeGrid(props) {
                 if (key.objectType === "CheckBox") {
                   cell = _react["default"].createElement(
                     "td",
-                    { key: name + rowIdx + colIdx,style:key.style },
+                    { key: name + rowIdx + colIdx, style: key.style },
                     renderCheckBox(
                       key,
                       dataItem[key.sqlColumn],
@@ -2513,7 +2514,7 @@ export function _nativeGrid(props) {
                 } else if (key.objectType === "Link") {
                   cell = _react["default"].createElement(
                     "td",
-                    { key: name + rowIdx + colIdx,style:key.style },
+                    { key: name + rowIdx + colIdx, style: key.style },
                     renderLink(key, dataItem[key.sqlColumn], rowIdx, colIdx)
                   );
                 } else if (
@@ -2525,7 +2526,7 @@ export function _nativeGrid(props) {
                     null,
                     _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx,style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderDelete(key, rowIdx),
                       renderCustomButton(key, rowIdx),
                       renderCustomButton2(key, rowIdx)
@@ -2540,7 +2541,7 @@ export function _nativeGrid(props) {
                     null,
                     _react["default"].createElement(
                       "td",
-                      { key: name + rowIdx + colIdx,style:key.style },
+                      { key: name + rowIdx + colIdx, style: key.style },
                       renderRowSelect(key, rowIdx)
                     )
                   );
@@ -2574,10 +2575,10 @@ export function _nativeGrid(props) {
     });
   }
   function handleChange(event, rowId, colId) {
-    
-    
+
+
     let { name, value, checked, type } = event.target;
-  
+
     let objList = props.columns;
     let sqlColumn = objList[name].sqlColumn;
     dataList = props.item.data;
@@ -2595,8 +2596,8 @@ export function _nativeGrid(props) {
             ? objList[name].checkedValue
             : "Y"
           : typeof objList[name].uncheckedValue !== "undefined"
-          ? objList[name].uncheckedValue
-          : "N";
+            ? objList[name].uncheckedValue
+            : "N";
       } else {
         newRowController.data[sqlColumn] = value;
       }
@@ -2611,35 +2612,35 @@ export function _nativeGrid(props) {
             ? objList[name].checkedValue
             : "Y"
           : typeof objList[name].uncheckedValue !== "undefined"
-          ? objList[name].uncheckedValue
-          : "N";
+            ? objList[name].uncheckedValue
+            : "N";
 
-          
+
       } else {
         dataList[rowId][sqlColumn] = value;
       }
     }
-    
+
     props.onChange(event, rowId, colId);
-    
-    if (typeof props.onChangeWithColName !== "undefined"){
-      
+
+    if (typeof props.onChangeWithColName !== "undefined") {
+
       props.onChangeWithColName(event, rowId, name);
     }
-    
+
     reRender();
 
   }
 
-  function handlechangeOnBlur(event, rowId, name){
+  function handlechangeOnBlur(event, rowId, name) {
 
-    if(typeof props.onBlur !== "undefined"){
+    if (typeof props.onBlur !== "undefined") {
       props.onBlur(event, rowId, name);
     }
     reRender();
   }
 
-  
+
   function handleLinkClick(event, rowId, colId) {
     if (typeof props.item.event.onLinkClick !== "undefined")
       props.item.event.onLinkClick(event, rowId, colId);
@@ -2656,7 +2657,7 @@ export function _nativeGrid(props) {
       className: "form-control form-control-sm",
       style: style,
       rowId: rowId,
-      styleName:properties.styleName,
+      styleName: properties.styleName,
       colId: colId,
       item: properties,
       placeholder: rowId === -1 ? properties.placeholder : undefined,
@@ -2664,7 +2665,7 @@ export function _nativeGrid(props) {
       value: data,
       visible: true,
       onChange: handleChange,
-     
+
     });
   }
 
@@ -2681,7 +2682,7 @@ export function _nativeGrid(props) {
       className: "form-control form-control-sm",
       style: style,
       rowId: rowId,
-      styleName:properties.styleName,
+      styleName: properties.styleName,
       colId: colId,
       item: properties,
       placeholder: rowId === -1 ? properties.placeholder : undefined,
@@ -2689,12 +2690,12 @@ export function _nativeGrid(props) {
       value: data,
       visible: true,
       onChange: handleChange,
-     
+
     });
   }
 
   function renderIntegerField(properties, data, rowId, colId, disabled) {
-    
+
     let style = {};
     if (rowId >= 0) {
       if (dataList[rowId]["_rowstate"] === "DELETED")
@@ -2705,7 +2706,7 @@ export function _nativeGrid(props) {
       id: properties.name + rowId + colId,
       className: "form-control form-control-sm",
       style: style,
-      styleName:properties.styleName,
+      styleName: properties.styleName,
       rowId: rowId,
       colId: colId,
       item: properties,
@@ -2714,12 +2715,12 @@ export function _nativeGrid(props) {
       value: data,
       visible: true,
       onChange: handleChange,
-      onBlur:handlechangeOnBlur,
-      
+      onBlur: handlechangeOnBlur,
+
     });
   }
   function renderCheckBox(properties, data, rowId, colId, disabled) {
-    function handleClick(event) {}
+    function handleClick(event) { }
     return _react["default"].createElement(_Components.TbCheckBox, {
       item: properties,
       id: properties.name,
@@ -2754,7 +2755,7 @@ export function _nativeGrid(props) {
     });
   }
   function renderTextBox(properties, data, rowId, colId) {
-    
+
     let style = {};
     if (rowId >= 0) {
       if (dataList[rowId]["_rowstate"] === "DELETED")
@@ -2766,16 +2767,16 @@ export function _nativeGrid(props) {
       className: "form-control form-control-sm",
       style: style,
       rowId: rowId,
-      styleName:properties.styleName,
+      styleName: properties.styleName,
       colId: colId,
       placeholder: rowId === -1 ? properties.placeholder : undefined,
       value: data,
       visible: true,
       onChange: handleChange,
       onChangeWithColName: handleChange,
-      
-      
-      
+
+
+
     });
   }
   function renderDropDown(properties, data, rowId, colId, disabled) {
@@ -3101,7 +3102,7 @@ export function _nativeGrid(props) {
             null,
             _react["default"].createElement(
               "table",
-              {  style: props.style, className: props.className , id :item.schema.name},
+              { style: props.style, className: props.className, id: item.schema.name },
               _react["default"].createElement(
                 "thead",
                 null,
@@ -3350,29 +3351,29 @@ export function _nativeDropDown(props) {
     _react["default"].Fragment,
     null,
     visible &&
-      _react["default"].createElement(
-        "select",
-        {
-          id: props.id,
-          className: props.className,
-          disabled: props.disabled,
-          readOnly: props.readOnly,
-          style: props.style,
-          key: props.key,
-          name: props.name,
-          value: value,
-          placeholder: props.placeholder,
-          onChange: handleChange,
-          onBlur: handleBlur,
-        },
-        props.options.map((item) =>
-          _react["default"].createElement(
-            "option",
-            { value: item.value },
-            item.text
-          )
+    _react["default"].createElement(
+      "select",
+      {
+        id: props.id,
+        className: props.className,
+        disabled: props.disabled,
+        readOnly: props.readOnly,
+        style: props.style,
+        key: props.key,
+        name: props.name,
+        value: value,
+        placeholder: props.placeholder,
+        onChange: handleChange,
+        onBlur: handleBlur,
+      },
+      props.options.map((item) =>
+        _react["default"].createElement(
+          "option",
+          { value: item.value },
+          item.text
         )
       )
+    )
   );
 }
 export function _nativeCheckBox(props) {
@@ -3394,35 +3395,35 @@ export function _nativeCheckBox(props) {
     _react["default"].Fragment,
     null,
     visible &&
-      (props.showLabel
-        ? _react["default"].createElement(
-            "label",
-            null,
-            _react["default"].createElement("input", {
-              id: props.id,
-              type: props.type,
-              className: props.className,
-              checked: props.checked,
-              style: props.style,
-              key: props.name,
-              name: props.name,
-              onClick: handleClick,
-              onChange: handleChange,
-            }),
-            props.label
-          )
-        : _react["default"].createElement("input", {
-            id: props.id,
-            type: props.type,
-            className: props.className,
-            checked: props.checked,
-            style: props.style,
-            key: props.name,
-            name: props.name,
-            disabled: props.disabled,
-            onClick: handleClick,
-            onChange: handleChange,
-          }))
+    (props.showLabel
+      ? _react["default"].createElement(
+        "label",
+        null,
+        _react["default"].createElement("input", {
+          id: props.id,
+          type: props.type,
+          className: props.className,
+          checked: props.checked,
+          style: props.style,
+          key: props.name,
+          name: props.name,
+          onClick: handleClick,
+          onChange: handleChange,
+        }),
+        props.label
+      )
+      : _react["default"].createElement("input", {
+        id: props.id,
+        type: props.type,
+        className: props.className,
+        checked: props.checked,
+        style: props.style,
+        key: props.name,
+        name: props.name,
+        disabled: props.disabled,
+        onClick: handleClick,
+        onChange: handleChange,
+      }))
   );
 }
 export function _nativeButton(props) {
@@ -3440,30 +3441,30 @@ export function _nativeButton(props) {
       props.onClick(event);
     }
   }
-  
+
   return _react["default"].createElement(
-    
+
     _react["default"].Fragment,
     null,
     visible &&
-      _react["default"].createElement(
-        "button",
-        {
-          type: props.type,
-          className: props.className,
-          style: props.style,
-          name: props.name,
-          key: props.name,
-          value: props.value,
-          title: props.label,
-          disabled: props.disabled,
-          onClick: handleClick,
-        },
-        typeof props.children === "undefined" ? props.label : props.children
-      )
+    _react["default"].createElement(
+      "button",
+      {
+        type: props.type,
+        className: props.className,
+        style: props.style,
+        name: props.name,
+        key: props.name,
+        value: props.value,
+        title: props.label,
+        disabled: props.disabled,
+        onClick: handleClick,
+      },
+      typeof props.children === "undefined" ? props.label : props.children
+    )
   );
 }
- export function _nativeSearchGrid(props) {
+export function _nativeSearchGrid(props) {
   let [rendered, setRendered] = (0, _react.useState)(true);
   let [item, setItem] = (0, _react.useState)({});
   let [isGridActive, setIsGridActive] = (0, _react.useState)(false);
@@ -3884,8 +3885,8 @@ export function _nativeButton(props) {
         let searchData =
           props.item.schema.controllerObject["controllerSearchBar"]
             .searchedData[
-            props.item.schema.controllerObject["controllerSearchBar"]
-              .selectedRow
+          props.item.schema.controllerObject["controllerSearchBar"]
+            .selectedRow
           ];
         if (typeof props.item.event.onAdvanceSearchDone !== "undefined") {
           props.item.event.onAdvanceSearchDone(
@@ -3909,16 +3910,16 @@ export function _nativeButton(props) {
             },
             selectedRow === rowIdx
               ? _react["default"].createElement(
-                  "span",
-                  null,
-                  _react["default"].createElement("i", {
-                    className: "fas fa-check-circle",
-                  })
-                )
+                "span",
+                null,
+                _react["default"].createElement("i", {
+                  className: "fas fa-check-circle",
+                })
+              )
               : _react["default"].createElement(
-                  _react["default"].Fragment,
-                  null
-                )
+                _react["default"].Fragment,
+                null
+              )
           );
         }
         if (key.objectType === "CheckBox") {
@@ -3987,7 +3988,7 @@ export function _nativeButton(props) {
     function handleSearchClick(event) {
       let searchData =
         props.item.schema.controllerObject["controllerSearchBar"].searchedData[
-          props.item.schema.controllerObject["controllerSearchBar"].selectedRow
+        props.item.schema.controllerObject["controllerSearchBar"].selectedRow
         ];
       if (typeof props.item.event.onAdvanceSearchDone !== "undefined") {
         props.item.event.onAdvanceSearchDone(
