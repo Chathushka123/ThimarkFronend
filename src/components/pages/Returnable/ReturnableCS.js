@@ -73,6 +73,39 @@ componentListConfig["inputRequester"] = {
     class:"",
     event:{}
 }
+componentListConfig["inputRemark"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputRemark",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: true,
+        searchable: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRemark",
+            type: "text",
+            visible: true,
+            value: "Remark"
+        },
+        class: ""
+    },
+    data: {
+        sqlcolumn: "remark",
+        oldValue: "",
+        value: ""
+    },
+    class: "",
+    event: {}
+}
 
 componentListConfig["inputMaterial"] = {
     objectType: "TextBox",
@@ -191,6 +224,7 @@ componentListConfig["buttonPrint"] = {
 let materialGridCols = [];
 materialGridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 materialGridCols["material_code"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "material_code", placeholder: "Code", visible: true, editable: false, sqlColumn: "material_code", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
+materialGridCols["remarks"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "remarks", placeholder: "Remarks", visible: true, editable: false, sqlColumn: "remarks", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
 materialGridCols["material_name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "material_name", placeholder: "Name", visible: true, editable: false, sqlColumn: "material_name", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 materialGridCols["issued_qty"] = { objectType: "IntegerField", colIndex: 3, datatype: "number", name: "issued_qty", placeholder: "Issued ", editable: false, sqlColumn: "issued_qty", style: { textAlign: "right", minWidth: "50px", width: "50px" } };
 materialGridCols["return_qty"] = { objectType: "IntegerField", colIndex: 4, datatype: "number", name: "return_qty", placeholder: "Return", editable: false, sqlColumn: "return_qty", style: { textAlign: "right", minWidth: "50px", width: "50px" } };

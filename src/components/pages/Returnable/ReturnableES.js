@@ -46,6 +46,21 @@ const Returnable = () => {
        __setFormReadWrite(true);
     }, []);
 
+    useEffect(() => {
+        __checkIsAuthorized();
+        __setFormReadWrite(true);
+
+        // Only auto-collapse sidebar on small screens (< 992px)
+        if (window.innerWidth < 992) {
+            // Click the sidebar toggle button so Sidebar's internal state stays in sync
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+            }
+        }
+        
+    }, []);
+
     function __checkIsAuthorized() {
         const apiRequest = { "screen": "marker" }
         API.post(`permissions/isAuthorized`, apiRequest).then(response => {
@@ -87,6 +102,7 @@ const Returnable = () => {
                 document.getElementById("spinner").style.display = "none";
                 return;
             }
+            
             // if((config["inputMaterialName"].data.value == "" || config["inputMaterialName"].data.value == "open")){
             //     config["CONTROL_CENTER"].promptWarningMessage("Please Scan The Valid Material", "");
             //     document.getElementById("spinner").style.display = "none";
@@ -104,6 +120,7 @@ const Returnable = () => {
                 issued_qty: config["inputQuantity"].data.value,
                 return_qty: 0,
                 stock_item_id : config["inputMaterial"].data.value,  
+                remarks : config["inputRemark"].data.value, 
             };
             
             // Call API to save MRN
@@ -113,7 +130,11 @@ const Returnable = () => {
 
             if (response.status === 200 || response.status === 201) {
                 config["CONTROL_CENTER"].promptBaseMessage("Data saved successfully", "");
-                
+                config["inputQuantity"].setValue(0);
+                config["inputRemark"].setValue(""); 
+                config["inputMaterial"].setValue(""); 
+                config["inputMaterialName"].setValue("");
+                await handleGetReturnableDetails();
                // await formPopulate(mrnData.id);
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to save Data", "");
@@ -159,14 +180,20 @@ const Returnable = () => {
            
             let response = await API.get(`stock-materials/${id}`,);
             if (response.status == 200 ) {
-
-                config["inputMaterialName"].setValue(response.data.code);
+                if(response.data.category == 'returnable'){
+                    config["inputMaterialName"].setValue(response.data.code+ " | "+response.data.name);
+                }else{
+                    config["CONTROL_CENTER"].promptWarningMessage("Scanned material is not returnable", "");
+                    config["inputMaterial"].setValue("");
+                    config["inputMaterialName"].setValue("");
+                }
             }
 
         }
         catch (error) {
             console.log(error);
             config["inputMaterial"].setValue("");
+            config["inputMaterialName"].setValue("");
             try {
                 if (error.response && error.response.data && error.response.data.message) {
                     try {
@@ -233,7 +260,8 @@ const Returnable = () => {
                         "material_name": item.material_name ? item.material_name : "",
                         "issued_qty": item.issued_qty,
                         "return_qty": item.return_qty,
-                        "qty": item.issued_qty - item.return_qty
+                        "qty": item.issued_qty - item.return_qty,
+                        "remarks": item.remarks ? item.remarks : "",
                     }
                 })
 

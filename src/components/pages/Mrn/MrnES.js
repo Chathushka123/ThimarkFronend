@@ -129,17 +129,28 @@ const Mrn = () => {
                 return;
             }
             
+            //get Remarks
+            const remarks = config["inputRemark"].data.value;
+            if(remarks && remarks !== ""){
+                if(remarks.length > 250){
+                    config["CONTROL_CENTER"].promptWarningMessage("Remarks cannot exceed 250 characters", "");
+                    document.getElementById("spinner").style.display = "none";
+                    return;
+                }
+            }else{
+                config["CONTROL_CENTER"].promptWarningMessage("Please enter remarks", "");
+                document.getElementById("spinner").style.display = "none";
+                return;
+            }
             // Prepare payload
             const mrnId = config["inputMrnID"].data.value;
             const status = config["inputStatus"].data.value || "open";
-            console.log('====================================');
-            console.log(materials);
-            console.log('====================================');
             const apiRequest = {
                 mrn_id: mrnId,
                 warehouse_id: warehouseId,
                 status: status,
                 batch_id: batch[0],
+                issued_to: String(remarks),
                 mrn_details: materials.map(material => ({
                     stock_item_id: material.material_id,
                     qty: material.quantity,
@@ -181,7 +192,7 @@ const Mrn = () => {
         
         const selectedMaterials = config["inputMaterial"].getSelectedArray() || [];
         const quantity = config["inputQuantity"].data.value;
-        
+      
         
         if (selectedMaterials.length === 0) {
             config["CONTROL_CENTER"].promptWarningMessage("Please select  material", "");
@@ -235,30 +246,35 @@ const Mrn = () => {
 
     async function handleFinalizeYes() {
         const mrnId = config["inputMrnID"].data.value;
+      
         
         try {
             config["finalizePopUp"].closePopUp();
             document.getElementById("spinner").style.display = "";
-            
-            let response = await API.post(`mrns/finalize`, { mrn_id: mrnId });
-            
-            document.getElementById("spinner").style.display = "none";
-            
-            if (response.status === 200) {
-                config["CONTROL_CENTER"].promptBaseMessage("MRN finalized successfully", "");
+            if(config['CONTROL_CENTER'].state.populated == true){
+                let response = await API.post(`mrns/finalize`, { mrn_id: mrnId });
                 
-                // Update status
-                config["inputStatus"].setValue("finalized");
+                document.getElementById("spinner").style.display = "none";
                 
-                // Update button visibility
-                config["buttonFinalize"].schema.visible = false;
-                config["buttonReopen"].schema.visible = true;
-                
-                config["CONTROL_CENTER"].state.modified = false;
-                
-                reRender();
+                if (response.status === 200) {
+                    config["CONTROL_CENTER"].promptBaseMessage("MRN finalized successfully", "");
+                    
+                    // Update status
+                    config["inputStatus"].setValue("finalized");
+                    
+                    // Update button visibility
+                    config["buttonFinalize"].schema.visible = false;
+                    config["buttonReopen"].schema.visible = true;
+                    
+                    config["CONTROL_CENTER"].state.modified = false;
+                    
+
+                    
+                    reRender();
+                }
+
             } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Failed to finalize MRN", "");
+                config["CONTROL_CENTER"].promptWarningMessage("Please Save Changes First", "");
             }
         } catch (error) {
             document.getElementById("spinner").style.display = "none";
@@ -365,6 +381,7 @@ const Mrn = () => {
                         "model_search": value.batch.model.name,
                         "warehouse_search": value.warehouse.name,
                         "status_search": value.status,
+                        "issued_to_search": value.issued_to
                     })
                 });
             }
@@ -447,6 +464,7 @@ const Mrn = () => {
                         "model_search": value.model_name,
                         "warehouse_search": value.warehouse_name,
                         "status_search": value.status,
+                        "issued_to_search": value.issued_to
                     }) })
                 ;
             }
@@ -472,7 +490,8 @@ const Mrn = () => {
                             "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
                             "model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search,
                             "warehouse_name": searchCriteria.warehouse_search === "" ? "%" : searchCriteria.warehouse_search,
-                            "status": searchCriteria.status_search === "" ? "%" : searchCriteria.status_search
+                            "status": searchCriteria.status_search === "" ? "%" : searchCriteria.status_search,
+                            "issued_to": searchCriteria.issued_to_search === "" ? "%" : searchCriteria.issued_to_search
                         
                     };
                     const getSearchDetails = await API.post(`mrns/getSearchByMrn`, apiRequest);
@@ -505,6 +524,7 @@ const Mrn = () => {
                 // Populate header fields
                 config["inputMrnID"].data.value =mrnData.id;
                 config["inputStatus"].setValue(mrnData.status);
+                config["inputRemark"].setValue(mrnData.issued_to);
                 config["inputWarehouse"].setValue(mrnData.warehouse_id);
                 let selectBAtch = {id:mrnData.batch_id,name:mrnData.batch.batch_no}
                 config["inputBatch"].setValue([selectBAtch]);
@@ -535,6 +555,7 @@ const Mrn = () => {
                 
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
+                config['CONTROL_CENTER'].state.populated = true;
                 
                 reRender();
                 config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
@@ -603,17 +624,33 @@ const Mrn = () => {
     }
 
     function handleError(error, defaultMessage) {
+        
         try {
             if (error.response) {
                 if (error.response.data && error.response.data.message) {
+  
+                    if(Object.keys(error.response.data.message).length > 0){
+                        
+                    config["CONTROL_CENTER"].promptWarningMessage("Please contact supporting team", "");
+                    
+                }else{
                     config["CONTROL_CENTER"].promptWarningMessage(error.response.data.message, "");
+                }
+
+                    
                 } else if (error.response.statusText) {
                     config["CONTROL_CENTER"].promptWarningMessage(error.response.statusText, "");
                 } else {
                     config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An error occurred", "");
                 }
             } else if (error.message) {
-                config["CONTROL_CENTER"].promptWarningMessage(error.message, "");
+                if(Array.isArray(error.message) && error.message.length > 0){
+                    config["CONTROL_CENTER"].promptWarningMessage("Please contact supporting team", "");
+                    return;
+                }else{
+                    config["CONTROL_CENTER"].promptWarningMessage(error.message, "");
+                }
+                
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An unexpected error occurred", "");
             }

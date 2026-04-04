@@ -132,8 +132,11 @@ export function generateMrnDisplay(componentList) {
                             </div>
                             
                             <div className="form-row">
-                                
-                                <div className="col-md-8 col-12">
+                                <div className="form-group col-md-2 col-12">
+                                    <Label item={componentList["inputRemark"].label} />
+                                    <TextBox item={componentList["inputRemark"]} className="form-control form-control-sm" />
+                                </div>
+                                <div className="col-md-6 col-12">
                                     <div className="form-group">
                                         <Label item={componentList["inputMaterial"].label} />
                                         <MultiSelectDropDown
@@ -142,7 +145,9 @@ export function generateMrnDisplay(componentList) {
                                             disabled={componentList["inputStatus"].data.value === "finalized"}
                                         />
                                     </div>
+                                    
                                 </div>
+                                
                                 <div className="col-md-2 col-12">
                                     <div className="form-group">
                                         <Label item={componentList["inputQuantity"].label} />

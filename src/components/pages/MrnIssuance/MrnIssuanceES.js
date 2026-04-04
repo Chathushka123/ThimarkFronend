@@ -9,6 +9,7 @@ const MrnIssuance = () => {
     let [issuanceStatus, setIssuanceStatus] = useState(""); // "open" or "completed"
     let [selectedDetailId, setSelectedDetailId] = useState(null);
     let [showQrScanner, setShowQrScanner] = useState(false);
+    
 
     function reRender() {
         setRendered(prev => !prev);
@@ -30,6 +31,11 @@ const MrnIssuance = () => {
     // Input Events - Load MRN on Enter key
     config["inputMrnScan"].event.onEnterKey = handleMrnScanKeyPress;
 
+    // Advance Search
+    config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
+    config["CONTROL_CENTER"].event.onAdvanceSearch = handleAdvanceSearch;
+    config["CONTROL_CENTER"].event.onAdvanceSearchDone = handleAdvanceSearchDone;
+
     // Open live QR scanner overlay
     window.openQrScanner = () => setShowQrScanner(true);
 
@@ -47,6 +53,16 @@ const MrnIssuance = () => {
     useEffect(() => {
         __checkIsAuthorized();
         __setFormReadWrite(true);
+
+        // Only auto-collapse sidebar on small screens (< 992px)
+        if (window.innerWidth < 992) {
+            // Click the sidebar toggle button so Sidebar's internal state stays in sync
+            const toggleBtn = document.getElementById('sidebarToggle');
+            if (toggleBtn) {
+                toggleBtn.click();
+            }
+        }
+        
     }, []);
 
     function __checkIsAuthorized() {
@@ -79,6 +95,153 @@ const MrnIssuance = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
+        async function handleAdvanceSearchPopup() {
+                let data = [];
+                const getData = await __getAll();
+        
+                if (getData && getData !== "Error" && getData[0].Mrn.length > 0) {
+                    const listData = getData[0].Mrn;
+                    listData.forEach((value, index) => {
+                        
+                        data.push({
+                            "mrn_id_search": value.id,
+                            "batch_no_search": value.batch.batch_no,
+                            "model_search": value.batch.model.name,
+                            "warehouse_search": value.warehouse.name,
+                            "status_search": value.status,
+                            "issued_to_search": value.issued_to
+                        })
+                    });
+                }
+        
+                console.log("*******All Data********");
+                console.log(data);
+        
+                let msg = "";
+                if (data.length > 20) {
+                    msg = "Only 20 records are loaded. Please narrow your search";
+                    data = data.slice(0, 20);
+                }
+        
+                config["CONTROL_CENTER"].showAdvanceSearch(data, msg);
+            }
+        
+            async function __getAll() {
+                try {
+                    const key = "Mrn";
+                    const distinct = false;
+                    const select = ["*"];
+                    const where = [{"active":true}];
+                    const orderby = "created_at:desc";
+                    const limit = 25;
+                    const relations = [
+                        "batch",
+                        "batch.model",
+                        "warehouse",
+                    ];
+    
+        
+                    const data = await __getDetails(key, distinct, select, where, relations, orderby, limit);
+        
+                    return data;
+        
+                } catch (error) {
+                    console.log("***********GetAll Error**********");
+                    console.log(error.response);
+                    return "Error";
+                }
+            }
+        
+            async function __getDetails(key, distinct, select, where, relations, orderby, limit) {
+                try {
+                    const apiRequest = {
+                        [key]: {
+                            "distinct": distinct,
+                            "select": select,
+                            "where": where,
+                            "relations": relations,
+                            "orderby": orderby,
+                            "limit": limit
+                        }
+                    };
+        
+                    const getDetails = await API.post(`searchByParameters`, apiRequest);
+                    const details = getDetails.data;
+        
+                    return details;
+        
+                } catch (error) {
+                    console.log("***********GetDetails Error**********");
+                    console.log(error.response);
+                    return "Error";
+                }
+            }
+    
+            async function handleAdvanceSearch(event, searchCriteria, callback) {
+                console.log("*******Search Criteria********");
+                console.log(searchCriteria);
+        
+                let data = [];
+                let searchDetails = await __getAdvanceSearchDetails(searchCriteria);
+        
+                if (searchDetails.length > 0) {
+                    searchDetails.forEach((value, index) => {
+                        data.push({
+                            "mrn_id_search": value.id,
+                            "batch_no_search": value.batch_no,
+                            "model_search": value.model_name,
+                            "warehouse_search": value.warehouse_name,
+                            "status_search": value.status,
+                            "issued_to_search": value.issued_to
+                        }) })
+                    ;
+                }
+        
+                console.log("*******Search Results********");
+                console.log(data);
+        
+                let msg = "";
+                if (data.length > 20) {
+                    msg = "Only 20 records are loaded. Please narrow your search";
+                    data = data.slice(0, 20);
+                }
+        
+                callback(data, msg);
+            }
+        
+                // Get Advance Search Details
+            async function __getAdvanceSearchDetails(searchCriteria) {
+                    try {
+                        const apiRequest = {
+                            
+                                "id": searchCriteria.mrn_id_search === "" ? "%" : searchCriteria.mrn_id_search,
+                                "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
+                                "model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search,
+                                "warehouse_name": searchCriteria.warehouse_search === "" ? "%" : searchCriteria.warehouse_search,
+                                "status": searchCriteria.status_search === "" ? "%" : searchCriteria.status_search,
+                                "issued_to": searchCriteria.issued_to_search === "" ? "%" : searchCriteria.issued_to_search
+                            
+                        };
+                        const getSearchDetails = await API.post(`mrns/getSearchByMrn`, apiRequest);
+                        const details = getSearchDetails.data.data;
+            
+                        return details;
+            
+                    } catch (error) {
+                        console.log("***********GetDetails Error**********");
+                        console.log(error.response);
+                        return "Error";
+                    }
+                }
+    
+        async function handleAdvanceSearchDone(event, selectedRow){
+            const id = selectedRow.mrn_id_search;
+            config["inputMrnScan"].setValue(id);
+            handleLoadMrn();
+           // await formPopulate(id);
+    
+        }
+
     function handleMrnScanKeyPress(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -104,7 +267,7 @@ const MrnIssuance = () => {
         try {
             const mrnId = config["inputMrnScan"].data.value;
             
-            if (!mrnId || mrnId.trim() === "") {
+            if (!mrnId || mrnId === "") {
                 config["CONTROL_CENTER"].promptWarningMessage("Please scan or enter MRN ID", "");
                 return;
             }
@@ -142,6 +305,7 @@ const MrnIssuance = () => {
                 config["inputStatus"].data.value = mrnData.status;
                 config["inputBatchNo"].data.value = mrnData.batch?.batch_no || "";
                 config["inputWarehouse"].data.value = mrnData.warehouse?.name || "";
+                config["inputIssuedTo"].data.value = mrnData.issued_to || "";
                 
                 // Transform MRN details into card data
                 let detailsData = [];

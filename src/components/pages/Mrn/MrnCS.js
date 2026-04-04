@@ -109,6 +109,41 @@ componentListConfig["inputStatus"] = {
     event: {}
 }
 
+// MRN Remark (readonly)
+componentListConfig["inputRemark"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputRemark",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: false,
+        readOnly: false,
+        searchable: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRemark",
+            type: "text",
+            visible: true,
+            value: "Issue To"
+        }
+    },
+    data: {
+        sqlcolumn: "remark",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
 // Warehouse Dropdown
 componentListConfig["inputWarehouse"] = {
     objectType: "DropDown",
@@ -470,6 +505,40 @@ componentListConfig["inputStatusSearch"] = {
     },
     data: {
         sqlcolumn: "status_search",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+componentListConfig["inputRemarkSearch"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputRemarkSearch",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: true,
+        advanceSearch: true,
+        labelValue: "Issued To",
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRemarkSearch",
+            type: "text",
+            visible: true,
+            value: "Issued To"
+        }
+    },
+    data: {
+        sqlcolumn: "issued_to_search",
         oldValue: "",
         value: ""
     },
