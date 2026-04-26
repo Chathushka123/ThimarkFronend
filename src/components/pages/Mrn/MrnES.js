@@ -28,6 +28,8 @@ const Mrn = () => {
     config["buttonReopenNo"].event.onClick = handleReopenNo;
 
     config["buttonPrint"].event.onClick = handleInvoicePrint;
+    config['inputMaterial'].event.onSelect = handleChangeMaterial;
+    config['buttonDownload'].event.onClick = handleDownload;
     
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
@@ -169,7 +171,8 @@ const Mrn = () => {
                     stock_item_id: material.material_id,
                     qty: material.quantity,
                     id: material.mrn_detail_id || "",
-                    status:material._rowstate
+                    status:material._rowstate,
+                    issued_to: material.issued_to
                 }))
             };
             
@@ -201,12 +204,85 @@ const Mrn = () => {
         }
     }
 
+    async function handleDownload() {
+        try {
+            document.getElementById("spinner").style.display = "";
+            
+            const response = await API.post(`mrns/download-details-excel`, {}, {
+                responseType: 'arraybuffer',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                }
+            });
+            
+            document.getElementById("spinner").style.display = "none";
+            
+            if (response && response.data !== null) {
+                // Create blob from response data
+                let blob = new Blob([response.data], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                });
+                
+                // Create blob URL and download
+                let blobUrl = window.URL.createObjectURL(blob);
+                let link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `MRN_Details.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Cleanup
+                window.URL.revokeObjectURL(blobUrl);
+            }
+
+        } catch (error) {
+            document.getElementById("spinner").style.display = "none";
+            handleError(error, "Error downloading MRN details");
+        }
+    }
+
+    async function handleChangeMaterial(selectedList, selectedItem) {
+        config['inputAvailableQuantity'].setValue("");
+        document.getElementById("spinner").style.display = "";
+        if(selectedList.length > 0){
+            const materialId = selectedList[0].id;
+
+            try{
+                let response = await API.post(`inventory/available-qty`, { stock_item_id: materialId });
+                
+                document.getElementById("spinner").style.display = "none";
+                
+                if (response.status === 200) {
+                    const availableQty = response.data.data.qty;
+                    config['inputAvailableQuantity'].setValue(availableQty);
+                }
+
+            }
+            catch (error) {
+                document.getElementById("spinner").style.display = "none";
+                handleError(error, "Error re-opening MRN");
+            }
+        }
+        
+        
+    }
+
+
     function handleAddToGrid() {
         // Get values from multiselects
         
         const selectedMaterials = config["inputMaterial"].getSelectedArray() || [];
         const quantity = config["inputQuantity"].data.value;
-      
+        const issuedTo = config["inputRemark"].data.value;
+
+        const availableQty = config['inputAvailableQuantity'].data.value;
+
+         if(quantity > availableQty){
+            config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be greater than available quantity", "");
+            return;
+        }
         
         if (selectedMaterials.length === 0) {
             config["CONTROL_CENTER"].promptWarningMessage("Please select  material", "");
@@ -228,7 +304,8 @@ const Mrn = () => {
             material_id: selectedMaterials[0].id,
             material_name: selectedMaterials[0].name,
             quantity: quantity,
-            mrn_detail_id: "" 
+            mrn_detail_id: "" ,
+            issued_to: issuedTo
         }
         
          config["gridMaterials"].addRow(newRows);
@@ -281,6 +358,7 @@ const Mrn = () => {
                     config["buttonReopen"].schema.visible = true;
                     
                     config["CONTROL_CENTER"].state.modified = false;
+                    await formPopulate(mrnId);
                     
 
                     
@@ -538,6 +616,8 @@ const Mrn = () => {
                 // Populate header fields
                 config["inputMrnID"].data.value =mrnData.id;
                 config["inputStatus"].setValue(mrnData.status);
+                config["inputFinalizeAt"].setValue(mrnData.finalized_at ? new Date(mrnData.finalized_at).toLocaleString() : "");
+                config["inputCompleteAt"].setValue(mrnData.complete_at ? new Date(mrnData.complete_at).toLocaleString() : "");
                 config["inputRemark"].setValue(mrnData.issued_to);
                 config["inputWarehouse"].setValue(mrnData.warehouse_id);
                 let selectBAtch = {id:mrnData.batch_id,name:mrnData.batch.batch_no}
@@ -549,8 +629,9 @@ const Mrn = () => {
                     rows.push({
                         mrn_detail_id: element.id,
                         material_id: element.stock_item_id,
-                        material_name: element.stock_item.name,
-                        quantity: element.qty
+                        material_name: element.stock_item.code +" - "+element.stock_item.name,
+                        quantity: element.qty,
+                        issued_to: element.issued_to,
                     });
                 });
                 config["gridMaterials"].setData(rows);
@@ -572,7 +653,7 @@ const Mrn = () => {
                 config['CONTROL_CENTER'].state.populated = true;
                 
                 reRender();
-                config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
+               // config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to load MRN", "");
             }

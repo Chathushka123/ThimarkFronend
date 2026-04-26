@@ -2071,3 +2071,8 @@ input:-webkit-autofill:focus {
 td {
   width: 150px !important;
 }
+
+.multiSelectContainer{
+  z-index: 5 !important;
+}
+
