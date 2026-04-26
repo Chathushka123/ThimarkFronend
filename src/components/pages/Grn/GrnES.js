@@ -6,6 +6,7 @@ import API from '../../../api/API';
 const Grn = () => {
     let [rendered, setRendered] = useState(true);
     let [grnTransactions, setGrnTransactions] = useState([]);
+    let [selectedPoDetails, setSelectedPoDetails] = useState(null);
 
     function reRender() {
         setRendered(!rendered);
@@ -16,7 +17,8 @@ const Grn = () => {
     /*********************************************************/
 
     config["CONTROL_CENTER"].renderFunction = reRender;
-    
+    config['inputRmpoNo'].event.onChange = handlePoChange;
+
     // Button Events
     config["buttonCreateGrn"].event.onClick = handleCreateGrn;
     config["buttonAddTransaction"].event.onClick = handleAddTransaction;
@@ -26,7 +28,7 @@ const Grn = () => {
     config["buttonDeleteTransactionNo"].event.onClick = handleDeleteTransactionNo;
     config["buttonCompleteGrnYes"].event.onClick = handleCompleteGrnYes;
     config["buttonCompleteGrnNo"].event.onClick = handleCompleteGrnNo;
-    
+
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
     config["CONTROL_CENTER"].event.onAdvanceSearch = handleAdvanceSearch;
@@ -39,14 +41,15 @@ const Grn = () => {
     /********       User Defined Declarations       **********/
     /*********************************************************/
 
-    // Executes when Page Load 
+    // Executes when Page Load
     useEffect(() => {
         __checkIsAuthorized();
         __setFormReadWrite(true);
         __getWarehouses();
+        __getValidPOs();
     }, []);
 
-        useEffect(() => {
+    useEffect(() => {
         __checkIsAuthorized();
         __setFormReadWrite(true);
 
@@ -58,7 +61,7 @@ const Grn = () => {
                 toggleBtn.click();
             }
         }
-        
+
     }, []);
 
     function __checkIsAuthorized() {
@@ -81,8 +84,8 @@ const Grn = () => {
 
     // Enable navigation prompt
     window.onbeforeunload = function () {
-        if (config["CONTROL_CENTER"].state.modified || 
-            config["CONTROL_CENTER"].state.new || 
+        if (config["CONTROL_CENTER"].state.modified ||
+            config["CONTROL_CENTER"].state.new ||
             config["CONTROL_CENTER"].state.deleted) {
             return true;
         }
@@ -97,9 +100,9 @@ const Grn = () => {
             const response = await API.get(`warehouses`);
             let warehouses = [];
             warehouses.push({
-                    "value": "",
-                    "text": "Select Warehouse"
-                });
+                "value": "",
+                "text": "Select Warehouse"
+            });
             response.data.forEach((value) => {
                 warehouses.push({
                     "value": String(value.id),  // Convert to string for consistency
@@ -108,10 +111,44 @@ const Grn = () => {
             });
             config['inputWarehouse'].setOptions(warehouses);
             console.log("Loaded warehouse options:", warehouses); // Debug options
-        } catch(err) {
+        } catch (err) {
             console.log(err);
             config["CONTROL_CENTER"].promptWarningMessage("Error loading warehouses", "");
         }
+    }
+
+    async function __getValidPOs() {
+        try {
+            const response = await API.get(`purchase-orders/approved-sent`);
+            let pos = [];
+            pos.push({
+                "value": "",
+                "text": "Select PO"
+            });
+            response.data.forEach((value) => {
+                pos.push({
+                    "value": String(value.id),
+                    "text": value.po_number,
+                    "_fullData": value
+                });
+            });
+            config['inputRmpoNo'].setOptions(pos);
+            config['inputRmpoNo']._allPOs = response.data;
+        } catch (err) {
+            console.log(err);
+            config["CONTROL_CENTER"].promptWarningMessage("Error loading POs", "");
+        }
+    }
+
+    function handlePoChange() {
+        const selectedId = config['inputRmpoNo'].data.value;
+        if (!selectedId || selectedId === "") {
+            setSelectedPoDetails(null);
+            return;
+        }
+        const allPOs = config['inputRmpoNo']._allPOs || [];
+        const found = allPOs.find(p => String(p.id) === String(selectedId));
+        setSelectedPoDetails(found || null);
     }
 
     async function handleCreateGrn() {
@@ -123,7 +160,7 @@ const Grn = () => {
             const remarks = config['inputRemarks'].data.value;
             const warehouse_id = config['inputWarehouse'].data.value;
 
-            // Validations 
+            // Validations
             if (!rmpo_no || rmpo_no.trim() === "") {
                 config["CONTROL_CENTER"].promptWarningMessage("RMPO No is required", "");
                 return;
@@ -148,16 +185,16 @@ const Grn = () => {
                 const grnData = response.data;
                 config['inputGrnID'].setValue(grnData.id);
                 config['inputStatus'].setValue(grnData.status);
-                
+
                 config["CONTROL_CENTER"].promptBaseMessage("GRN created successfully", "");
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
-                
+
                 // Show transaction entry section
                 config["buttonAddTransaction"].schema.visible = true;
                 config["buttonCompleteGrn"].schema.visible = true;
                 config["buttonCreateGrn"].schema.visible = false;
-                
+
                 reRender();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in creating GRN", "");
@@ -182,7 +219,7 @@ const Grn = () => {
             const quantity = config['inputQuantity'].data.value;
             const price = config['inputPrice'].data.value;
 
-            // Validations 
+            // Validations
             if (!grn_id) {
                 config["CONTROL_CENTER"].promptWarningMessage("Please create GRN first", "");
                 return;
@@ -218,20 +255,20 @@ const Grn = () => {
 
             if (response.status === 200 || response.status === 201) {
                 config["CONTROL_CENTER"].promptBaseMessage("Transaction added successfully", "");
-                
+
                 // Clear transaction fields
                 config['inputLocationId'].setValue("");
                 config['inputStockItemId'].setValue("");
                 config['inputQuantity'].setValue("");
                 config['inputPrice'].setValue("");
-                
+
                 // Reload transactions
                 await loadGrnTransactions(grn_id);
-                
+
                 // Focus on location field for next scan
                 const locationInput = document.querySelector('input[name="inputLocationId"]');
                 if (locationInput) locationInput.focus();
-                
+
                 reRender();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in adding transaction", "");
@@ -254,7 +291,7 @@ const Grn = () => {
     async function handleDeleteTransactionYes() {
         try {
             const transactionId = config["inputDeleteTransactionId"].data.value;
-            
+
             if (!transactionId) return;
 
             document.getElementById("spinner").style.display = "";
@@ -265,14 +302,14 @@ const Grn = () => {
 
             if (response.status === 200 || response.status === 201) {
                 config["CONTROL_CENTER"].promptBaseMessage("Transaction deleted successfully", "");
-                
+
                 // Reload transactions
                 const grn_id = config['inputGrnID'].data.value;
                 await loadGrnTransactions(grn_id);
-                
+
                 // Clear the delete transaction ID
                 config["inputDeleteTransactionId"].data.value = "";
-                
+
                 reRender();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in deleting transaction", "");
@@ -330,11 +367,11 @@ const Grn = () => {
             if (response.status === 200 || response.status === 201) {
                 config['inputStatus'].setValue("completed");
                 config["CONTROL_CENTER"].promptBaseMessage("GRN completed successfully", "");
-                
+
                 // Hide transaction entry and complete button
                 config["buttonAddTransaction"].schema.visible = false;
                 config["buttonCompleteGrn"].schema.visible = false;
-                
+
                 reRender();
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in completing GRN", "");
@@ -359,15 +396,16 @@ const Grn = () => {
         config['inputRemarks'].setValue("");
         config['inputWarehouse'].setValue("");
         config['inputStatus'].setValue("");
-        
+
         // Reset transactions
         setGrnTransactions([]);
-        
+        setSelectedPoDetails(null);
+
         // Reset buttons visibility through schema
         config["buttonCreateGrn"].schema.visible = true;
         config["buttonAddTransaction"].schema.visible = false;
         config["buttonCompleteGrn"].schema.visible = false;
-        
+
         config["CONTROL_CENTER"].state.new = true;
         reRender();
     }
@@ -378,7 +416,7 @@ const Grn = () => {
             if (response.status === 200) {
                 setGrnTransactions(response.data.data || []);
             }
-        } catch(err) {
+        } catch (err) {
             console.log(err);
             setGrnTransactions([]);
         }
@@ -392,7 +430,7 @@ const Grn = () => {
             if (getData && getData !== "Error" && getData.length > 0) {
                 const listData = getData[0].Grn;
                 listData.forEach((value, index) => {
-                    
+
                     data.push({
                         "grn_id_search": value.id,
                         "rmpo_no_search": value.rmpono,
@@ -400,7 +438,7 @@ const Grn = () => {
                     });
                 });
             }
-            
+
             let msg = "";
             if (data.length > 20) {
                 msg = "Only 20 records are loaded. Please narrow your search";
@@ -419,11 +457,11 @@ const Grn = () => {
             const key = "Grn";
             const distinct = false;
             const select = ["*"];
-            const where = [{"active":true}];
+            const where = [{ "active": true }];
             const orderby = "created_at:desc";
             const limit = 25;
             const relations = [
-                
+
             ];
 
 
@@ -466,7 +504,7 @@ const Grn = () => {
     async function handleAdvanceSearch(event, searchCriteria, callback) {
         try {
             const response = await API.post(`grns/search`, searchCriteria);
-            
+
             let data = [];
             if (response.data.data && response.data.data.length > 0) {
                 response.data.data.forEach((value) => {
@@ -501,25 +539,30 @@ const Grn = () => {
                 let data = response.data;
                 console.log("GRN Data from API:", data); // Debug log
                 console.log("Setting warehouse_id to:", data.warehouse_id); // Debug warehouse
-                
+
                 config['inputGrnID'].setValue(data.id);
                 config['inputRmpoNo'].setValue(data.rmpono || data.rmpo_no || "");
                 config['inputRemarks'].setValue(data.remark || data.remarks || "");
                 config['inputStatus'].setValue(data.status);
-                
+
                 // Set warehouse with proper type matching
                 const warehouseValue = data.warehouse_id ? String(data.warehouse_id) : "";
                 config['inputWarehouse'].setValue(warehouseValue);
-                
+
                 console.log("Warehouse value after set:", config['inputWarehouse'].data.value); // Debug value after set
                 console.log("Warehouse options:", config['inputWarehouse'].data.options); // Debug options
-                
+
                 // Load transactions
                 await loadGrnTransactions(grn_id);
-                
+
+                // Populate PO details if available
+                const allPOs = config['inputRmpoNo']._allPOs || [];
+                const foundPO = allPOs.find(p => String(p.id) === String(data.purchase_order_id || data.rmpono));
+                setSelectedPoDetails(foundPO || null);
+
                 // Set button visibility based on status
                 if (data.status === "open") {
-                    
+
                     config["buttonAddTransaction"].schema.visible = true;
                     config["buttonCompleteGrn"].schema.visible = true;
                     config["buttonCreateGrn"].schema.visible = false;
@@ -528,9 +571,9 @@ const Grn = () => {
                     config["buttonCompleteGrn"].schema.visible = false;
                     config["buttonCreateGrn"].schema.visible = false;
                 }
-                
+
                 config["CONTROL_CENTER"].state.populated = true;
-                
+
                 // Force double render to ensure button visibility changes are applied
                 reRender();
                 setTimeout(() => reRender(), 0);
@@ -579,7 +622,7 @@ const Grn = () => {
         }
     }
 
-    return generateGrnDisplay(config, grnTransactions);
+    return generateGrnDisplay(config, grnTransactions, selectedPoDetails);
 }
 
 export default Grn;
