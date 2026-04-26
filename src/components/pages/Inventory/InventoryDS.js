@@ -130,7 +130,8 @@ function buildMaterialStatusMap(inventoryData) {
   return statusMap;
 }
 
-function downloadExcel(inventoryData) {
+export function downloadExcel(inventoryData, filename = "inventory.xlsx") {
+  console.log(inventoryData)
   const rows = [];
   (inventoryData || []).forEach((rack) => {
     (rack.bins || []).forEach((bin) => {
@@ -160,7 +161,7 @@ function downloadExcel(inventoryData) {
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Inventory");
-  XLSX.writeFile(wb, "inventory.xlsx");
+  XLSX.writeFile(wb, filename);
 }
 
 export function generateInventoryDisplay(
@@ -185,7 +186,14 @@ export function generateInventoryDisplay(
     handleBinMaterialChange = () => { },
     handleBinQtyChange = () => { },
     handleAddMaterial = () => { },
-    selectedWarehouse = 0
+    selectedWarehouse = 0,
+    showSnapshotModal = false,
+    setShowSnapshotModal = () => { },
+    snapshotDate = '',
+    setSnapshotDate = () => { },
+    onDownloadSnapshot = () => { },
+    isControlsCollapsed = false,
+    setIsControlsCollapsed = () => { },
   } = searchOptions;
   const summary = computeSummary(inventoryData);
   const hasData = inventoryData && inventoryData.length > 0;
@@ -214,471 +222,542 @@ export function generateInventoryDisplay(
       </div>
 
       <div className="container-fluid custom-container-padding">
-        {/* Warehouse selector + Material Search */}
+        {/* Controls collapse toggle bar */}
         <div
-          className="form-wrp background-white"
-          style={{ marginBottom: "16px" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: isControlsCollapsed ? "12px" : "0",
+            padding: "6px 12px",
+            backgroundColor: "#fff",
+            border: "1px solid #dee2e6",
+            borderRadius: isControlsCollapsed ? "8px" : "8px 8px 0 0",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() => setIsControlsCollapsed((v) => !v)}
+          title={isControlsCollapsed ? "Expand controls" : "Collapse controls"}
         >
-          <div className="row">
-            <div className="col-12">
-              <div
-                className="form-row"
-                style={{ alignItems: "flex-end", gap: "0" }}
-              >
-                <div className="form-group col-md-4">
-                  <DropDown
-                    item={componentList["inputWH"]}
-                    className="form-control form-control-sm"
-                  />
-                </div>
-                <div
-                  className="form-group col-md-4"
-                  style={{ marginLeft: "12px" }}
-                >
-                  <label
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      color: "#495057",
-                      marginBottom: "4px",
-                      display: "block",
-                    }}
-                  >
-                    Search Material (name / code)
-                  </label>
+          <span style={{ fontSize: "12px", fontWeight: "700", color: "#495057" }}>
+            {isControlsCollapsed ? "▶ Show Controls" : "▼ Hide Controls"}
+          </span>
+          {isControlsCollapsed && selectedWarehouse > 0 && (
+            <span style={{ fontSize: "11px", color: "#6c757d", fontStyle: "italic" }}>
+              Warehouse selected
+            </span>
+          )}
+        </div>
+
+        {/* Collapsible controls area */}
+        {!isControlsCollapsed && (
+          <>
+            {/* Warehouse selector + Material Search */}
+            <div
+              className="form-wrp background-white"
+              style={{ marginBottom: "16px", borderTop: "none", borderRadius: "0 0 8px 8px" }}
+            >
+              <div className="row">
+                <div className="col-12">
                   <div
+                    className="form-row"
+                    style={{ alignItems: "flex-end", gap: "0" }}
+                  >
+                    <div className="form-group col-md-4">
+                      <DropDown
+                        item={componentList["inputWH"]}
+                        className="form-control form-control-sm"
+                      />
+                    </div>
+                    <div
+                      className="form-group col-md-4"
+                      style={{ marginLeft: "12px" }}
+                    >
+                      <label
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: "700",
+                          color: "#495057",
+                          marginBottom: "4px",
+                          display: "block",
+                        }}
+                      >
+                        Search Material (name / code)
+                      </label>
+                      <div
+                        style={{
+                          position: "relative",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span
+                          style={{
+                            position: "absolute",
+                            left: "10px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            color: isSearching ? "#6f42c1" : "#6c757d",
+                            fontSize: "14px",
+                            pointerEvents: "none",
+                          }}
+                        >
+                          🔍
+                        </span>
+                        <input
+                          type="text"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Enter at least 3 letters"
+                          className="form-control form-control-sm"
+                          style={{
+                            paddingLeft: "32px",
+                            paddingRight: searchTerm ? "30px" : "10px",
+                            borderColor:
+                              highlightedIds.length > 0 ? "#6f42c1" : undefined,
+                            boxShadow:
+                              highlightedIds.length > 0
+                                ? "0 0 0 2px #6f42c133"
+                                : undefined,
+                            transition: "border-color 0.2s, box-shadow 0.2s",
+                          }}
+                        />
+                        {searchTerm && (
+                          <button
+                            onClick={() => setSearchTerm("")}
+                            style={{
+                              position: "absolute",
+                              right: "8px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              color: "#6c757d",
+                              fontSize: "14px",
+                              padding: "0",
+                              lineHeight: 1,
+                            }}
+                            title="Clear search"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      {searchTerm && !isSearching && (
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            marginTop: "3px",
+                            color:
+                              highlightedIds.length > 0 ? "#6f42c1" : "#adb5bd",
+                            fontWeight: "600",
+                          }}
+                        >
+                          {highlightedIds.length > 0
+                            ? `${highlightedIds.length} material${highlightedIds.length !== 1 ? "s" : ""} matched — bins highlighted below`
+                            : "No materials found"}
+                        </div>
+                      )}
+                      {isSearching && (
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            marginTop: "3px",
+                            color: "#6f42c1",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Searching…
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className="form-group"
+                      style={{
+                        marginLeft: "12px",
+                        display: "flex",
+                        alignItems: "flex-end",
+                        gap: "8px",
+                      }}
+                    >
+                      <button
+                        onClick={viewPendingReturnables}
+                        title="View pending returnables"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          background: "#0d6efd",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "7px",
+                          padding: "6px 14px",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          cursor: "pointer",
+                          letterSpacing: "0.3px",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ↩ Pending Returnables
+                      </button>
+                    </div>
+                    {hasData && (
+                      <div
+                        className="form-group"
+                        style={{
+                          marginLeft: "12px",
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: "8px",
+                        }}
+                      >
+                        <button
+                          onClick={() => downloadExcel(inventoryData)}
+                          title="Download inventory as Excel"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            background: "#1d6f42",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "7px",
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            letterSpacing: "0.3px",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ⬇ Download Excel
+                        </button>
+                      </div>
+                    )}
+                    {selectedWarehouse > 0 && (
+                      <div
+                        className="form-group"
+                        style={{
+                          marginLeft: "12px",
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: "8px",
+                        }}
+                      >
+                        <button
+                          onClick={() => setShowSnapshotModal(true)}
+                          title="Download inventory snapshot by date"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            background: "#6f42c1",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "7px",
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            letterSpacing: "0.3px",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          📸 Snapshot
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {hasData && (
+              <>
+                {/* Summary Bar */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <div style={summaryCardStyle("#eef2ff", "#4361ee")}>
+                    <span
+                      style={{
+                        fontSize: "28px",
+                        fontWeight: "900",
+                        color: "#4361ee",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {inventoryData.length}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#6c757d",
+                        fontWeight: "600",
+                      }}
+                    >
+                      RACKS
+                    </span>
+                  </div>
+                  <div style={summaryCardStyle("#f0fff4", "#28a745")}>
+                    <span
+                      style={{
+                        fontSize: "28px",
+                        fontWeight: "900",
+                        color: "#28a745",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {summary.totalBins}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#6c757d",
+                        fontWeight: "600",
+                      }}
+                    >
+                      BINS
+                    </span>
+                  </div>
+                  <div style={summaryCardStyle("#f8f9fa", "#495057")}>
+                    <span
+                      style={{
+                        fontSize: "28px",
+                        fontWeight: "900",
+                        color: "#495057",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {summary.totalItems}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#6c757d",
+                        fontWeight: "600",
+                      }}
+                    >
+                      MATERIALS
+                    </span>
+                  </div>
+                  <div
+                    onClick={() => toggleFilter("low")}
+                    title="Click to filter Low Stock items"
                     style={{
-                      position: "relative",
-                      display: "flex",
-                      alignItems: "center",
+                      ...summaryCardStyle("#fff8f0", "#fd7e14"),
+                      cursor: "pointer",
+                      outline:
+                        activeFilter === "low" ? "3px solid #fd7e14" : "none",
+                      boxShadow:
+                        activeFilter === "low" ? "0 0 0 4px #fd7e1433" : undefined,
+                      transform: activeFilter === "low" ? "scale(1.04)" : undefined,
+                      transition: "transform 0.15s, box-shadow 0.15s",
                     }}
                   >
                     <span
                       style={{
-                        position: "absolute",
-                        left: "10px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: isSearching ? "#6f42c1" : "#6c757d",
-                        fontSize: "14px",
-                        pointerEvents: "none",
+                        fontSize: "28px",
+                        fontWeight: "900",
+                        color: "#fd7e14",
+                        lineHeight: 1,
                       }}
                     >
-                      🔍
+                      {summary.lowItems}
                     </span>
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Enter at least 3 letters"
-                      className="form-control form-control-sm"
+                    <span
                       style={{
-                        paddingLeft: "32px",
-                        paddingRight: searchTerm ? "30px" : "10px",
-                        borderColor:
-                          highlightedIds.length > 0 ? "#6f42c1" : undefined,
-                        boxShadow:
-                          highlightedIds.length > 0
-                            ? "0 0 0 2px #6f42c133"
-                            : undefined,
-                        transition: "border-color 0.2s, box-shadow 0.2s",
+                        fontSize: "11px",
+                        color: "#6c757d",
+                        fontWeight: "600",
                       }}
-                    />
-                    {searchTerm && (
-                      <button
-                        onClick={() => setSearchTerm("")}
-                        style={{
-                          position: "absolute",
-                          right: "8px",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "#6c757d",
-                          fontSize: "14px",
-                          padding: "0",
-                          lineHeight: 1,
-                        }}
-                        title="Clear search"
-                      >
-                        ✕
-                      </button>
-                    )}
+                    >
+                      LOW STOCK{activeFilter === "low" ? " ✓" : ""}
+                    </span>
                   </div>
-                  {searchTerm && !isSearching && (
-                    <div
+                  <div
+                    onClick={() => toggleFilter("critical")}
+                    title="Click to filter Critical items"
+                    style={{
+                      ...summaryCardStyle("#fff5f5", "#dc3545"),
+                      cursor: "pointer",
+                      outline:
+                        activeFilter === "critical" ? "3px solid #dc3545" : "none",
+                      boxShadow:
+                        activeFilter === "critical"
+                          ? "0 0 0 4px #dc354533"
+                          : undefined,
+                      transform:
+                        activeFilter === "critical" ? "scale(1.04)" : undefined,
+                      transition: "transform 0.15s, box-shadow 0.15s",
+                    }}
+                  >
+                    <span
                       style={{
-                        fontSize: "10px",
-                        marginTop: "3px",
-                        color:
-                          highlightedIds.length > 0 ? "#6f42c1" : "#adb5bd",
+                        fontSize: "28px",
+                        fontWeight: "900",
+                        color: "#dc3545",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {summary.criticalItems}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#6c757d",
                         fontWeight: "600",
                       }}
                     >
-                      {highlightedIds.length > 0
-                        ? `${highlightedIds.length} material${highlightedIds.length !== 1 ? "s" : ""} matched — bins highlighted below`
-                        : "No materials found"}
-                    </div>
-                  )}
-                  {isSearching && (
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        marginTop: "3px",
-                        color: "#6f42c1",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Searching…
-                    </div>
-                  )}
+                      CRITICAL{activeFilter === "critical" ? " ✓" : ""}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Legend */}
                 <div
-                  className="form-group"
                   style={{
-                    marginLeft: "12px",
                     display: "flex",
-                    alignItems: "flex-end",
-                    gap: "8px",
+                    gap: "16px",
+                    flexWrap: "wrap",
+                    marginBottom: "16px",
+                    padding: "10px 16px",
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    border: "1px solid #dee2e6",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    color: "#495057",
                   }}
                 >
-                  <button
-                    onClick={viewPendingReturnables}
-                    title="View pending returnables"
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <span
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "3px",
+                        backgroundColor: "#28a745",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                    Healthy (qty &gt; 1.5× min)
+                  </span>
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <span
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "3px",
+                        backgroundColor: "#fd7e14",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                    Low (between min and 1.5× min)
+                  </span>
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <span
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "3px",
+                        backgroundColor: "#dc3545",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                    Critical (qty ≤ min)
+                  </span>
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <span
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "3px",
+                        backgroundColor: "#6f42c1",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                    Search match
+                  </span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      fontSize: "10px",
+                      color: "#adb5bd",
+                      fontWeight: "400",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Hover over a material card to see supplier &amp; pricing details
+                  </span>
+                </div>
+
+                {/* Active filter indicator */}
+                {activeFilter && (
+                  <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px",
-                      background: "#0d6efd",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: "7px",
-                      padding: "6px 14px",
+                      gap: "10px",
+                      marginBottom: "8px",
+                      padding: "8px 14px",
+                      backgroundColor:
+                        activeFilter === "critical" ? "#fff5f5" : "#fff8f0",
+                      border: `1.5px solid ${activeFilter === "critical" ? "#dc3545" : "#fd7e14"}`,
+                      borderRadius: "8px",
                       fontSize: "12px",
                       fontWeight: "700",
-                      cursor: "pointer",
-                      letterSpacing: "0.3px",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      whiteSpace: "nowrap",
+                      color: activeFilter === "critical" ? "#dc3545" : "#fd7e14",
                     }}
                   >
-                    ↩ Pending Returnables
-                  </button>
-                </div>
-                {hasData && (
-                  <div
-                    className="form-group"
-                    style={{
-                      marginLeft: "12px",
-                      display: "flex",
-                      alignItems: "flex-end",
-                      gap: "8px",
-                    }}
-                  >
+                    <span>
+                      {activeFilter === "critical"
+                        ? "🔴 Showing CRITICAL items only"
+                        : "🟠 Showing LOW STOCK items only"}
+                    </span>
                     <button
-                      onClick={() => downloadExcel(inventoryData)}
-                      title="Download inventory as Excel"
+                      onClick={() => setActiveFilter(null)}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        background: "#1d6f42",
-                        color: "#fff",
+                        marginLeft: "auto",
+                        background: "none",
                         border: "none",
-                        borderRadius: "7px",
-                        padding: "6px 14px",
+                        cursor: "pointer",
                         fontSize: "12px",
                         fontWeight: "700",
-                        cursor: "pointer",
-                        letterSpacing: "0.3px",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                        whiteSpace: "nowrap",
+                        color: activeFilter === "critical" ? "#dc3545" : "#fd7e14",
+                        padding: "0 4px",
                       }}
+                      title="Clear filter"
                     >
-                      ⬇ Download Excel
+                      ✕ Clear filter
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
+
+              </>
+            )}
+          </>
+        )}
 
         {hasData && (
           <>
-            {/* Summary Bar */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "12px",
-                marginBottom: "20px",
-              }}
-            >
-              <div style={summaryCardStyle("#eef2ff", "#4361ee")}>
-                <span
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "900",
-                    color: "#4361ee",
-                    lineHeight: 1,
-                  }}
-                >
-                  {inventoryData.length}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#6c757d",
-                    fontWeight: "600",
-                  }}
-                >
-                  RACKS
-                </span>
-              </div>
-              <div style={summaryCardStyle("#f0fff4", "#28a745")}>
-                <span
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "900",
-                    color: "#28a745",
-                    lineHeight: 1,
-                  }}
-                >
-                  {summary.totalBins}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#6c757d",
-                    fontWeight: "600",
-                  }}
-                >
-                  BINS
-                </span>
-              </div>
-              <div style={summaryCardStyle("#f8f9fa", "#495057")}>
-                <span
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "900",
-                    color: "#495057",
-                    lineHeight: 1,
-                  }}
-                >
-                  {summary.totalItems}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#6c757d",
-                    fontWeight: "600",
-                  }}
-                >
-                  MATERIALS
-                </span>
-              </div>
-              <div
-                onClick={() => toggleFilter("low")}
-                title="Click to filter Low Stock items"
-                style={{
-                  ...summaryCardStyle("#fff8f0", "#fd7e14"),
-                  cursor: "pointer",
-                  outline:
-                    activeFilter === "low" ? "3px solid #fd7e14" : "none",
-                  boxShadow:
-                    activeFilter === "low" ? "0 0 0 4px #fd7e1433" : undefined,
-                  transform: activeFilter === "low" ? "scale(1.04)" : undefined,
-                  transition: "transform 0.15s, box-shadow 0.15s",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "900",
-                    color: "#fd7e14",
-                    lineHeight: 1,
-                  }}
-                >
-                  {summary.lowItems}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#6c757d",
-                    fontWeight: "600",
-                  }}
-                >
-                  LOW STOCK{activeFilter === "low" ? " ✓" : ""}
-                </span>
-              </div>
-              <div
-                onClick={() => toggleFilter("critical")}
-                title="Click to filter Critical items"
-                style={{
-                  ...summaryCardStyle("#fff5f5", "#dc3545"),
-                  cursor: "pointer",
-                  outline:
-                    activeFilter === "critical" ? "3px solid #dc3545" : "none",
-                  boxShadow:
-                    activeFilter === "critical"
-                      ? "0 0 0 4px #dc354533"
-                      : undefined,
-                  transform:
-                    activeFilter === "critical" ? "scale(1.04)" : undefined,
-                  transition: "transform 0.15s, box-shadow 0.15s",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "28px",
-                    fontWeight: "900",
-                    color: "#dc3545",
-                    lineHeight: 1,
-                  }}
-                >
-                  {summary.criticalItems}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#6c757d",
-                    fontWeight: "600",
-                  }}
-                >
-                  CRITICAL{activeFilter === "critical" ? " ✓" : ""}
-                </span>
-              </div>
-            </div>
-
-            {/* Legend */}
-            <div
-              style={{
-                display: "flex",
-                gap: "16px",
-                flexWrap: "wrap",
-                marginBottom: "16px",
-                padding: "10px 16px",
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-                border: "1px solid #dee2e6",
-                fontSize: "11px",
-                fontWeight: "600",
-                color: "#495057",
-              }}
-            >
-              <span
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "3px",
-                    backgroundColor: "#28a745",
-                    display: "inline-block",
-                  }}
-                ></span>
-                Healthy (qty &gt; 1.5× min)
-              </span>
-              <span
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "3px",
-                    backgroundColor: "#fd7e14",
-                    display: "inline-block",
-                  }}
-                ></span>
-                Low (between min and 1.5× min)
-              </span>
-              <span
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "3px",
-                    backgroundColor: "#dc3545",
-                    display: "inline-block",
-                  }}
-                ></span>
-                Critical (qty ≤ min)
-              </span>
-              <span
-                style={{ display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <span
-                  style={{
-                    width: "12px",
-                    height: "12px",
-                    borderRadius: "3px",
-                    backgroundColor: "#6f42c1",
-                    display: "inline-block",
-                  }}
-                ></span>
-                Search match
-              </span>
-              <span
-                style={{
-                  marginLeft: "auto",
-                  fontSize: "10px",
-                  color: "#adb5bd",
-                  fontWeight: "400",
-                  fontStyle: "italic",
-                }}
-              >
-                Hover over a material card to see supplier &amp; pricing details
-              </span>
-            </div>
-
-            {/* Active filter indicator */}
-            {activeFilter && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  marginBottom: "8px",
-                  padding: "8px 14px",
-                  backgroundColor:
-                    activeFilter === "critical" ? "#fff5f5" : "#fff8f0",
-                  border: `1.5px solid ${activeFilter === "critical" ? "#dc3545" : "#fd7e14"}`,
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  fontWeight: "700",
-                  color: activeFilter === "critical" ? "#dc3545" : "#fd7e14",
-                }}
-              >
-                <span>
-                  {activeFilter === "critical"
-                    ? "🔴 Showing CRITICAL items only"
-                    : "🟠 Showing LOW STOCK items only"}
-                </span>
-                <button
-                  onClick={() => setActiveFilter(null)}
-                  style={{
-                    marginLeft: "auto",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: "700",
-                    color: activeFilter === "critical" ? "#dc3545" : "#fd7e14",
-                    padding: "0 4px",
-                  }}
-                  title="Clear filter"
-                >
-                  ✕ Clear filter
-                </button>
-              </div>
-            )}
-
             {/* Racks toolbar */}
             <div
               style={{
@@ -710,6 +789,7 @@ export function generateInventoryDisplay(
                 ⛶ Full Screen
               </button>
             </div>
+
 
             {/* Racks — normal view */}
             {!isFullscreen && (
@@ -916,6 +996,28 @@ export function generateInventoryDisplay(
                     }}
                   >
                     ⬇ Excel
+                  </button>
+
+                  {/* Snapshot button */}
+                  <button
+                    onClick={() => setShowSnapshotModal(true)}
+                    title="Download inventory snapshot by date"
+                    style={{
+                      marginLeft: "8px",
+                      background: "#6f42c1",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "7px",
+                      padding: "6px 14px",
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    📸 Snapshot
                   </button>
 
                   {/* Close button */}
@@ -1132,6 +1234,143 @@ export function generateInventoryDisplay(
                 }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Snapshot Modal */}
+      {showSnapshotModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setShowSnapshotModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              width: "100%",
+              maxWidth: "440px",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "16px 20px",
+                borderBottom: "1.5px solid #dee2e6",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "15px",
+                  fontWeight: "800",
+                  color: "#212529",
+                }}
+              >
+                📸 Download Inventory Snapshot
+              </span>
+              <button
+                onClick={() => setShowSnapshotModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  color: "#6c757d",
+                  lineHeight: 1,
+                  padding: "0 4px",
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal body */}
+            <div style={{ padding: "20px" }}>
+              <p style={{ fontSize: "12px", color: "#6c757d", marginBottom: "16px" }}>
+                Select a date to download the inventory snapshot for the selected warehouse as an Excel file.
+              </p>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "700",
+                  color: "#495057",
+                  display: "block",
+                  marginBottom: "6px",
+                }}
+              >
+                Snapshot Date
+              </label>
+              <input
+                type="date"
+                value={snapshotDate}
+                onChange={(e) => setSnapshotDate(e.target.value)}
+                className="form-control form-control-sm"
+                style={{ marginBottom: "0" }}
+              />
+            </div>
+
+            {/* Modal footer */}
+            <div
+              style={{
+                padding: "12px 20px",
+                borderTop: "1.5px solid #dee2e6",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "8px",
+              }}
+            >
+              <button
+                onClick={() => setShowSnapshotModal(false)}
+                style={{
+                  background: "#6c757d",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "7px",
+                  padding: "6px 18px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onDownloadSnapshot}
+                disabled={!snapshotDate}
+                style={{
+                  background: snapshotDate ? "#6f42c1" : "#adb5bd",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "7px",
+                  padding: "6px 18px",
+                  fontSize: "12px",
+                  fontWeight: "700",
+                  cursor: snapshotDate ? "pointer" : "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                ⬇ Download Excel
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import WarehouseBinCard from './WarehouseBinCard';
 
 // Distinct accent colours per rack (cycles if > 8 racks)
@@ -40,6 +40,7 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
         ? bins.filter(b => b.items && b.items.some(item => highlightedIds.includes(item.stock_item.id))).length
         : 0;
 
+    const [collapsed, setCollapsed] = useState(false);
     return (
         <div style={{
             marginBottom: '20px',
@@ -49,16 +50,22 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
             overflow: 'hidden',
             boxShadow: '0 3px 10px rgba(0,0,0,0.07)'
         }}>
-            {/* Rack Header */}
-            <div style={{
-                background: 'linear-gradient(135deg, #2d3436, #343a40)',
-                color: '#fff',
-                padding: '12px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                borderLeft: `5px solid ${accentColor}`
-            }}>
+            {/* Rack Header (clickable for collapse/expand) */}
+            <div
+                style={{
+                    background: 'linear-gradient(135deg, #2d3436, #343a40)',
+                    color: '#fff',
+                    padding: '12px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    borderLeft: `5px solid ${accentColor}`,
+                    cursor: 'pointer',
+                    userSelect: 'none'
+                }}
+                onClick={() => setCollapsed(c => !c)}
+                title={collapsed ? 'Expand rack' : 'Collapse rack'}
+            >
                 {/* Rack Badge */}
                 <div style={{
                     width: '42px',
@@ -85,7 +92,12 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
 
                 {/* Rack Info */}
                 <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: '800', fontSize: '16px', letterSpacing: '1px' }}> {rack}</div>
+                    <div style={{ fontWeight: '800', fontSize: '16px', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {rack}
+                        <span style={{ fontSize: '15px', opacity: 0.7, marginLeft: '2px', transition: 'transform 0.2s', display: 'inline-flex', alignItems: 'center', transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                            ▼
+                        </span>
+                    </div>
                     <div style={{ fontSize: '11px', color: '#adb5bd', marginTop: '2px' }}>
                         {bins.length} bin{bins.length !== 1 ? 's' : ''} &nbsp;·&nbsp; {totalItems} material{totalItems !== 1 ? 's' : ''}
                     </div>
@@ -142,35 +154,37 @@ const WarehouseRack = ({ rack, bins, rackIndex = 0, highlightedIds = [], materia
                 </div>
             </div>
 
-            {/* Bins Row */}
-            <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '14px',
-                padding: '16px 20px',
-                backgroundColor: '#fdfdfd'
-            }}>
-                {bins && bins.length > 0 ? (
-                    bins.map((bin) => (
-                        <WarehouseBinCard
-                            key={bin.id}
-                            binId={bin.id}
-                            binLabel={bin.bin}
-                            items={bin.items}
-                            highlightedIds={highlightedIds}
-                            materialStatusMap={materialStatusMap}
-                            formReadWrite={formReadWrite}
-                            handleBinMaterialChange={handleBinMaterialChange}
-                            handleBinQtyChange={handleBinQtyChange}
-                            handleAddMaterial={handleAddMaterial}
-                            selectedWarehouse={selectedWarehouse}
-                            allBins={allBins}
-                        />
-                    ))
-                ) : (
-                    <div style={{ color: '#adb5bd', fontSize: '13px', padding: '12px 0' }}>No bins in this rack.</div>
-                )}
-            </div>
+            {/* Bins Row (collapsible) */}
+            {!collapsed && (
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '14px',
+                    padding: '16px 20px',
+                    backgroundColor: '#fdfdfd'
+                }}>
+                    {bins && bins.length > 0 ? (
+                        bins.map((bin) => (
+                            <WarehouseBinCard
+                                key={bin.id}
+                                binId={bin.id}
+                                binLabel={bin.bin}
+                                items={bin.items}
+                                highlightedIds={highlightedIds}
+                                materialStatusMap={materialStatusMap}
+                                formReadWrite={formReadWrite}
+                                handleBinMaterialChange={handleBinMaterialChange}
+                                handleBinQtyChange={handleBinQtyChange}
+                                handleAddMaterial={handleAddMaterial}
+                                selectedWarehouse={selectedWarehouse}
+                                allBins={allBins}
+                            />
+                        ))
+                    ) : (
+                        <div style={{ color: '#adb5bd', fontSize: '13px', padding: '12px 0' }}>No bins in this rack.</div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
