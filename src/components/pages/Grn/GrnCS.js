@@ -77,10 +77,10 @@ componentListConfig["inputGrnID"] = {
 
 // RMPO No
 componentListConfig["inputRmpoNo"] = {
-    objectType: "TextBox",
+    objectType: "DropDown",
     schema: {
         name: "inputRmpoNo",
-        placeholder: "Enter RMPO Number",
+        placeholder: "Select PO",
         type: "text",
         length: 100,
         showLabel: true,
@@ -93,14 +93,15 @@ componentListConfig["inputRmpoNo"] = {
     label: {
         objectType: "Label",
         schema: {
-            name: "labelRmpoNo",
+            name: "labelPoNumber",
             type: "text",
             visible: true,
-            value: "RMPO No"
+            value: "PO Number"
         }
     },
+    options: [],
     data: {
-        sqlcolumn: "rmpo_no",
+        sqlcolumn: "po_number",
         oldValue: "",
         value: ""
     },
@@ -520,7 +521,7 @@ componentListConfig["inputStatusSearch"] = {
 // Delete Transaction Confirmation Popup
 componentListConfig["deleteTransactionPopUp"] = {
     objectType: "PopUpPage",
-    schema:{
+    schema: {
         name: "deleteTransactionPopUp",
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
@@ -530,7 +531,7 @@ componentListConfig["deleteTransactionPopUp"] = {
         oldValue: "",
         value: "",
     },
-    event:{}
+    event: {}
 }
 
 componentListConfig["inputDeleteTransactionId"] = {
@@ -607,7 +608,7 @@ componentListConfig["buttonDeleteTransactionNo"] = {
 // Complete GRN Confirmation Popup
 componentListConfig["completeGrnPopUp"] = {
     objectType: "PopUpPage",
-    schema:{
+    schema: {
         name: "completeGrnPopUp",
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
@@ -617,7 +618,7 @@ componentListConfig["completeGrnPopUp"] = {
         oldValue: "",
         value: "",
     },
-    event:{}
+    event: {}
 }
 
 componentListConfig["buttonCompleteGrnYes"] = {

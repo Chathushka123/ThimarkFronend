@@ -1,9 +1,0 @@
-<svg id="red-background-shirt" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-  <rect id="Rectangle_214" data-name="Rectangle 214" width="30" height="30" fill="#f26363"/>
-  <g id="shirt" transform="translate(6 5)">
-    <path id="Path_65" data-name="Path 65" d="M8,4.5h2.295c.125-.125,1.35-1.355,1.355-1.355A.565.565,0,0,1,12,3h6.5a.5.5,0,0,1,.355.145L20.2,4.5H22a2,2,0,0,1,2,2V21a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2V6.5A2,2,0,0,1,8,4.5Zm3.88-.175-.78.785,2.1,4.615,1.155-.865ZM12.84,4l2.195,4L17.59,4Zm5.745.3L15.67,8.88l1.17.875L19.38,5.09ZM7,21a1,1,0,0,0,1,1H22a1,1,0,0,0,1-1V6.5a1,1,0,0,0-1-1h-1.7L17.44,10.74a.5.5,0,0,1-.74.16L15,9.625,13.3,10.9a.5.5,0,0,1-.755-.195L10.18,5.5H8a1,1,0,0,0-1,1Z" transform="translate(-6 -3)" fill="#fff"/>
-    <circle id="Ellipse_9" data-name="Ellipse 9" cx="1" cy="1" r="1" transform="translate(8 8.5)" fill="#fff"/>
-    <circle id="Ellipse_10" data-name="Ellipse 10" cx="1" cy="1" r="1" transform="translate(8 12)" fill="#fff"/>
-    <circle id="Ellipse_11" data-name="Ellipse 11" cx="1" cy="1" r="1" transform="translate(8 15.5)" fill="#fff"/>
-  </g>
-</svg>
