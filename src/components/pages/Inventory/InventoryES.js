@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { generateInventoryDisplay } from './InventoryDS';
+import { generateInventoryDisplay, downloadExcel } from './InventoryDS';
 import config from './InventoryCS';
 import API from '../../../api/API';
 
@@ -16,6 +16,9 @@ const Inventory = () => {
     const [activeFilter, setActiveFilter] = useState(null); // 'low' | 'critical' | null
     const [pendingReturnables, setPendingReturnables] = useState([]);
     const [showReturnablesModal, setShowReturnablesModal] = useState(false);
+    const [showSnapshotModal, setShowSnapshotModal] = useState(false);
+    const [snapshotDate, setSnapshotDate] = useState('');
+    const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
 
     const [formReadWrite, __setFormReadWrite] = useState(false);
     function toggleFullscreen() {
@@ -521,6 +524,33 @@ const Inventory = () => {
         }
     };
 
+    const downloadSnapshot = async () => {
+        if (!selectedWarehouse || selectedWarehouse <= 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("Please select a warehouse first", "");
+            return;
+        }
+        if (!snapshotDate) {
+            config["CONTROL_CENTER"].promptWarningMessage("Please select a date", "");
+            return;
+        }
+        document.getElementById('spinner').style.display = '';
+        try {
+            const response = await API.get(`/warehouses/${selectedWarehouse}/snapshot?date=${encodeURIComponent(snapshotDate)}`);
+            const data = response.data?.structure || [];
+            if (data && data && data.length > 0) {
+                downloadExcel(data, `inventory_snapshot_${snapshotDate}.xlsx`);
+                setShowSnapshotModal(false);
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("No snapshot data found for the selected date", "");
+            }
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptErrorMessage("Error", "Failed to fetch snapshot. Please Contact System Administrator");
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    };
+
     return generateInventoryDisplay(config, inventoryData, {
         searchTerm,
         setSearchTerm,
@@ -539,6 +569,13 @@ const Inventory = () => {
         handleBinMaterialChange,
         handleAddMaterial,
         selectedWarehouse,
+        showSnapshotModal,
+        setShowSnapshotModal,
+        snapshotDate,
+        setSnapshotDate,
+        onDownloadSnapshot: downloadSnapshot,
+        isControlsCollapsed,
+        setIsControlsCollapsed,
     })
 }
 
