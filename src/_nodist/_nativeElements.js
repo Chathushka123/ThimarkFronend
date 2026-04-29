@@ -3359,7 +3359,6 @@ export function _nativeDropDown(props) {
         disabled: props.disabled,
         readOnly: props.readOnly,
         style: props.style,
-        key: props.key,
         name: props.name,
         value: value,
         placeholder: props.placeholder,
@@ -3369,7 +3368,7 @@ export function _nativeDropDown(props) {
       props.options.map((item) =>
         _react["default"].createElement(
           "option",
-          { value: item.value },
+          { key: item.value, value: item.value },
           item.text
         )
       )
