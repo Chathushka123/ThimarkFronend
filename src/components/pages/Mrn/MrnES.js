@@ -279,7 +279,7 @@ const Mrn = () => {
 
         const availableQty = config['inputAvailableQuantity'].data.value;
 
-         if(quantity > availableQty){
+         if(parseInt(quantity) > parseInt(availableQty)){
             config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be greater than available quantity", "");
             return;
         }
