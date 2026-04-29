@@ -8,11 +8,11 @@ const DURATION_COLS = ['turnaround_mins', 'avg_turnaround_mins']
 const HOURS_COLS = ['turnaround_hrs', 'avg_turnaround_hrs', 'hrs_elapsed']
 
 const FLAG_STYLES = {
-    fast:     { background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
-    slow:     { background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
-    normal:   { background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
+    fast: { background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
+    slow: { background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
+    normal: { background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
     critical: { background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
-    default:  { background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
+    default: { background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' },
 }
 
 function flagStyle(value) {

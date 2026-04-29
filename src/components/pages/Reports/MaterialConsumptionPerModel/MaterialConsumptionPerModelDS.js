@@ -3,8 +3,8 @@ import { ControlCenter, DropDown, Button } from '../../../../BASE/Components'
 
 const DATE_COLS = ['first_consumed', 'last_consumed', 'created_at', 'updated_at', 'date']
 
-const PCT_COLS  = ['pct_of_model_consumption', 'pct_of_all_consumption']
-const QTY_COLS  = ['total_qty_consumed', 'avg_qty_per_mrn', 'total_consumption_value']
+const PCT_COLS = ['pct_of_model_consumption', 'pct_of_all_consumption']
+const QTY_COLS = ['total_qty_consumed', 'avg_qty_per_mrn', 'total_consumption_value']
 
 // Columns that are part of a query-4 matrix (dynamic model columns) are numeric —
 // we detect them by exclusion when the query type is 4.
