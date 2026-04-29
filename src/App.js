@@ -37,6 +37,13 @@ import Supplier from './components/pages/Supplier/SupplierES';
 import CSCharts from './components/pages/CostSheetCharts/CSCharts';
 import Returnable from './components/pages/Returnable/ReturnableES';
 import StockTransfer from './components/pages/StockTransfer/StockTransferES';
+import DailyOutput from './components/pages/Reports/DailyOutput/DailyOutputES';
+import CurrentStock from './components/pages/Reports/CurrentStock/CurrentStockES';
+import GrnPendingCompleted from './components/pages/Reports/GrnPendingCompleted/GrnPendingCompletedES';
+import MrnActivityPerUser from './components/pages/Reports/MrnActivityPerUser/MrnActivityPerUserES';
+import MrnTurnaroundTime from './components/pages/Reports/MrnTurnaroundTime/MrnTurnaroundTimeES';
+import MaterialConsumptionPerModel from './components/pages/Reports/MaterialConsumptionPerModel/MaterialConsumptionPerModelES';
+import PurchaseOrderStatus from './components/pages/Reports/PurchaseOrderStatus/PurchaseOrderStatusES';
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
@@ -74,6 +81,13 @@ const App = () => {
 
           <PrivateRoute path="/purchaseOrder" screen="purchaseOrder" component={PurchaseOrder} theme={Theme} />
           <PrivateRoute path="/suppliers" screen="suppliers" component={Supplier} theme={Theme} />
+          <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} />
+          <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
+          <PrivateRoute path="/grnPendingCompleted" screen="grnPendingCompleted" component={GrnPendingCompleted} theme={Theme} />
+          <PrivateRoute path="/mrnActivityPerUser" screen="mrnActivityPerUser" component={MrnActivityPerUser} theme={Theme} />
+          <PrivateRoute path="/mrnTurnaroundTime" screen="mrnTurnaroundTime" component={MrnTurnaroundTime} theme={Theme} />
+          <PrivateRoute path="/materialConsumptionPerModel" screen="materialConsumptionPerModel" component={MaterialConsumptionPerModel} theme={Theme} />
+          <PrivateRoute path="/purchaseOrderStatus" screen="purchaseOrderStatus" component={PurchaseOrderStatus} theme={Theme} />
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *

@@ -18,6 +18,7 @@ const Grn = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config['inputRmpoNo'].event.onChange = handlePoChange;
+    config['inputStockItemId'].event.onChange = handleStockItemIdChange;
 
     // Button Events
     config["buttonCreateGrn"].event.onClick = handleCreateGrn;
@@ -149,6 +150,37 @@ const Grn = () => {
         const allPOs = config['inputRmpoNo']._allPOs || [];
         const found = allPOs.find(p => String(p.id) === String(selectedId));
         setSelectedPoDetails(found || null);
+
+        // If a stock item is already entered, refresh qty/price from the newly selected PO.
+        const stockItemId = config['inputStockItemId'].data.value;
+        autoFillFromPoItem(stockItemId, found || null);
+    }
+
+    function handleStockItemIdChange() {
+        const stockItemId = config['inputStockItemId'].data.value;
+        autoFillFromPoItem(stockItemId, selectedPoDetails);
+    }
+
+    function autoFillFromPoItem(stockItemId, poDetails) {
+        if (!stockItemId || String(stockItemId).trim() === "") return;
+        if (!poDetails || !Array.isArray(poDetails.items) || poDetails.items.length === 0) return;
+
+        const selectedItem = poDetails.items.find(
+            item => String(item.material_id) === String(stockItemId).trim()
+        );
+
+        if (!selectedItem) return;
+
+        const quantity = Number(selectedItem.quantity);
+        const unitPrice = Number(selectedItem.unit_price);
+
+        if (!Number.isNaN(quantity)) {
+            config['inputQuantity'].setValue(String(quantity));
+        }
+
+        if (!Number.isNaN(unitPrice)) {
+            config['inputPrice'].setValue(String(unitPrice));
+        }
     }
 
     async function handleCreateGrn() {
