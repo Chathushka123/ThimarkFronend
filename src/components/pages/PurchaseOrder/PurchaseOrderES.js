@@ -70,6 +70,7 @@ const PurchaseOrder = () => {
         __loadMaterials();
         config['inputPoNumber'].setValue("");
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputExpectedDeliveryDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputStatus'].setValue('DRAFT');
         config['inputSubtotal'].setValue('0.00');
         config['inputDiscount'].setValue('0.00');

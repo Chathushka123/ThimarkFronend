@@ -81,13 +81,13 @@ const App = () => {
 
           <PrivateRoute path="/purchaseOrder" screen="purchaseOrder" component={PurchaseOrder} theme={Theme} />
           <PrivateRoute path="/suppliers" screen="suppliers" component={Supplier} theme={Theme} />
-          <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} />
+          {/* <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} /> */}
           <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
-          <PrivateRoute path="/grnPendingCompleted" screen="grnPendingCompleted" component={GrnPendingCompleted} theme={Theme} />
-          <PrivateRoute path="/mrnActivityPerUser" screen="mrnActivityPerUser" component={MrnActivityPerUser} theme={Theme} />
+          {/* <PrivateRoute path="/grnPendingCompleted" screen="grnPendingCompleted" component={GrnPendingCompleted} theme={Theme} /> */}
+          {/* <PrivateRoute path="/mrnActivityPerUser" screen="mrnActivityPerUser" component={MrnActivityPerUser} theme={Theme} />
           <PrivateRoute path="/mrnTurnaroundTime" screen="mrnTurnaroundTime" component={MrnTurnaroundTime} theme={Theme} />
           <PrivateRoute path="/materialConsumptionPerModel" screen="materialConsumptionPerModel" component={MaterialConsumptionPerModel} theme={Theme} />
-          <PrivateRoute path="/purchaseOrderStatus" screen="purchaseOrderStatus" component={PurchaseOrderStatus} theme={Theme} />
+          <PrivateRoute path="/purchaseOrderStatus" screen="purchaseOrderStatus" component={PurchaseOrderStatus} theme={Theme} /> */}
 
           {/* <PrivateRoute path="/style" screen="style" component={Style} theme={Theme} />
           <PrivateRoute path="/marker" screen="style" component={Marker} theme={Theme} /> *

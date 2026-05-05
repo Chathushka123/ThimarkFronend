@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ControlCenter, DropDown, Button } from '../../../../BASE/Components'
 
 // Columns whose values should be formatted as local date-time strings
@@ -83,6 +83,199 @@ const S = {
     }
 }
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
+
+function FilterableResultTable({ columns, rows }) {
+    const [globalFilter, setGlobalFilter] = useState('')
+    const [pageSize, setPageSize] = useState(25)
+    const [page, setPage] = useState(1)
+
+    const filtered = rows.filter(row => {
+        if (globalFilter.trim() === '') return true
+        const term = globalFilter.toLowerCase()
+        return columns.some(col =>
+            formatCellValue(col, row[col]).toLowerCase().includes(term)
+        )
+    })
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+    const safePage = Math.min(page, totalPages)
+    const pageRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize)
+
+    function handleFilterChange(val) {
+        setGlobalFilter(val)
+        setPage(1)
+    }
+
+    function handlePageSizeChange(val) {
+        setPageSize(Number(val))
+        setPage(1)
+    }
+
+    const btnBase = {
+        border: '1px solid #cbd5e0',
+        borderRadius: '5px',
+        padding: '4px 10px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        fontWeight: '600',
+        lineHeight: '1.4',
+    }
+
+    return (
+        <>
+            {/* Toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px', gap: '8px' }}>
+                {/* Search */}
+                <i className="fas fa-search" style={{ color: '#64748b', fontSize: '13px' }}></i>
+                <input
+                    type="text"
+                    placeholder="Search all columns..."
+                    value={globalFilter}
+                    onChange={e => handleFilterChange(e.target.value)}
+                    style={{
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        border: '1px solid #cbd5e0',
+                        borderRadius: '7px',
+                        outline: 'none',
+                        width: '240px',
+                        color: '#2d3748',
+                    }}
+                />
+                {globalFilter && (
+                    <button
+                        onClick={() => handleFilterChange('')}
+                        style={{ ...btnBase, background: '#e53e3e', color: '#fff', border: 'none' }}
+                    >
+                        <i className="fas fa-times mr-1"></i>Clear
+                    </button>
+                )}
+
+                {/* Page size selector */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Rows per page:</span>
+                    <select
+                        value={pageSize}
+                        onChange={e => handlePageSizeChange(e.target.value)}
+                        style={{
+                            padding: '4px 8px',
+                            fontSize: '12px',
+                            border: '1px solid #cbd5e0',
+                            borderRadius: '6px',
+                            color: '#2d3748',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {PAGE_SIZE_OPTIONS.map(n => (
+                            <option key={n} value={n}>{n}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                    {filtered.length === 0 ? '0 rows' : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)} of ${filtered.length} rows`}
+                </span>
+            </div>
+
+            {/* Table */}
+            <div style={S.tableWrapper}>
+                <table style={S.table}>
+                    <thead>
+                        <tr>
+                            {columns.map(col => (
+                                <th key={col} style={S.th}>{humanHeader(col)}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {pageRows.length === 0 ? (
+                            <tr>
+                                <td colSpan={columns.length} style={{ ...S.td, textAlign: 'center', color: '#64748b' }}>
+                                    No matching records found.
+                                </td>
+                            </tr>
+                        ) : (
+                            pageRows.map((row, idx) => (
+                                <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#f8f9fb' }}>
+                                    {columns.map(col => (
+                                        <td key={`${idx}-${col}`} style={S.td}>
+                                            {formatCellValue(col, row[col])}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '14px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={() => setPage(1)}
+                        disabled={safePage === 1}
+                        style={{ ...btnBase, background: safePage === 1 ? '#f1f5f9' : '#fff', color: safePage === 1 ? '#a0aec0' : '#2d3748' }}
+                    >
+                        «
+                    </button>
+                    <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={safePage === 1}
+                        style={{ ...btnBase, background: safePage === 1 ? '#f1f5f9' : '#fff', color: safePage === 1 ? '#a0aec0' : '#2d3748' }}
+                    >
+                        ‹ Prev
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+                        .reduce((acc, p, i, arr) => {
+                            if (i > 0 && p - arr[i - 1] > 1) acc.push('...')
+                            acc.push(p)
+                            return acc
+                        }, [])
+                        .map((item, i) =>
+                            item === '...' ? (
+                                <span key={`ellipsis-${i}`} style={{ fontSize: '12px', color: '#64748b', padding: '0 4px' }}>…</span>
+                            ) : (
+                                <button
+                                    key={item}
+                                    onClick={() => setPage(item)}
+                                    style={{
+                                        ...btnBase,
+                                        background: item === safePage ? '#1a1a2e' : '#fff',
+                                        color: item === safePage ? '#fff' : '#2d3748',
+                                        borderColor: item === safePage ? '#1a1a2e' : '#cbd5e0',
+                                        minWidth: '32px',
+                                    }}
+                                >
+                                    {item}
+                                </button>
+                            )
+                        )
+                    }
+
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={safePage === totalPages}
+                        style={{ ...btnBase, background: safePage === totalPages ? '#f1f5f9' : '#fff', color: safePage === totalPages ? '#a0aec0' : '#2d3748' }}
+                    >
+                        Next ›
+                    </button>
+                    <button
+                        onClick={() => setPage(totalPages)}
+                        disabled={safePage === totalPages}
+                        style={{ ...btnBase, background: safePage === totalPages ? '#f1f5f9' : '#fff', color: safePage === totalPages ? '#a0aec0' : '#2d3748' }}
+                    >
+                        »
+                    </button>
+                </div>
+            )}
+        </>
+    )
+}
+
 export function generateCurrentStockDisplay(componentList, state) {
     const { rows, columns, loading, error, count } = state
 
@@ -162,31 +355,7 @@ export function generateCurrentStockDisplay(componentList, state) {
                             )}
 
                             {!error && !loading && rows.length > 0 && (
-                                <div style={S.tableWrapper}>
-                                    <table style={S.table}>
-                                        <thead>
-                                            <tr>
-                                                {columns.map(col => (
-                                                    <th key={col} style={S.th}>{humanHeader(col)}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {rows.map((row, idx) => (
-                                                <tr
-                                                    key={idx}
-                                                    style={{ background: idx % 2 === 0 ? '#fff' : '#f8f9fb' }}
-                                                >
-                                                    {columns.map(col => (
-                                                        <td key={`${idx}-${col}`} style={S.td}>
-                                                            {formatCellValue(col, row[col])}
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <FilterableResultTable columns={columns} rows={rows} />
                             )}
                         </div>
                     </div>
