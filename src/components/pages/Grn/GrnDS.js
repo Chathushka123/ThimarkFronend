@@ -87,7 +87,7 @@ function PoDetailsPanel({ selectedPoDetails }) {
                                     <thead>
                                         <tr style={{ background: '#fef3c7' }}>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>#</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Material ID</th>
+                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Material</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Quantity</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Unit Price</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Total</th>
@@ -97,7 +97,7 @@ function PoDetailsPanel({ selectedPoDetails }) {
                                         {selectedPoDetails.items.map((item, idx) => (
                                             <tr key={item.id || idx} style={{ background: 'white' }}>
                                                 <td style={{ padding: '8px 12px', color: '#64748b', fontWeight: '600', fontSize: '13px', borderRadius: '8px 0 0 8px' }}>{idx + 1}</td>
-                                                <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{item.material_id}</td>
+                                                <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{item.material.code + " - " + item.material.name}</td>
                                                 <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.quantity).toLocaleString()}</td>
                                                 <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                 <td style={{ padding: '8px 12px', color: '#065f46', fontWeight: '800', fontSize: '13px', borderRadius: '0 8px 8px 0' }}>{Number(item.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>

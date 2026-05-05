@@ -318,6 +318,7 @@ const MrnIssuance = () => {
                             material_name: detail.stock_item?.code + " (" + detail.stock_item?.name + ")" || 'Unknown',
                             mrn_qty: detail.qty,
                             issued_qty: detail.issued_qty || null,
+                            issued_to: detail.issued_to || '',
                             location_id: alreadyIssued ? '' : '',
                             available_balance: alreadyIssued ? undefined : undefined,
                             issue_qty: alreadyIssued ? '' : '',

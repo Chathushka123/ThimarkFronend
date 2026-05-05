@@ -93,6 +93,7 @@ export function generateMrnDisplay(componentList) {
                                 </Button>
                             )}
                             <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonPrint"]}><i className="fas fa-print fa-lg"></i></Button>
+                            <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonDownload"]}><i className="fas fa-download fa-lg"></i></Button>
                         </ControlCenter>
                     </div>
                 </div>
@@ -111,7 +112,15 @@ export function generateMrnDisplay(componentList) {
                                     <Label item={componentList["inputStatus"].label} />
                                     <TextBox item={componentList["inputStatus"]} className="form-control form-control-sm" />
                                 </div>
-                                <div className="form-group col-md-4">
+                                <div className="form-group col-md-2">
+                                    <Label item={componentList["inputFinalizeAt"].label} />
+                                    <TextBox item={componentList["inputFinalizeAt"]} className="form-control form-control-sm" />
+                                </div>
+                                <div className="form-group col-md-2">
+                                    <Label item={componentList["inputCompleteAt"].label} />
+                                    <TextBox item={componentList["inputCompleteAt"]} className="form-control form-control-sm" />
+                                </div>
+                                <div className="form-group col-md-2">
                                     <Label item={componentList["inputWarehouse"].label} />
                                     <DropDown 
                                         item={componentList["inputWarehouse"]} 
@@ -119,7 +128,7 @@ export function generateMrnDisplay(componentList) {
                                         disabled={componentList["inputStatus"].data.value === "finalized"}
                                     />
                                 </div>
-                                <div className="col-md-4 col-12">
+                                <div className="col-md-2 col-12">
                                     <div className="form-group">
                                         <Label item={componentList["inputBatch"].label} />
                                         <MultiSelectDropDown
@@ -136,7 +145,7 @@ export function generateMrnDisplay(componentList) {
                                     <Label item={componentList["inputRemark"].label} />
                                     <TextBox item={componentList["inputRemark"]} className="form-control form-control-sm" />
                                 </div>
-                                <div className="col-md-6 col-12">
+                                <div className="col-md-4 col-12">
                                     <div className="form-group">
                                         <Label item={componentList["inputMaterial"].label} />
                                         <MultiSelectDropDown
@@ -146,6 +155,17 @@ export function generateMrnDisplay(componentList) {
                                         />
                                     </div>
                                     
+                                </div>
+
+                                <div className="col-md-2 col-12">
+                                    <div className="form-group">
+                                        <Label item={componentList["inputAvailableQuantity"].label} />
+                                        <IntegerField 
+                                            item={componentList["inputAvailableQuantity"]} 
+                                            className="form-control form-control-sm"
+                                            disabled={true}
+                                        />
+                                    </div>
                                 </div>
                                 
                                 <div className="col-md-2 col-12">

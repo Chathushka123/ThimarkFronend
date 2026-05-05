@@ -1,3 +1,4 @@
+import { read } from "xlsx"
 
 let componentListConfig = []
 
@@ -103,6 +104,74 @@ componentListConfig["inputStatus"] = {
     },
     data: {
         sqlcolumn: "status",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+// MRN Finalize At (readonly)
+componentListConfig["inputFinalizeAt"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputFinalizeAt",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelFinalizeAt",
+            type: "text",
+            visible: true,
+            value: "Finalize At"
+        }
+    },
+    data: {
+        sqlcolumn: "finalize_at",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+// MRN Complete At (readonly)
+componentListConfig["inputCompleteAt"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputCompleteAt",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelCompleteAt",
+            type: "text",
+            visible: true,
+            value: "Complete At"
+        }
+    },
+    data: {
+        sqlcolumn: "complete_at",
         oldValue: "",
         value: ""
     },
@@ -299,12 +368,47 @@ componentListConfig["inputQuantity"] = {
     event: {}
 }
 
+// Quantity Input
+componentListConfig["inputAvailableQuantity"] = {
+    objectType: "IntegerField",
+    schema: {
+        name: "inputAvailableQuantity",
+        placeholder: "",
+        type: "number",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: true,
+        searchable:false,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelAvailableQuantity",
+            type: "text",
+            visible: true,
+            value: "Available Quantity"
+        }
+    },
+    data: {
+        sqlcolumn: "available_quantity",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
 // Material Grid Configuration
 let materialGridCols = [];
 materialGridCols["mrn_detail_id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "mrn_detail_id", placeholder: "MRN Detail ID", visible: false, editable: false, sqlColumn: "mrn_detail_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 materialGridCols["material_id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "material_id", placeholder: "Material ID", visible: false, editable: false, sqlColumn: "material_id", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-materialGridCols["material_name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "material_name", placeholder: "Material", visible: true, editable: false, sqlColumn: "material_name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-materialGridCols["quantity"] = { objectType: "IntegerField", colIndex: 3, datatype: "number", name: "quantity", placeholder: "Quantity", editable: false, sqlColumn: "quantity", style: { textAlign: "right", minWidth: "120px", width: "120px" } };
+materialGridCols["issued_to"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "issued_to", placeholder: "Issued To", visible: true, editable: false, sqlColumn: "issued_to", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+materialGridCols["material_name"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "material_name", placeholder: "Material", visible: true, editable: false, sqlColumn: "material_name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+materialGridCols["quantity"] = { objectType: "IntegerField", colIndex: 4, datatype: "number", name: "quantity", placeholder: "Quantity", editable: false, sqlColumn: "quantity", style: { textAlign: "right", minWidth: "120px", width: "120px" } };
 
 componentListConfig["gridMaterials"] = {
     objectType: "Grid",
@@ -821,6 +925,20 @@ componentListConfig["buttonPrint"] = {
         name: "buttonPrint",
         type: "submit",
         label: "Print Invoice",
+        disabled: false,
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
+componentListConfig["buttonDownload"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonDownload",
+        name: "buttonDownload",
+        type: "submit",
+        label: "Download",
         disabled: false,
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
