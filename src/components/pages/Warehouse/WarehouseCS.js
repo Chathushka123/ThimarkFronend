@@ -277,13 +277,13 @@ componentListConfig["inputLocationBasis"] = {
 
 let gridCols = [];
 
-gridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["name"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "name", placeholder: "Name", editable: false, sqlColumn: "name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
-gridCols["code"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "code", placeholder: "Code", editable: false, sqlColumn: "code", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["location_basis"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "location_basis", placeholder: "Location Basis", editable: false, sqlColumn: "location_basis", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["active"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "active", placeholder: "Active Status", editable: false, sqlColumn: "active", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["created_at"] = { objectType: "TextBox", colIndex: 5, datatype: "text", name: "created_at", placeholder: "Created At", editable: false, sqlColumn: "created_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-gridCols["updated_at"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "name", placeholder: "Name", editable: false, sqlColumn: "name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridCols["code"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "code", placeholder: "Code", editable: false, sqlColumn: "code", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["location_basis"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "location_basis", placeholder: "Location Basis", editable: false, sqlColumn: "location_basis", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["active"] = { objectType: "TextBox", colIndex: 5, datatype: "text", name: "active", placeholder: "Active Status", editable: false, sqlColumn: "active", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["created_at"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "created_at", placeholder: "Created At", editable: false, sqlColumn: "created_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["updated_at"] = { objectType: "TextBox", colIndex: 7, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 
 componentListConfig["gridWarehouses"] = {
     objectType: "Grid",
@@ -330,10 +330,10 @@ componentListConfig["gridWarehouses"] = {
 
 let locationCols = [];
 
-locationCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
-locationCols["rack"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "rack", placeholder: "Rack", editable: true, sqlColumn: "rack", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-locationCols["bin"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "bin", placeholder: "Bin", editable: true, sqlColumn: "bin", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-locationCols["stock_item_id"] = { objectType: "DropDown", colIndex: 3, datatype: "dropdown", name: "stock_item_id", placeholder: "Material", editable: true, sqlColumn: "stock_item_id", options: [{ value: 0, text: "- Select Material -" }], style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+locationCols["id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
+locationCols["rack"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "rack", placeholder: "Rack", editable: true, sqlColumn: "rack", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+locationCols["bin"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "bin", placeholder: "Bin", editable: true, sqlColumn: "bin", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+locationCols["stock_item_id"] = { objectType: "DropDown", colIndex: 4, datatype: "dropdown", name: "stock_item_id", placeholder: "Material", editable: true, sqlColumn: "stock_item_id", options: [{ value: 0, text: "- Select Material -" }], style: { textAlign: "left", minWidth: "200px", width: "200px" } };
 
 componentListConfig["gridLocations"] = {
     objectType: "Grid",

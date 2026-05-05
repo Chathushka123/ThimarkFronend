@@ -884,6 +884,27 @@ export function generateMrnIssuanceDisplay(componentList, mrnDetails, issuanceSt
                                                         {detail.material_name || 'N/A'}
                                                     </div>
                                                 </div>
+
+                                                {/* Issued To */}
+                                                <div className="mb-3">
+                                                    <small style={{
+                                                        color: '#718096',
+                                                        fontWeight: '600',
+                                                        fontSize: '11px',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.5px'
+                                                    }}>
+                                                        <i className="fas fa-user mr-1"></i>Issued To
+                                                    </small>
+                                                    <div style={{
+                                                        color: '#2d3748',
+                                                        fontWeight: '700',
+                                                        fontSize: '12px',
+                                                        marginTop: '4px'
+                                                    }}>
+                                                        {detail.issued_to || 'N/A'}
+                                                    </div>
+                                                </div>
                                                 
                                                 {/* Status Row */}
                                                 <div className="row mb-3">
