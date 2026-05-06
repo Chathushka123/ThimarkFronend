@@ -128,7 +128,7 @@ const Grn = () => {
             });
             response.data.forEach((value) => {
                 pos.push({
-                    "value": String(value.id),
+                    "value": value.po_number,
                     "text": value.po_number,
                     "_fullData": value
                 });
@@ -142,13 +142,13 @@ const Grn = () => {
     }
 
     function handlePoChange() {
-        const selectedId = config['inputRmpoNo'].data.value;
-        if (!selectedId || selectedId === "") {
+        const selectedPoNumber = config['inputRmpoNo'].data.value;
+        if (!selectedPoNumber || selectedPoNumber === "") {
             setSelectedPoDetails(null);
             return;
         }
         const allPOs = config['inputRmpoNo']._allPOs || [];
-        const found = allPOs.find(p => String(p.id) === String(selectedId));
+        const found = allPOs.find(p => String(p.po_number) === String(selectedPoNumber));
         setSelectedPoDetails(found || null);
 
         // If a stock item is already entered, refresh qty/price from the newly selected PO.
@@ -589,7 +589,10 @@ const Grn = () => {
 
                 // Populate PO details if available
                 const allPOs = config['inputRmpoNo']._allPOs || [];
-                const foundPO = allPOs.find(p => String(p.id) === String(data.purchase_order_id || data.rmpono));
+                const foundPO = allPOs.find(p =>
+                    String(p.id) === String(data.purchase_order_id) ||
+                    String(p.po_number) === String(data.rmpono)
+                );
                 setSelectedPoDetails(foundPO || null);
 
                 // Set button visibility based on status
