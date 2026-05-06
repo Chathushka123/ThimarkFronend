@@ -37,6 +37,7 @@ import Supplier from './components/pages/Supplier/SupplierES';
 import CSCharts from './components/pages/CostSheetCharts/CSCharts';
 import Returnable from './components/pages/Returnable/ReturnableES';
 import StockTransfer from './components/pages/StockTransfer/StockTransferES';
+import OpenGrn from './components/pages/GrnConfirmation/GrnConES';
 import DailyOutput from './components/pages/Reports/DailyOutput/DailyOutputES';
 import CurrentStock from './components/pages/Reports/CurrentStock/CurrentStockES';
 import GrnPendingCompleted from './components/pages/Reports/GrnPendingCompleted/GrnPendingCompletedES';
@@ -74,6 +75,7 @@ const App = () => {
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
           <PrivateRoute path="/grn" screen="grn" component={Grn} theme={Theme} />
+          <PrivateRoute path="/openGrns" screen="openGrn" component={OpenGrn} theme={Theme} />
           <PrivateRoute path="/mrnCreation" screen="mrnCreation" component={Mrn} theme={Theme} />
           <PrivateRoute path="/mrnIssuance" screen="mrnIssuance" component={MrnIssuance} theme={Theme} />
           <PrivateRoute path="/costSheetView" screen="costSheetView" component={CostSheetView} theme={Theme} />
