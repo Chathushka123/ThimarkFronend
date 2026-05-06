@@ -131,33 +131,50 @@ function buildMaterialStatusMap(inventoryData) {
 }
 
 export function downloadExcel(inventoryData, filename = "inventory.xlsx") {
-  console.log(inventoryData)
-  const rows = [];
+  const materialMap = new Map();
   (inventoryData || []).forEach((rack) => {
     (rack.bins || []).forEach((bin) => {
       (bin.items || []).forEach((item) => {
         const s = item.stock_item;
-        const qty = item.qty;
-        const min = s.min_qty;
-        let status = "Healthy";
-        if (qty <= min) status = "Critical";
-        else if (qty <= min * 1.5) status = "Low";
-        rows.push({
-          Rack: rack.rack,
-          Bin: bin.bin,
-          "Material Name": s.name || "",
-          "Material Code": s.code || "",
-          Size: s.size || "",
-          Qty: qty,
-          "Min Qty": min,
-          Status: status,
-          Supplier: s.supplier || "",
-          "Unit Price": s.unit_price != null ? s.unit_price : "",
-          "Lead Time": s.lead_time || "",
-        });
+        const key = s.id;
+        const existing = materialMap.get(key);
+        if (existing) {
+          existing.qty += item.qty;
+        } else {
+          materialMap.set(key, {
+            name: s.name || "",
+            code: s.code || "",
+            size: s.size || "",
+            qty: item.qty,
+            minQty: s.min_qty,
+            supplier: s.supplier || "",
+            unitPrice: s.unit_price != null ? s.unit_price : "",
+            leadTime: s.lead_time || "",
+          });
+        }
       });
     });
   });
+
+  const rows = [];
+  materialMap.forEach((material) => {
+    let status = "Healthy";
+    if (material.qty <= material.minQty) status = "Critical";
+    else if (material.qty <= material.minQty * 1.5) status = "Low";
+
+    rows.push({
+      "Material Name": material.name,
+      "Material Code": material.code,
+      Size: material.size,
+      "Total Qty": material.qty,
+      "Min Qty": material.minQty,
+      Status: status,
+      Supplier: material.supplier,
+      "Unit Price": material.unitPrice,
+      "Lead Time": material.leadTime,
+    });
+  });
+
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Inventory");
