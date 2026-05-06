@@ -120,6 +120,28 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
         <>
             <div className="loading" id="spinner" style={{ display: "none" }}>Loading&#8230;</div>
 
+            {/* PO Item Not Found Confirmation Popup */}
+            <PopUpPage item={componentList["confirmPoItemNotFoundPopUp"]} headerText="Item Not in PO" className="">
+                <div className="p-4">
+                    <div className="text-center mb-3">
+                        <i className="fas fa-exclamation-triangle" style={{ fontSize: '48px', color: '#ffc107' }}></i>
+                    </div>
+                    <h5 className="text-center mb-3" style={{ color: '#3a4a6b' }}>Item Not Found in PO</h5>
+                    <p className="text-center mb-4" style={{ color: '#7b8eb5' }}>
+                        This stock item is not listed in the selected Purchase Order.<br />
+                        Do you want to proceed anyway?
+                    </p>
+                    <div className="d-flex justify-content-center gap-2">
+                        <Button className="btn btn-warning mr-2" item={componentList["buttonPoItemNotFoundYes"]}>
+                            <i className="fas fa-check mr-1"></i> Yes, Proceed
+                        </Button>
+                        <Button className="btn btn-secondary" item={componentList["buttonPoItemNotFoundNo"]}>
+                            <i className="fas fa-times mr-1"></i> Cancel
+                        </Button>
+                    </div>
+                </div>
+            </PopUpPage>
+
             {/* Delete Transaction Confirmation Popup */}
             <PopUpPage item={componentList["deleteTransactionPopUp"]} headerText="Confirm Delete" className="">
                 <div className="p-4">

@@ -661,4 +661,60 @@ componentListConfig["buttonCompleteGrnNo"] = {
     event: {}
 }
 
+// PO Item Not Found Confirmation Popup
+componentListConfig["confirmPoItemNotFoundPopUp"] = {
+    objectType: "PopUpPage",
+    schema: {
+        name: "confirmPoItemNotFoundPopUp",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    data: {
+        sqlcolumn: "",
+        oldValue: "",
+        value: "",
+    },
+    event: {}
+}
+
+componentListConfig["buttonPoItemNotFoundYes"] = {
+    objectType: "Button",
+    schema: {
+        name: "buttonPoItemNotFoundYes",
+        type: "button",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelPoItemNotFoundYes",
+            type: "text",
+            visible: true,
+            value: "Yes, Proceed"
+        }
+    },
+    event: {}
+}
+
+componentListConfig["buttonPoItemNotFoundNo"] = {
+    objectType: "Button",
+    schema: {
+        name: "buttonPoItemNotFoundNo",
+        type: "button",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelPoItemNotFoundNo",
+            type: "text",
+            visible: true,
+            value: "Cancel"
+        }
+    },
+    event: {}
+}
+
 export default componentListConfig
