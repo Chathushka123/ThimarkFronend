@@ -130,7 +130,7 @@ const GrnPendingCompleted = () => {
         }
     }
 
-    const columns = ['Date', 'RMPONO', 'supplier', 'code', 'name', 'unite_price', 'qty', 'grn_status']
+    const columns = ['Date', 'RMPONO', 'supplier', 'code', 'name', 'unite_price', 'qty', 'grn_status','remarks']
 
     return generateGrnPendingCompletedDisplay(
         config,

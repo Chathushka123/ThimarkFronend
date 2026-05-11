@@ -21,7 +21,7 @@ componentListConfig["CONTROL_CENTER"] = {
             name: "labelGrnPendingCompletedReport",
             type: "text",
             visible: true,
-            value: "GRN Pending vs Completed"
+            value: "GRN Details"
         },
     },
     state: {

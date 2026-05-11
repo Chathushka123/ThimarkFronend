@@ -75,7 +75,7 @@ const App = () => {
 
           <PrivateRoute path="/batchCreation" screen="batchCreation" component={Batch} theme={Theme} />
           <PrivateRoute path="/grn" screen="grn" component={Grn} theme={Theme} />
-          <PrivateRoute path="/openGrns" screen="openGrn" component={OpenGrn} theme={Theme} />
+          <PrivateRoute path="/openGrns" screen="openGrns" component={OpenGrn} theme={Theme} />
           <PrivateRoute path="/mrnCreation" screen="mrnCreation" component={Mrn} theme={Theme} />
           <PrivateRoute path="/mrnIssuance" screen="mrnIssuance" component={MrnIssuance} theme={Theme} />
           <PrivateRoute path="/costSheetView" screen="costSheetView" component={CostSheetView} theme={Theme} />
