@@ -29,6 +29,8 @@ const Grn = () => {
     config["buttonDeleteTransactionNo"].event.onClick = handleDeleteTransactionNo;
     config["buttonCompleteGrnYes"].event.onClick = handleCompleteGrnYes;
     config["buttonCompleteGrnNo"].event.onClick = handleCompleteGrnNo;
+    config["buttonPoItemNotFoundYes"].event.onClick = handlePoItemNotFoundYes;
+    config["buttonPoItemNotFoundNo"].event.onClick = handlePoItemNotFoundNo;
 
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
@@ -141,7 +143,13 @@ const Grn = () => {
         }
     }
 
-    function handlePoChange() {
+    async function __getPoDetailsById(poId) {
+        if (!poId) return null;
+        const response = await API.get(`purchase-orders/${poId}/details`);
+        return response.data?.data || response.data || null;
+    }
+
+    async function handlePoChange() {
         const selectedPoNumber = config['inputRmpoNo'].data.value;
         if (!selectedPoNumber || selectedPoNumber === "") {
             setSelectedPoDetails(null);
@@ -149,11 +157,25 @@ const Grn = () => {
         }
         const allPOs = config['inputRmpoNo']._allPOs || [];
         const found = allPOs.find(p => String(p.po_number) === String(selectedPoNumber));
-        setSelectedPoDetails(found || null);
+
+        if (!found?.id) {
+            setSelectedPoDetails(null);
+            return;
+        }
+
+        let poDetails = null;
+        try {
+            poDetails = await __getPoDetailsById(found.id);
+        } catch (error) {
+            console.log(error);
+            config["CONTROL_CENTER"].promptWarningMessage("Error loading PO details", "");
+        }
+
+        setSelectedPoDetails(poDetails || null);
 
         // If a stock item is already entered, refresh qty/price from the newly selected PO.
         const stockItemId = config['inputStockItemId'].data.value;
-        autoFillFromPoItem(stockItemId, found || null);
+        autoFillFromPoItem(stockItemId, poDetails || null);
     }
 
     function handleStockItemIdChange() {
@@ -240,6 +262,60 @@ const Grn = () => {
         }
     }
 
+    async function __submitAddTransaction() {
+        try {
+            document.getElementById("spinner").style.display = "";
+
+            const grn_id = config['inputGrnID'].data.value;
+            const location_id = config['inputLocationId'].data.value;
+            const stock_item_id = config['inputStockItemId'].data.value;
+            const quantity = config['inputQuantity'].data.value;
+            const price = config['inputPrice'].data.value;
+
+            const apiRequest = {
+                grn_id: parseInt(grn_id),
+                location_id: location_id,
+                stock_item_id: stock_item_id,
+                quantity: parseInt(quantity),
+                grn_price: parseFloat(price)
+            };
+
+            let response = await API.post(`grns/addTransaction`, apiRequest);
+
+            if (response.status === 200 || response.status === 201) {
+                config["CONTROL_CENTER"].promptBaseMessage("Transaction added successfully", "");
+
+                config['inputLocationId'].setValue("");
+                config['inputStockItemId'].setValue("");
+                config['inputQuantity'].setValue("");
+                config['inputPrice'].setValue("");
+
+                await loadGrnTransactions(grn_id);
+
+                const locationInput = document.querySelector('input[name="inputLocationId"]');
+                if (locationInput) locationInput.focus();
+
+                reRender();
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage("Error in adding transaction", "");
+            }
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        } finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handlePoItemNotFoundYes() {
+        config["confirmPoItemNotFoundPopUp"].closePopUp();
+        await __submitAddTransaction();
+    }
+
+    function handlePoItemNotFoundNo() {
+        config["confirmPoItemNotFoundPopUp"].closePopUp();
+    }
+
     async function handleAddTransaction() {
         try {
             document.getElementById("spinner").style.display = "";
@@ -273,38 +349,19 @@ const Grn = () => {
                 return;
             }
 
-            // Prepare API request
-            const apiRequest = {
-                grn_id: parseInt(grn_id),
-                location_id: location_id,
-                stock_item_id: stock_item_id,
-                quantity: parseInt(quantity),
-                grn_price: parseFloat(price)
-            };
-
-            // Call API to add transaction
-            let response = await API.post(`grns/addTransaction`, apiRequest);
-
-            if (response.status === 200 || response.status === 201) {
-                config["CONTROL_CENTER"].promptBaseMessage("Transaction added successfully", "");
-
-                // Clear transaction fields
-                config['inputLocationId'].setValue("");
-                config['inputStockItemId'].setValue("");
-                config['inputQuantity'].setValue("");
-                config['inputPrice'].setValue("");
-
-                // Reload transactions
-                await loadGrnTransactions(grn_id);
-
-                // Focus on location field for next scan
-                const locationInput = document.querySelector('input[name="inputLocationId"]');
-                if (locationInput) locationInput.focus();
-
-                reRender();
-            } else {
-                config["CONTROL_CENTER"].promptWarningMessage("Error in adding transaction", "");
+            // Check if stock item exists in selected PO
+            const poDetails = selectedPoDetails;
+            if (stock_item_id && poDetails && Array.isArray(poDetails.items) && poDetails.items.length > 0) {
+                const foundInPo = poDetails.items.find(
+                    item => String(item.material_id) === String(stock_item_id).trim()
+                );
+                if (!foundInPo) {
+                    config["confirmPoItemNotFoundPopUp"].showPopUp();
+                    return;
+                }
             }
+
+            await __submitAddTransaction();
 
         } catch (error) {
             console.log(error);
@@ -593,7 +650,18 @@ const Grn = () => {
                     String(p.id) === String(data.purchase_order_id) ||
                     String(p.po_number) === String(data.rmpono)
                 );
-                setSelectedPoDetails(foundPO || null);
+
+                if (foundPO?.id) {
+                    try {
+                        const poDetails = await __getPoDetailsById(foundPO.id);
+                        setSelectedPoDetails(poDetails || null);
+                    } catch (error) {
+                        console.log(error);
+                        setSelectedPoDetails(null);
+                    }
+                } else {
+                    setSelectedPoDetails(null);
+                }
 
                 // Set button visibility based on status
                 if (data.status === "open") {
