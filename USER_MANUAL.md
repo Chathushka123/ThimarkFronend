@@ -30,8 +30,6 @@
 3. Enter your **Email Address** and **Password**
 4. Click **Login**
 
-> **First Login?** You will receive temporary credentials from your administrator. You may be required to change your password immediately.
-
 **Password Rules:**
 - Minimum 8 characters
 - Mix of letters and numbers
