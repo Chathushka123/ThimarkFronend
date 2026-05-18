@@ -508,6 +508,71 @@ componentListConfig["inputTotalAmount"] = {
     event: {}
 }
 
+// ── Payment Transaction Fields ─────────────────────────────────────────────
+
+componentListConfig["inputPaymentAmount"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputPaymentAmount",
+        placeholder: "0.00",
+        type: "text",
+        length: 20,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: { name: "labelPaymentAmount", type: "text", visible: true, value: "Payment Amount (LKR)" },
+        class: ""
+    },
+    data: { sqlcolumn: "payment_amount", oldValue: "", value: "" },
+    class: "",
+    event: {}
+}
+
+componentListConfig["inputPaymentNote"] = {
+    objectType: "TextArea",
+    schema: {
+        name: "inputPaymentNote",
+        placeholder: "Enter payment note",
+        type: "text",
+        length: 500,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        rows: 2,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: { name: "labelPaymentNote", type: "text", visible: true, value: "Payment Note" },
+        class: ""
+    },
+    data: { sqlcolumn: "payment_note", oldValue: "", value: "" },
+    class: "",
+    event: {}
+}
+
+componentListConfig["buttonAddPaymentTransaction"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonAddPaymentTransaction",
+        name: "buttonAddPaymentTransaction",
+        type: "button",
+        label: "Add Transaction",
+        disabled: false,
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
 // ── Line Items Grid ──────────────────────────────────────────────────────────
 
 let poItemCols = []

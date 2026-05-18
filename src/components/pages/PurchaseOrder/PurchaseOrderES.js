@@ -10,6 +10,7 @@ const PurchaseOrder = () => {
     let [lineItems, setLineItems] = useState([]);
     let [materialsData, setMaterialsData] = useState([]);
     let [suppliers, setSuppliers] = useState([]);
+    let [paymentTransactions, setPaymentTransactions] = useState([]);
 
     function reRender() {
         setRendered(!rendered);
@@ -26,6 +27,7 @@ const PurchaseOrder = () => {
     config["CONTROL_CENTER"].event.onAdvanceSearchDone = handleAdvanceSearchDone;
     config["CONTROL_CENTER"].event.onSave = handleSave;
     config["CONTROL_CENTER"].event.onNew = handleNew;
+    config["buttonAddPaymentTransaction"].event.onClick = handleAddPaymentTransaction;
 
     config["inputDiscount"].event.onChange = () => __recalculate(lineItems);
     config["inputTax"].event.onChange = () => __recalculate(lineItems);
@@ -52,8 +54,11 @@ const PurchaseOrder = () => {
         config['inputTax'].setValue('0.00');
         config['inputShippingCost'].setValue('0.00');
         config['inputTotalAmount'].setValue('0.00');
+        config['inputPaymentAmount'].setValue('');
+        config['inputPaymentNote'].setValue('');
 
         setLineItems([]);
+        setPaymentTransactions([]);
 
         setCurrentStatus('DRAFT');
     }
@@ -279,6 +284,61 @@ const PurchaseOrder = () => {
         __recalculate(updated);
     }
 
+    async function loadPaymentTransactions(poId) {
+        if (!poId) {
+            setPaymentTransactions([]);
+            return;
+        }
+        try {
+            const response = await API.get(`purchase-orders/${poId}/payment-transactions`);
+            const txList = response.data?.data || response.data || [];
+            setPaymentTransactions(Array.isArray(txList) ? txList : []);
+        } catch (error) {
+            console.error('Load payment transactions error', error);
+            setPaymentTransactions([]);
+        }
+    }
+
+    async function handleAddPaymentTransaction() {
+        try {
+            const poId = config['inputId'].data.value;
+            const amount = parseFloat(config['inputPaymentAmount'].data.value || 0);
+            const note = config['inputPaymentNote'].data.value || '';
+
+            if (!poId) {
+                config["CONTROL_CENTER"].promptWarningMessage('Please save or select a Purchase Order first', '');
+                return;
+            }
+            if (!(amount > 0)) {
+                config["CONTROL_CENTER"].promptWarningMessage('Payment amount must be greater than 0', '');
+                return;
+            }
+
+            document.getElementById('spinner').style.display = '';
+
+            const apiRequest = {
+                purchase_order_id: parseInt(poId),
+                amount: amount,
+                note: note,
+            };
+
+            const response = await API.post(`purchase-orders/${poId}/payment-transactions`, apiRequest);
+
+            if (response.status === 200 || response.status === 201) {
+                config['inputPaymentAmount'].setValue('');
+                config['inputPaymentNote'].setValue('');
+                await loadPaymentTransactions(poId);
+                config["CONTROL_CENTER"].promptBaseMessage('Payment transaction added successfully', '');
+            } else {
+                config["CONTROL_CENTER"].promptWarningMessage('Error saving payment transaction', '');
+            }
+        } catch (error) {
+            handleError(error);
+        } finally {
+            document.getElementById('spinner').style.display = 'none';
+        }
+    }
+
     // ── Advance Search ────────────────────────────────────────────────────────
 
     async function handleAdvanceSearchPopup() {
@@ -390,8 +450,11 @@ const PurchaseOrder = () => {
         config['inputDiscount'].setValue('0.00');
         config['inputTax'].setValue('0.00');
         config['inputShippingCost'].setValue('0.00');
+        config['inputPaymentAmount'].setValue('');
+        config['inputPaymentNote'].setValue('');
 
         setLineItems([]);
+        setPaymentTransactions([]);
     }
 
     // ── Form Populate ─────────────────────────────────────────────────────────
@@ -446,6 +509,7 @@ const PurchaseOrder = () => {
             }));
             setLineItems(rows);
             __recalculate(rows);
+            await loadPaymentTransactions(po.id);
 
             setCurrentStatus(po.status);
 
@@ -822,7 +886,7 @@ const PurchaseOrder = () => {
         onAddRow: handleAddRow,
         onDeleteRow: handleDeleteRow,
         onPrint: handlePrintPo,
-    }, materialsData);
+    }, materialsData, paymentTransactions);
 };
 
 export default PurchaseOrder;

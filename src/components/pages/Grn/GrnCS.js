@@ -344,6 +344,39 @@ componentListConfig["inputPrice"] = {
     event: {}
 }
 
+// Material
+componentListConfig["inputMaterial"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputMaterial",
+        placeholder: "Enter Material",
+        type: "text",
+        length: 100,
+        showLabel: false,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelMaterial",
+            type: "text",
+            visible: true,
+            value: "Material"
+        }
+    },
+    data: {
+        sqlcolumn: "material_code",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
 // Buttons
 componentListConfig["buttonCreateGrn"] = {
     objectType: "Button",

@@ -466,9 +466,13 @@ export function TextBox(props) {
     let state = props.item.schema.dataSourceController.state
     let placeholder = ((state.modified === false && state.populated === false) ? props.item.schema.placeholder : "")
     let style = { ...props.style }
+    const forceDisabled = props.disabled === true
+    const forceReadOnly = props.readOnly === true
     let itemDisabled = disabled
 
-    if (!disabled) {
+    if (forceDisabled) {
+        itemDisabled = true
+    } else if (!disabled) {
         itemDisabled = ((((!state.populated) && (props.item.schema.searchable)) || state.new || state.populated) ? false : true)
     }
 
@@ -524,7 +528,7 @@ export function TextBox(props) {
         placeholder={placeholder}
         visible={props.item.schema.visible}
         disabled={itemDisabled}
-        readOnly={readOnly}
+        readOnly={forceReadOnly || readOnly}
         showLabel={props.item.schema.showLabel}
         onChange={handleChange}
         functions={props.item.functions}
