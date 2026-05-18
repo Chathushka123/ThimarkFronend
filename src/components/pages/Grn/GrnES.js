@@ -246,7 +246,7 @@ const Grn = () => {
 
                 // Show transaction entry section
                 config["buttonAddTransaction"].schema.visible = true;
-                config["buttonCompleteGrn"].schema.visible = true;
+                config["buttonCompleteGrn"].schema.visible = String(warehouse_id) != "1";
                 config["buttonCreateGrn"].schema.visible = false;
 
                 reRender();
@@ -667,7 +667,7 @@ const Grn = () => {
                 if (data.status === "open") {
 
                     config["buttonAddTransaction"].schema.visible = true;
-                    config["buttonCompleteGrn"].schema.visible = true;
+                    config["buttonCompleteGrn"].schema.visible = warehouseValue != "1";
                     config["buttonCreateGrn"].schema.visible = false;
                 } else {
                     config["buttonAddTransaction"].schema.visible = false;

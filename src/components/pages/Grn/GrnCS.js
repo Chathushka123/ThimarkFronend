@@ -381,7 +381,7 @@ componentListConfig["buttonCompleteGrn"] = {
         type: "button",
         label: "Complete GRN",
         disabled: false,
-        visible: false,
+        visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     event: {}
