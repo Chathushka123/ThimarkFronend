@@ -166,7 +166,7 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
 
             {/* Complete GRN Confirmation Popup */}
             <PopUpPage item={componentList["completeGrnPopUp"]} headerText="Confirm Completion" className="">
-                {/* <div className="p-4">
+                <div className="p-4">
                     <div className="text-center mb-3">
                         <i className="fas fa-check-circle" style={{ fontSize: '48px', color: '#28a745' }}></i>
                     </div>
@@ -183,7 +183,7 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                             <i className="fas fa-times mr-1"></i> Cancel
                         </Button>
                     </div>
-                </div> */}
+                </div>
             </PopUpPage>
 
             <ControlCenter item={componentList["CONTROL_CENTER"]} >
@@ -440,24 +440,24 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                 )}
                                 {componentList["buttonCompleteGrn"].schema.visible &&
                                     componentList["inputStatus"].data.value === "open" && (
-                                        <></>
-                                        // <Button
-                                        //     item={componentList["buttonCompleteGrn"]}
-                                        //     style={{
-                                        //         padding: '12px 24px',
-                                        //         borderRadius: '12px',
-                                        //         background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                        //         color: 'white',
-                                        //         border: 'none',
-                                        //         fontWeight: '700',
-                                        //         fontSize: '14px',
-                                        //         marginBottom: '10px',
-                                        //         boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
-                                        //         transition: 'all 0.3s ease'
-                                        //     }}
-                                        // >
-                                        //     <i className="fas fa-check-double mr-2"></i> Complete GRN
-                                        // </Button>
+                                       
+                                        <Button
+                                            item={componentList["buttonCompleteGrn"]}
+                                            style={{
+                                                padding: '12px 24px',
+                                                borderRadius: '12px',
+                                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                color: 'white',
+                                                border: 'none',
+                                                fontWeight: '700',
+                                                fontSize: '14px',
+                                                marginBottom: '10px',
+                                                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                                                transition: 'all 0.3s ease'
+                                            }}
+                                        >
+                                            <i className="fas fa-check-double mr-2"></i> Complete GRN
+                                        </Button>
                                     )}
                             </div>
                         </div>
