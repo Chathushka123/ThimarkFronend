@@ -63,7 +63,7 @@ const ProcurementDashboard = () => {
       ]);
 
       setSummary(summaryRes || {});
-      setOrders((ordersRes && ordersRes.data) || []);
+      setOrders(Array.isArray(ordersRes) ? ordersRes : []);
     } catch (err) {
       setError('Unable to load procurement dashboard data. Please try again.');
     } finally {

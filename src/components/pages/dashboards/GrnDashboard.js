@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getGrnSummary } from './dashboard';
+import { getGrnList, getGrnSummary } from './dashboard';
 
-const today = new Date();
-const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-const toIsoDate = (d) => d.toISOString().slice(0, 10);
-const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
   return `LKR ${amount.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
+const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
+
+const today = new Date();
+const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+const toIsoDate = (d) => d.toISOString().slice(0, 10);
 
 const GrnDashboard = () => {
   const [dateFrom, setDateFrom] = useState(toIsoDate(firstDay));
@@ -17,31 +18,34 @@ const GrnDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
-  const [grnItems, setGrnItems] = useState([]);
+  const [grns, setGrns] = useState([]);
 
   const kpis = useMemo(() => [
     { title: 'Total GRNs', value: formatNumber(summary && summary.total_grn_count), tone: 'border-primary' },
+    { title: 'Open GRNs', value: formatNumber(summary && summary.open_grn_count), tone: 'border-warning' },
     { title: 'Completed GRNs', value: formatNumber(summary && summary.completed_grn_count), tone: 'border-success' },
-    { title: 'Pending GRNs', value: formatNumber(summary && summary.pending_grn_count), tone: 'border-warning' },
     { title: 'Total Received Value', value: formatCurrency(summary && summary.total_received_value), tone: 'border-info' },
   ], [summary]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const params = { date_from: dateFrom, date_to: dateTo };
-      const res = await getGrnSummary(params);
-      setSummary(res || {});
-      setGrnItems((res && res.grn_items) || []);
+      const [summaryRes, listRes] = await Promise.all([
+        getGrnSummary(params),
+        getGrnList({ ...params, per_page: 20 }),
+      ]);
+      setSummary(summaryRes || {});
+      setGrns(Array.isArray(listRes) ? listRes : []);
     } catch (err) {
       setError('Unable to load GRN data. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateFrom, dateTo]);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   return (
     <>
@@ -95,40 +99,32 @@ const GrnDashboard = () => {
         </div>
 
         <div className="card border-0 shadow-sm">
-          <div className="card-header bg-white">
-            <strong>GRN Records</strong>
-          </div>
+          <div className="card-header bg-white"><strong>Recent GRNs</strong></div>
           <div className="table-responsive">
             <table className="table table-sm table-hover mb-0">
               <thead className="thead-light">
                 <tr>
                   <th>GRN Number</th>
                   <th>Supplier</th>
-                  <th>Received Date</th>
+                  <th>Date</th>
                   <th>Status</th>
                   <th className="text-right">Received Value</th>
                 </tr>
               </thead>
               <tbody>
-                {!loading && grnItems.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center text-muted py-4">No GRN records found for selected dates.</td>
-                  </tr>
+                {!loading && grns.length === 0 && (
+                  <tr><td colSpan="5" className="text-center text-muted py-4">No GRNs found for selected dates.</td></tr>
                 )}
-                {grnItems.map((row, idx) => (
-                  <tr key={`${row.grn_number || 'row'}-${idx}`}>
-                    <td>{row.grn_number || '-'}</td>
-                    <td>{row.supplier_name || '-'}</td>
-                    <td>{row.received_date || '-'}</td>
+                {grns.map((row, idx) => (
+                  <tr key={`${row.grn_number || row.id || idx}`}>
+                    <td>{row.grn_number || row.id || '-'}</td>
+                    <td>{row.supplier_name || row.supplier || '-'}</td>
+                    <td>{row.created_at || row.date || '-'}</td>
                     <td><span className="badge badge-light text-uppercase">{row.status || '-'}</span></td>
-                    <td className="text-right">{formatCurrency(row.received_value)}</td>
+                    <td className="text-right">{formatCurrency(row.total_value || row.received_value)}</td>
                   </tr>
                 ))}
-                {loading && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-4">Loading data...</td>
-                  </tr>
-                )}
+                {loading && <tr><td colSpan="5" className="text-center py-4">Loading data...</td></tr>}
               </tbody>
             </table>
           </div>

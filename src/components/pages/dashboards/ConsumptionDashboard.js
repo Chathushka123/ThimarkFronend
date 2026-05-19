@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getConsumptionSummary } from './dashboard';
+import { getConsumptionByBatch, getConsumptionSummary } from './dashboard';
 
-const today = new Date();
-const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-const toIsoDate = (d) => d.toISOString().slice(0, 10);
-const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
   return `LKR ${amount.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
+const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
+
+const today = new Date();
+const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+const toIsoDate = (d) => d.toISOString().slice(0, 10);
 
 const ConsumptionDashboard = () => {
   const [dateFrom, setDateFrom] = useState(toIsoDate(firstDay));
@@ -17,7 +18,7 @@ const ConsumptionDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
-  const [mrnItems, setMrnItems] = useState([]);
+  const [batches, setBatches] = useState([]);
 
   const kpis = useMemo(() => [
     { title: 'Total MRNs', value: formatNumber(summary && summary.total_mrn_count), tone: 'border-primary' },
@@ -26,22 +27,25 @@ const ConsumptionDashboard = () => {
     { title: 'Avg Value per MRN', value: formatCurrency(summary && summary.avg_value_per_mrn), tone: 'border-secondary' },
   ], [summary]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const params = { date_from: dateFrom, date_to: dateTo };
-      const res = await getConsumptionSummary(params);
-      setSummary(res || {});
-      setMrnItems((res && res.mrn_items) || []);
+      const [summaryRes, batchRes] = await Promise.all([
+        getConsumptionSummary(params),
+        getConsumptionByBatch({ ...params, per_page: 20 }),
+      ]);
+      setSummary(summaryRes || {});
+      setBatches(Array.isArray(batchRes) ? batchRes : []);
     } catch (err) {
       setError('Unable to load consumption data. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateFrom, dateTo]);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   return (
     <>
@@ -95,40 +99,32 @@ const ConsumptionDashboard = () => {
         </div>
 
         <div className="card border-0 shadow-sm">
-          <div className="card-header bg-white">
-            <strong>MRN Issuances</strong>
-          </div>
+          <div className="card-header bg-white"><strong>Consumption by Batch</strong></div>
           <div className="table-responsive">
             <table className="table table-sm table-hover mb-0">
               <thead className="thead-light">
                 <tr>
-                  <th>MRN Number</th>
-                  <th>Issue Date</th>
-                  <th>Department</th>
-                  <th>Status</th>
-                  <th className="text-right">Value</th>
+                  <th>Batch No</th>
+                  <th>Model</th>
+                  <th className="text-right">MRN Count</th>
+                  <th className="text-right">Total Qty</th>
+                  <th className="text-right">Total Value</th>
                 </tr>
               </thead>
               <tbody>
-                {!loading && mrnItems.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center text-muted py-4">No MRN issuances found for selected dates.</td>
-                  </tr>
+                {!loading && batches.length === 0 && (
+                  <tr><td colSpan="5" className="text-center text-muted py-4">No consumption data found for selected dates.</td></tr>
                 )}
-                {mrnItems.map((row, idx) => (
-                  <tr key={`${row.mrn_number || 'row'}-${idx}`}>
-                    <td>{row.mrn_number || '-'}</td>
-                    <td>{row.issue_date || '-'}</td>
-                    <td>{row.department || '-'}</td>
-                    <td><span className="badge badge-light text-uppercase">{row.status || '-'}</span></td>
+                {batches.map((row, idx) => (
+                  <tr key={`${row.batch_no || idx}`}>
+                    <td>{row.batch_no || '-'}</td>
+                    <td>{row.model_name || row.model || '-'}</td>
+                    <td className="text-right">{formatNumber(row.mrn_count)}</td>
+                    <td className="text-right">{formatNumber(row.total_qty)}</td>
                     <td className="text-right">{formatCurrency(row.total_value)}</td>
                   </tr>
                 ))}
-                {loading && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-4">Loading data...</td>
-                  </tr>
-                )}
+                {loading && <tr><td colSpan="5" className="text-center py-4">Loading data...</td></tr>}
               </tbody>
             </table>
           </div>

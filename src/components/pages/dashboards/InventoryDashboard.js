@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getInventorySummary } from './dashboard';
+import { getInventoryLowStock, getInventorySummary } from './dashboard';
 
-const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
   return `LKR ${amount.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
+const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
 
 const InventoryDashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -25,9 +25,12 @@ const InventoryDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await getInventorySummary();
-      setSummary(res || {});
-      setLowStockItems((res && res.low_stock_items) || []);
+      const [summaryRes, lowStockRes] = await Promise.all([
+        getInventorySummary(),
+        getInventoryLowStock({ active_only: true }),
+      ]);
+      setSummary(summaryRes || {});
+      setLowStockItems(Array.isArray(lowStockRes) ? lowStockRes : []);
     } catch (err) {
       setError('Unable to load inventory data. Please try again.');
     } finally {
@@ -68,9 +71,7 @@ const InventoryDashboard = () => {
         </div>
 
         <div className="card border-0 shadow-sm">
-          <div className="card-header bg-white">
-            <strong>Low Stock Items</strong>
-          </div>
+          <div className="card-header bg-white"><strong>Low Stock Items</strong></div>
           <div className="table-responsive">
             <table className="table table-sm table-hover mb-0">
               <thead className="thead-light">
@@ -78,30 +79,26 @@ const InventoryDashboard = () => {
                   <th>Item Code</th>
                   <th>Item Name</th>
                   <th>Category</th>
-                  <th className="text-right">Current Stock</th>
+                  <th>Warehouse</th>
+                  <th className="text-right">Available Qty</th>
                   <th className="text-right">Reorder Level</th>
                 </tr>
               </thead>
               <tbody>
                 {!loading && lowStockItems.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center text-muted py-4">No low stock items found.</td>
-                  </tr>
+                  <tr><td colSpan="6" className="text-center text-muted py-4">No low stock items found.</td></tr>
                 )}
                 {lowStockItems.map((row, idx) => (
-                  <tr key={`${row.item_code || 'row'}-${idx}`}>
-                    <td>{row.item_code || '-'}</td>
-                    <td>{row.item_name || '-'}</td>
+                  <tr key={`${row.item_code || row.code || idx}`}>
+                    <td>{row.item_code || row.code || '-'}</td>
+                    <td>{row.item_name || row.name || '-'}</td>
                     <td>{row.category || '-'}</td>
-                    <td className="text-right">{formatNumber(row.current_stock)}</td>
+                    <td>{row.warehouse_name || row.warehouse || '-'}</td>
+                    <td className="text-right">{formatNumber(row.available_qty ?? row.qty_on_hand)}</td>
                     <td className="text-right">{formatNumber(row.reorder_level)}</td>
                   </tr>
                 ))}
-                {loading && (
-                  <tr>
-                    <td colSpan="5" className="text-center py-4">Loading data...</td>
-                  </tr>
-                )}
+                {loading && <tr><td colSpan="6" className="text-center py-4">Loading data...</td></tr>}
               </tbody>
             </table>
           </div>

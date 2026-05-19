@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getPaymentsSummary } from './dashboard';
+import { getPaymentsList, getPaymentsSummary } from './dashboard';
 
-const today = new Date();
-const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-const toIsoDate = (d) => d.toISOString().slice(0, 10);
-const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
   return `LKR ${amount.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
+const formatNumber = (value) => Number(value || 0).toLocaleString('en-LK');
+
+const today = new Date();
+const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+const toIsoDate = (d) => d.toISOString().slice(0, 10);
 
 const PaymentsDashboard = () => {
   const [dateFrom, setDateFrom] = useState(toIsoDate(firstDay));
@@ -17,31 +18,34 @@ const PaymentsDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
-  const [paymentItems, setPaymentItems] = useState([]);
+  const [payments, setPayments] = useState([]);
 
   const kpis = useMemo(() => [
-    { title: 'Total Invoices', value: formatNumber(summary && summary.total_invoice_count), tone: 'border-primary' },
-    { title: 'Outstanding Amount', value: formatCurrency(summary && summary.outstanding_amount), tone: 'border-danger' },
-    { title: 'Paid Amount', value: formatCurrency(summary && summary.paid_amount), tone: 'border-success' },
-    { title: 'Payment Coverage', value: `${formatNumber(summary && summary.coverage_percentage)}%`, tone: 'border-info' },
+    { title: 'Total POs', value: formatNumber(summary && summary.total_po_count), tone: 'border-primary' },
+    { title: 'Total PO Value', value: formatCurrency(summary && summary.total_po_value), tone: 'border-info' },
+    { title: 'Amount Paid', value: formatCurrency(summary && summary.amount_paid), tone: 'border-success' },
+    { title: 'Outstanding', value: formatCurrency(summary && summary.outstanding_amount), tone: 'border-danger' },
   ], [summary]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const params = { date_from: dateFrom, date_to: dateTo };
-      const res = await getPaymentsSummary(params);
-      setSummary(res || {});
-      setPaymentItems((res && res.payment_items) || []);
+      const [summaryRes, listRes] = await Promise.all([
+        getPaymentsSummary(params),
+        getPaymentsList({ ...params, per_page: 20 }),
+      ]);
+      setSummary(summaryRes || {});
+      setPayments(Array.isArray(listRes) ? listRes : []);
     } catch (err) {
       setError('Unable to load payments data. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateFrom, dateTo]);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [loadData]);
 
   return (
     <>
@@ -68,7 +72,13 @@ const PaymentsDashboard = () => {
                 <button className="btn btn-primary btn-sm mr-2" onClick={loadData} disabled={loading}>
                   {loading ? 'Loading...' : 'Apply'}
                 </button>
-                <button className="btn btn-outline-secondary btn-sm" onClick={() => { setDateFrom(toIsoDate(firstDay)); setDateTo(toIsoDate(today)); }} disabled={loading}>Reset</button>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => { setDateFrom(toIsoDate(firstDay)); setDateTo(toIsoDate(today)); }}
+                  disabled={loading}
+                >
+                  Reset
+                </button>
               </div>
             </div>
           </div>
@@ -95,42 +105,36 @@ const PaymentsDashboard = () => {
         </div>
 
         <div className="card border-0 shadow-sm">
-          <div className="card-header bg-white">
-            <strong>Payment Records</strong>
-          </div>
+          <div className="card-header bg-white"><strong>Recent Payments</strong></div>
           <div className="table-responsive">
             <table className="table table-sm table-hover mb-0">
               <thead className="thead-light">
                 <tr>
-                  <th>Invoice Number</th>
+                  <th>PO Number</th>
                   <th>Supplier</th>
-                  <th>Invoice Date</th>
-                  <th>Due Date</th>
+                  <th>Order Date</th>
                   <th>Status</th>
-                  <th className="text-right">Amount</th>
+                  <th className="text-right">PO Amount</th>
+                  <th className="text-right">Amount Paid</th>
+                  <th className="text-right">Outstanding</th>
                 </tr>
               </thead>
               <tbody>
-                {!loading && paymentItems.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="text-center text-muted py-4">No payment records found for selected dates.</td>
-                  </tr>
+                {!loading && payments.length === 0 && (
+                  <tr><td colSpan="7" className="text-center text-muted py-4">No payment records found for selected dates.</td></tr>
                 )}
-                {paymentItems.map((row, idx) => (
-                  <tr key={`${row.invoice_number || 'row'}-${idx}`}>
-                    <td>{row.invoice_number || '-'}</td>
-                    <td>{row.supplier_name || '-'}</td>
-                    <td>{row.invoice_date || '-'}</td>
-                    <td>{row.due_date || '-'}</td>
+                {payments.map((row, idx) => (
+                  <tr key={`${row.po_number || idx}`}>
+                    <td>{row.po_number || '-'}</td>
+                    <td>{row.supplier_name || row.supplier || '-'}</td>
+                    <td>{row.order_date || '-'}</td>
                     <td><span className="badge badge-light text-uppercase">{row.status || '-'}</span></td>
-                    <td className="text-right">{formatCurrency(row.amount)}</td>
+                    <td className="text-right">{formatCurrency(row.total_amount)}</td>
+                    <td className="text-right">{formatCurrency(row.amount_paid)}</td>
+                    <td className="text-right">{formatCurrency(row.outstanding)}</td>
                   </tr>
                 ))}
-                {loading && (
-                  <tr>
-                    <td colSpan="6" className="text-center py-4">Loading data...</td>
-                  </tr>
-                )}
+                {loading && <tr><td colSpan="7" className="text-center py-4">Loading data...</td></tr>}
               </tbody>
             </table>
           </div>
