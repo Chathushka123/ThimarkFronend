@@ -22,7 +22,7 @@ const SERIES_COLORS    = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
 
 const CATEGORY_BADGE = {
   material:   { bg: "#DBEAFE", color: "#1D4ED8", label: "Material"   },
-  consumable: { bg: "#D1FAE5", color: "#065F46", label: "Consumable" },
+  consumble: { bg: "#D1FAE5", color: "#065F46", label: "Consumable" },
   returnable: { bg: "#FEF3C7", color: "#92400E", label: "Returnable" },
 };
 

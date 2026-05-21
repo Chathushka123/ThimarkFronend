@@ -89,6 +89,8 @@ function PoDetailsPanel({ selectedPoDetails }) {
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>#</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Material</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Quantity</th>
+                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>GRN Qty</th>
+                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Balance Qty</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Unit Price</th>
                                             <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Total</th>
                                         </tr>
@@ -99,6 +101,8 @@ function PoDetailsPanel({ selectedPoDetails }) {
                                                 <td style={{ padding: '8px 12px', color: '#64748b', fontWeight: '600', fontSize: '13px', borderRadius: '8px 0 0 8px' }}>{idx + 1}</td>
                                                 <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{item.material.code + " - " + item.material.name}</td>
                                                 <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.quantity).toLocaleString()}</td>
+                                                <td style={{ padding: '8px 12px', color: '#d97706', fontWeight: '700', fontSize: '13px' }}>{Number(item.grn_qty || 0).toLocaleString()}</td>
+                                                <td style={{ padding: '8px 12px', color: item.balance_qty === 0 ? '#dc3545' : '#059669', fontWeight: '700', fontSize: '13px' }}>{Number(item.balance_qty || 0).toLocaleString()}</td>
                                                 <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                 <td style={{ padding: '8px 12px', color: '#065f46', fontWeight: '800', fontSize: '13px', borderRadius: '0 8px 8px 0' }}>{Number(item.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                             </tr>
@@ -613,6 +617,40 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                                     border: '2px solid #e2e8f0',
                                                     fontWeight: '700',
                                                     color: '#1e293b'
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="col-md-4 col-12">
+                                        <div className="form-group">
+                                            <label style={{
+                                                color: '#4a5568',
+                                                fontWeight: '700',
+                                                fontSize: '12px',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                marginBottom: '8px',
+                                                display: 'block'
+                                            }}>
+                                                <i className="fas fa-dollar-sign mr-2" style={{ color: '#3b82f6' }}></i>
+                                                {componentList["inputMaterial"].label.schema.value}
+                                            </label>
+                                            <TextBox
+                                                item={componentList["inputMaterial"]}
+                                                className="form-control"
+                                                placeholder=""
+                                                readOnly={true}
+                                                disabled={true}
+                                                style={{
+                                                    fontSize: '15px',
+                                                    padding: '12px 16px',
+                                                    borderRadius: '10px',
+                                                    border: '2px solid #cbd5e1',
+                                                    fontWeight: '700',
+                                                    color: '#475569',
+                                                    backgroundColor: '#f1f5f9',
+                                                    cursor: 'not-allowed',
+                                                    opacity: 1
                                                 }}
                                             />
                                         </div>

@@ -30,7 +30,8 @@ const Mrn = () => {
     config["buttonPrint"].event.onClick = handleInvoicePrint;
     config['inputMaterial'].event.onSelect = handleChangeMaterial;
     config['buttonDownload'].event.onClick = handleDownload;
-    
+    config['inputWarehouse'].event.onChange = __getMaterials;
+
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
     config["CONTROL_CENTER"].event.onAdvanceSearch = handleAdvanceSearch;
@@ -48,7 +49,7 @@ const Mrn = () => {
         __setFormReadWrite(true);
         __getWarehouses();
         __getBatches();
-        __getMaterials();
+        //__getMaterials();
     }, []);
 
     useEffect(() => {
@@ -199,6 +200,9 @@ const Mrn = () => {
                 config["CONTROL_CENTER"].promptWarningMessage("Failed to save MRN", "");
             }
         } catch (error) {
+            console.log('====================================');
+            console.log(error);
+            console.log('====================================');
             document.getElementById("spinner").style.display = "none";
             handleError(error, "Error saving MRN");
         }
@@ -651,7 +655,7 @@ const Mrn = () => {
                 config["CONTROL_CENTER"].state.modified = false;
                 config["CONTROL_CENTER"].state.new = false;
                 config['CONTROL_CENTER'].state.populated = true;
-                
+                await __getMaterials();
                 reRender();
                // config["CONTROL_CENTER"].promptBaseMessage("MRN loaded successfully", "");
             } else {
@@ -703,7 +707,12 @@ const Mrn = () => {
 
     async function __getMaterials() {
         try {
-            let response = await API.get(`stock-materials`);
+            const warehouseId = config["inputWarehouse"].data.value;
+            if (!warehouseId) {
+                config["inputMaterial"].setOptions([]);
+                return;
+            }
+            let response = await API.get(`stock-materials/by-warehouse?warehouseId=${warehouseId}`);
             
             if (response.status === 200) {
                 const materials = response.data.map(material => ({
@@ -719,20 +728,25 @@ const Mrn = () => {
     }
 
     function handleError(error, defaultMessage) {
-        
+        console.log('====================================');
+        console.log(error);
+        console.log('====================================');
         try {
             if (error.response) {
                 if (error.response.data && error.response.data.message) {
-  
-                    if(Object.keys(error.response.data.message).length > 0){
-                        
-                    config["CONTROL_CENTER"].promptWarningMessage("Please contact supporting team", "");
-                    
-                }else{
-                    config["CONTROL_CENTER"].promptWarningMessage(error.response.data.message, "");
-                }
+                    const responseMessage = error.response.data.message;
 
-                    
+                    if (typeof responseMessage === "string") {
+                        config["CONTROL_CENTER"].promptWarningMessage(responseMessage, "");
+                    } else if (Array.isArray(responseMessage)) {
+                        const messageText = responseMessage.filter(Boolean).join(", ");
+                        config["CONTROL_CENTER"].promptWarningMessage(messageText || defaultMessage || "An error occurred", "");
+                    } else if (typeof responseMessage === "object") {
+                        const firstValue = Object.values(responseMessage).find(Boolean);
+                        config["CONTROL_CENTER"].promptWarningMessage(firstValue || defaultMessage || "Please contact supporting team", "");
+                    } else {
+                        config["CONTROL_CENTER"].promptWarningMessage(defaultMessage || "An error occurred", "");
+                    }
                 } else if (error.response.statusText) {
                     config["CONTROL_CENTER"].promptWarningMessage(error.response.statusText, "");
                 } else {

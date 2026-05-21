@@ -212,10 +212,57 @@ componentListConfig["inputModel"] = {
     event: {}
 };
 
-let mainModelGridCols = [];
+componentListConfig["inputMainModel"] = {
+    objectType: "Multiselect",
+    schema: {
+        name: "inputMainModel",
+        id: "inputMainModel",
+        placeholder: "",
+        type: "text",
+        placeholder: "Model",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandatory: true, 
+        searchable: true,
+        avoidHighlightFirstOption: true,
+        showCheckbox: true,
+        disable: false,
+        onSearch: "", 
+        loading: false,
+        style: "",
+        selectionLimit: 1,
+        endpoint : "",
+        singleSelect : false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelMainModel",
+            type: "text",
+            visible: true,
+            value: "Main Model"
+        },
+        class: ""
+    },
+    options: [],
+    data: {
+        sqlcolumn: "main_model",
+        oldValue: "",
+        value: []
+    },
+    class: "",
+    event: {}
+};
 
-mainModelGridCols["size"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "size", placeholder: "Size", visible: true, editable: false, sqlColumn: "size", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
-mainModelGridCols["quantity"] = { objectType: "IntegerField", colIndex: 1, datatype: "text", name: "quantity", placeholder: "Quantity", editable: true, sqlColumn: "quantity", style: { textAlign: "left", minWidth: "300px", width: "300px" } };
+let mainModelGridCols = [];
+mainModelGridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: " ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+mainModelGridCols["model_id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "model_id", placeholder: "Model ID", visible: false, editable: false, sqlColumn: "model_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+mainModelGridCols["model_name"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "model_name", placeholder: "Model", visible: true, editable: false, sqlColumn: "model_name", style: { textAlign: "left", minWidth: "300px", width: "300px" } };
+mainModelGridCols["quantity"] = { objectType: "IntegerField", colIndex: 1, datatype: "text", name: "quantity", placeholder: "Quantity", editable: false, sqlColumn: "quantity", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
 
 componentListConfig["gridSize"] = {
     objectType: "Grid",
@@ -373,6 +420,60 @@ componentListConfig["buttonDelete"] = {
         disabled: false,
         visible: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
+// Quantity Input
+componentListConfig["inputQuantity"] = {
+    objectType: "IntegerField",
+    schema: {
+        name: "inputQuantity",
+        placeholder: "Enter Quantity",
+        type: "number",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: true,
+        searchable:true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelQuantity",
+            type: "text",
+            visible: true,
+            value: "Quantity"
+        }
+    },
+    data: {
+        sqlcolumn: "quantity",
+        oldValue: "",
+        value: ""
+    },
+    event: {}
+}
+
+componentListConfig["buttonAddToGrid"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonAddToGrid",
+        name: "buttonAddToGrid",
+        type: "button",
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelAddToGrid",
+            type: "text",
+            visible: true,
+            value: "Add to Grid"
+        }
     },
     event: {}
 }

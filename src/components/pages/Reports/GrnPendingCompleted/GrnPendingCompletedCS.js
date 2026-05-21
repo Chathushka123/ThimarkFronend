@@ -21,7 +21,7 @@ componentListConfig["CONTROL_CENTER"] = {
             name: "labelGrnPendingCompletedReport",
             type: "text",
             visible: true,
-            value: "GRN Pending vs Completed"
+            value: "GRN Details"
         },
     },
     state: {
@@ -36,36 +36,6 @@ componentListConfig["CONTROL_CENTER"] = {
         populate: "",
         refresh: ""
     },
-    event: {}
-}
-
-componentListConfig["inputQueryType"] = {
-    objectType: "DropDown",
-    schema: {
-        name: "inputQueryType",
-        placeholder: "",
-        type: "text",
-        length: 50,
-        showLabel: true,
-        visible: true,
-        insertable: true,
-        updateAllowed: true,
-        mandetory: true,
-        dataSourceController: componentListConfig["CONTROL_CENTER"]
-    },
-    label: {
-        objectType: "Label",
-        schema: { name: "labelQueryType", type: "text", visible: true, value: "Query Type" },
-        class: ""
-    },
-    options: [
-        { value: "1", text: " 01: Open GRNs (detailed + value)" },
-        { value: "2", text: " 02: Completed GRNs (summary + value)" },
-        { value: "4", text: " 04: Open GRN line-item drill-down" },
-        { value: "5", text: " 05: Supplier receipt history" }
-    ],
-    data: { sqlcolumn: "query_type", oldValue: "", value: "" },
-    class: "",
     event: {}
 }
 
