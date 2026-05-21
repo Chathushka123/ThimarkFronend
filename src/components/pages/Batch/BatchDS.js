@@ -43,12 +43,41 @@ export function generateBatchDisplay(componentList, control) {
                                     <TextBox item={componentList["inputBatchNo"]} className="form-control form-control-sm" />
                                 </div>
                                 <div className="col-md-6 col-sm-4">
+                                    <Label item={componentList["inputMainModel"].label} />
+
+                                    <MultiSelectDropDown
+                                        item={componentList["inputMainModel"]}
+                                        className="form-control form-control-sm"
+                                    />
+                                </div>
+                                <div className="col-md-6 col-sm-4">
                                     <Label item={componentList["inputModel"].label} />
 
                                     <MultiSelectDropDown
                                         item={componentList["inputModel"]}
                                         className="form-control form-control-sm"
                                     />
+                                </div>
+                                <div className="col-md-2 col-12">
+                                    <div className="form-group">
+                                        <Label item={componentList["inputQuantity"].label} />
+                                        <IntegerField 
+                                            item={componentList["inputQuantity"]} 
+                                            className="form-control form-control-sm"
+                                            
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-2 col-12 d-flex align-items-end">
+                                    <div className="form-group w-100">
+                                        <Button 
+                                            className="btn common-btn common-btn-lg btn-sm w-100" 
+                                            item={componentList["buttonAddToGrid"]}
+                                            style={{backgroundColor: '#007bff', borderColor: '#007bff',padding:'8px'}}
+                                        >
+                                            <i className="fas fa-plus mr-1"></i> Add
+                                        </Button>
+                                    </div>
                                 </div>
 
                             </div>
@@ -57,8 +86,8 @@ export function generateBatchDisplay(componentList, control) {
                         {/* <div className="row pb-12"> */}
                             <div className="col-12">
                                 <div className='table-wrp background-white'>
-                                    <h5>Size Grid</h5>
-                                    <Grid item={componentList["gridSize"]}   className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                                    <h5>Qty Data</h5>
+                                    <Grid item={componentList["gridSize"]} deleteButton={<i className="fa fa-trash"></i>}   className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
                                         <div className="row">
                                             <div className="col-12">
                                                 <div className="master-table-wrp">

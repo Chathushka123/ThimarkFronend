@@ -2076,3 +2076,9 @@ td {
   z-index: 5 !important;
 }
 
+.search-wrapper .searchBox   {
+  margin-top : 0 !important;
+  width: 100% !important;
+  color: #132138 !important;
+}
+
