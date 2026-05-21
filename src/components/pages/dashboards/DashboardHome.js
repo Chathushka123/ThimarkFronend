@@ -5,12 +5,12 @@ const cards = [
   {
     title: 'Active Purchase orders',
     description: 'Track purchase spend, order volume, and pending items.',
-    to: '/dashboard/pos'
+    to: '/posDashboard'
   },
   {
     title: 'Procurement',
     description: 'Track purchase spend, order volume, and pending items.',
-    to: '/dashboard/procurement'
+    to: '/procuremntDashboard'
   },
   {
     title: 'Inventory',

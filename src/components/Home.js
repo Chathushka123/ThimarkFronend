@@ -24,8 +24,8 @@ const MODULE_GROUPS = [
         icon: 'fa-tachometer-alt',
         accent: '#1565c0',
         modules: [
-            { label: 'Active PO Dashboard', sub: 'Live view of approved, sent & received POs', to: '/dashboard/pos', icon: 'fa-shopping-cart', color: '#1565c0', bg: '#e3f2fd' },
-            { label: 'Procurement Dashboard', sub: 'Full PO analytics across all statuses', to: '/dashboard/procurement', icon: 'fa-chart-bar', color: '#6a1fb5', bg: '#f3e8ff' },
+            { label: 'Active PO Dashboard', sub: 'Live view of approved, sent & received POs', to: '/posDashboard', icon: 'fa-shopping-cart', color: '#1565c0', bg: '#e3f2fd' },
+            { label: 'Procurement Dashboard', sub: 'Full PO analytics across all statuses', to: '/procuremntDashboard', icon: 'fa-chart-bar', color: '#6a1fb5', bg: '#f3e8ff' },
             { label: 'Inventory', sub: 'View and manage stock levels', to: '/inventory', icon: 'fa-boxes', color: '#37474f', bg: '#eceff1' },
         ],
     },
