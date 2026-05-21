@@ -5,7 +5,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { getFilteredPOSummary } from './dashboard';
+import { getPOSummary } from './dashboard';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 const fmt = (n) => Number(n || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -20,24 +20,11 @@ const fmtM = (v) => {
 
 // ─── Status config ─────────────────────────────────────────────────────────────
 const STATUS_CFG = {
-  DRAFT: { color: '#718096', light: '#f7fafc', label: 'Draft', icon: 'fa-edit' },
-  OPEN: { color: '#00838f', light: '#e0f7fa', label: 'Open', icon: 'fa-folder-open' },
-  'PENDING APPROVAL': { color: '#f9a825', light: '#fffde7', label: 'Pending Approval', icon: 'fa-hourglass-half' },
   APPROVED: { color: '#1565c0', light: '#e3f2fd', label: 'Approved', icon: 'fa-clipboard-check' },
   SENT: { color: '#6a1fb5', light: '#f3e8ff', label: 'Sent', icon: 'fa-paper-plane' },
   RECEIVED: { color: '#2e7d32', light: '#e8f5e9', label: 'Received', icon: 'fa-truck-loading' },
-  CLOSED: { color: '#37474f', light: '#eceff1', label: 'Closed', icon: 'fa-lock' },
-  CANCELLED: { color: '#b71c1c', light: '#fff5f5', label: 'Cancelled', icon: 'fa-times-circle' },
 };
-const getCfg = (s) => STATUS_CFG[s] || { color: '#718096', light: '#f7fafc', label: s, icon: 'fa-circle' };
 const CHART_PALETTE = ['#1565c0', '#6a1fb5', '#2e7d32', '#e65100', '#b71c1c', '#00838f', '#f9a825', '#37474f'];
-const DATE_FIELDS = [
-  { value: 'created_at', label: 'PO Created Date' },
-  { value: 'order_date', label: 'Order Date' },
-  { value: 'expected_delivery_date', label: 'Ex-Mill Date' },
-];
-const today = new Date().toISOString().slice(0, 10);
-const yearStart = `${new Date().getFullYear()}-01-01`;
 
 // ─── Shared cell styles ────────────────────────────────────────────────────────
 const TH = {
@@ -66,28 +53,23 @@ const CurrencyTooltip = ({ active, payload, label }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-const AllPODashboard = () => {
+const ActivePODashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState(['APPROVED', 'SENT', 'RECEIVED']);
   const [expandedRows, setExpandedRows] = useState(new Set());
-  // ── Filter state ──
-  const [dateFrom, setDateFrom] = useState(yearStart);
-  const [dateTo, setDateTo] = useState(today);
-  const [dateField, setDateField] = useState('expected_delivery_date');
-  const [filterStatuses, setFilterStatuses] = useState(['APPROVED', 'SENT', 'RECEIVED']);
 
   // ── Export ────────────────────────────────────────────────────────────────
   const exportToExcel = () => {
     if (!data) return;
     const wb = XLSX.utils.book_new();
-    const allPOs = dataKeys.flatMap((s) => data[s]?.po_details || []);
+    const allPOs = Object.keys(STATUS_CFG).flatMap((s) => data[s]?.po_details || []);
     const stamp = new Date().toLocaleString('en-LK');
     const setColWidths = (ws, widths) => { ws['!cols'] = widths.map((w) => ({ wch: w })); };
 
     // ── Sheet 1: Summary ──────────────────────────────────────────────────────
-    const summaryTotals = dataKeys.reduce(
+    const summaryTotals = Object.keys(STATUS_CFG).reduce(
       (acc, s) => {
         const sd = data[s] || {};
         acc.pos += sd.no_of_pos || 0;
@@ -98,18 +80,15 @@ const AllPODashboard = () => {
       },
       { pos: 0, qty: 0, amount: 0, balance: 0 }
     );
-    const dateFieldLabel = DATE_FIELDS.find((d) => d.value === dateField)?.label || dateField;
     const ws1 = XLSX.utils.aoa_to_sheet([
-      ['PROCUREMENT DASHBOARD — FILTERED PO SUMMARY'],
+      ['PROCUREMENT DASHBOARD — ACTIVE PO SUMMARY'],
       [`Generated: ${stamp}`],
-      [`Date Field: ${dateFieldLabel}   From: ${dateFrom}   To: ${dateTo}`],
-      [`Statuses: ${dataKeys.map((s) => getCfg(s).label).join(', ')}`],
       [],
       ['Status', 'No. of POs', 'Total Qty', 'Total Amount (LKR)', 'Total Balance (LKR)'],
-      ...dataKeys.map((s) => {
+      ...Object.keys(STATUS_CFG).map((s) => {
         const sd = data[s] || {};
         return [
-          getCfg(s).label,
+          STATUS_CFG[s].label,
           sd.no_of_pos || 0,
           sd.total_qty_all_pos || 0,
           sd.total_amount_all_pos || 0,
@@ -216,19 +195,14 @@ const AllPODashboard = () => {
 
   // ── Load ──────────────────────────────────────────────────────────────────
   const loadData = async () => {
-    if (filterStatuses.length === 0) { setError('Select at least one status.'); return; }
     setLoading(true);
     setError('');
     try {
-      const res = await getFilteredPOSummary({
-        statuses: filterStatuses,
-        dateField,
-        from: dateFrom,
-        to: dateTo,
-      });
+      const res = await getPOSummary({});
+      // dashboard.js helper may or may not unwrap the {status,data} envelope depending
+      // on the response shape; handle both cases safely.
       const payload = res?.data ?? res ?? {};
       setData(payload);
-      setSelected(Object.keys(payload)); // show all returned statuses by default
     } catch {
       setError('Unable to load procurement dashboard data. Please try again.');
     } finally {
@@ -236,7 +210,6 @@ const AllPODashboard = () => {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, []);
 
   // ── Interactions ──────────────────────────────────────────────────────────
@@ -247,31 +220,29 @@ const AllPODashboard = () => {
     setExpandedRows((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // ── Derived data ──────────────────────────────────────────────────────────
-  const dataKeys = useMemo(() => Object.keys(data || {}), [data]);
-
   const filteredPOs = useMemo(() =>
     selected.flatMap((s) => data?.[s]?.po_details || []),
     [data, selected]);
 
   const statusChartData = useMemo(() =>
-    dataKeys.map((s) => ({
-      name: getCfg(s).label,
+    Object.keys(STATUS_CFG).map((s) => ({
+      name: STATUS_CFG[s].label,
       status: s,
-      count: data[s]?.no_of_pos || 0,
+      count: data?.[s]?.no_of_pos || 0,
     })),
-    [data, dataKeys]);
+    [data]);
 
   const financialData = useMemo(() =>
-    dataKeys.map((s) => {
-      const pos = data[s]?.po_details || [];
+    Object.keys(STATUS_CFG).map((s) => {
+      const pos = data?.[s]?.po_details || [];
       return {
-        name: getCfg(s).label,
+        name: STATUS_CFG[s].label,
         Amount: pos.reduce((acc, po) => acc + (po.total_amount?.amount || 0), 0),
         Paid: pos.reduce((acc, po) => acc + (po.paid_amount?.amount || 0), 0),
         Balance: pos.reduce((acc, po) => acc + Math.max(0, po.balance?.amount || 0), 0),
       };
     }),
-    [data, dataKeys]);
+    [data]);
 
   const supplierData = useMemo(() => {
     if (!data) return [];
@@ -335,100 +306,14 @@ const AllPODashboard = () => {
           </div>
         )}
 
-        {/* ── Filter Panel ── */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '18px 22px', marginBottom: '20px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)' }}>
-          <div style={{ fontSize: '11px', color: '#718096', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '14px' }}>
-            <i className="fas fa-sliders-h" style={{ marginRight: '6px' }}></i>Filters
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '180px 150px 150px 1fr auto', gap: '12px', alignItems: 'end' }}>
-
-            {/* Date field */}
-            <div>
-              <div style={{ fontSize: '10px', color: '#4a5568', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '5px' }}>DATE FIELD</div>
-              <select
-                value={dateField}
-                onChange={(e) => setDateField(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #e2e8f0', fontSize: '12px', color: '#1a202c', background: '#fff', outline: 'none' }}
-              >
-                {DATE_FIELDS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
-              </select>
-            </div>
-
-            {/* From */}
-            <div>
-              <div style={{ fontSize: '10px', color: '#4a5568', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '5px' }}>FROM</div>
-              <input
-                type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #e2e8f0', fontSize: '12px', color: '#1a202c', background: '#fff', outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            {/* To */}
-            <div>
-              <div style={{ fontSize: '10px', color: '#4a5568', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '5px' }}>TO</div>
-              <input
-                type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #e2e8f0', fontSize: '12px', color: '#1a202c', background: '#fff', outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            {/* Status pills */}
-            <div>
-              <div style={{ fontSize: '10px', color: '#4a5568', fontWeight: '700', letterSpacing: '0.5px', marginBottom: '7px' }}>STATUSES</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                {Object.keys(STATUS_CFG).map((s) => {
-                  const cfg = STATUS_CFG[s];
-                  const active = filterStatuses.includes(s);
-                  return (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setFilterStatuses((prev) =>
-                        active ? prev.filter((x) => x !== s) : [...prev, s]
-                      )}
-                      style={{
-                        padding: '4px 11px', borderRadius: '20px', fontSize: '10.5px', fontWeight: '700',
-                        cursor: 'pointer', transition: 'all 0.12s',
-                        background: active ? cfg.color : '#fff',
-                        color: active ? '#fff' : cfg.color,
-                        border: `1.5px solid ${cfg.color}`,
-                      }}
-                    >
-                      {active && <i className="fas fa-check" style={{ fontSize: '9px', marginRight: '4px' }}></i>}
-                      {cfg.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Apply */}
-            <div>
-              <button
-                onClick={loadData}
-                disabled={loading || filterStatuses.length === 0}
-                style={{
-                  padding: '9px 22px', background: '#000841', color: '#fff', border: 'none',
-                  borderRadius: '6px', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap',
-                  cursor: loading || filterStatuses.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: loading || filterStatuses.length === 0 ? 0.55 : 1,
-                }}
-              >
-                <i className="fas fa-search" style={{ marginRight: '6px' }}></i>
-                {loading ? 'Loading…' : 'Apply'}
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* ── Status Cards (multi-select) ── */}
         <div style={{ marginBottom: '20px' }}>
           <div style={{ fontSize: '11px', color: '#718096', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>
             <i className="fas fa-filter" style={{ marginRight: '6px' }}></i>Filter by Status &mdash; click to toggle
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
-            {(dataKeys.length > 0 ? dataKeys : Object.keys(STATUS_CFG)).map((s) => {
-              const cfg = getCfg(s);
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {Object.keys(STATUS_CFG).map((s) => {
+              const cfg = STATUS_CFG[s];
               const sd = data?.[s] || {};
               const isOn = selected.includes(s);
               return (
@@ -539,7 +424,7 @@ const AllPODashboard = () => {
                       <PieChart>
                         <Pie data={statusChartData.filter((d) => d.count > 0)} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={42} outerRadius={65} paddingAngle={4}>
                           {statusChartData.map((entry) => (
-                            <Cell key={entry.status} fill={getCfg(entry.status).color} />
+                            <Cell key={entry.status} fill={STATUS_CFG[entry.status]?.color} />
                           ))}
                         </Pie>
                         <Tooltip formatter={(v, n) => [v, `${n} POs`]} />
@@ -549,10 +434,10 @@ const AllPODashboard = () => {
                   <div style={{ flex: 1 }}>
                     {statusChartData.map((d) => (
                       <div key={d.status} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                        <div style={{ width: '11px', height: '11px', borderRadius: '3px', background: getCfg(d.status).color, flexShrink: 0 }}></div>
+                        <div style={{ width: '11px', height: '11px', borderRadius: '3px', background: STATUS_CFG[d.status]?.color, flexShrink: 0 }}></div>
                         <div>
                           <div style={{ fontSize: '11px', color: '#718096', fontWeight: '600' }}>{d.name}</div>
-                          <div style={{ fontSize: '16px', fontWeight: '900', color: getCfg(d.status).color, lineHeight: 1.1 }}>{d.count}</div>
+                          <div style={{ fontSize: '16px', fontWeight: '900', color: STATUS_CFG[d.status]?.color, lineHeight: 1.1 }}>{d.count}</div>
                         </div>
                       </div>
                     ))}
@@ -634,7 +519,7 @@ const AllPODashboard = () => {
                   const balance = po.balance?.amount || 0;
                   const balColor = balance > 0 ? '#e65100' : balance < 0 ? '#2e7d32' : '#718096';
                   const rowBg = idx % 2 === 0 ? '#fff' : '#fafbfc';
-                  const sCfg = getCfg(po.status);
+                  const sCfg = STATUS_CFG[po.status] || { color: '#718096', label: po.status };
                   const qtyBreak = po.po_qty?.breakdown || [];
                   const amtBreak = po.total_amount?.breakdown || [];
                   const payBreak = po.paid_amount?.breakdown || [];
@@ -781,4 +666,4 @@ const AllPODashboard = () => {
   );
 };
 
-export default AllPODashboard;
+export default ActivePODashboard;

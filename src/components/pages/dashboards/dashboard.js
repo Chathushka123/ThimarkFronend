@@ -8,6 +8,19 @@ const get = async (path, params = {}) => {
   return (body && typeof body === 'object' && 'success' in body) ? body.data : body;
 };
 
+// ── PO ──────────────────────────────────────────────────────────────
+export const getPOSummary = (params) => get('/purchase-orders/active-summary', params);
+
+// Filtered summary — statuses[] array + date_field + from + to
+export const getFilteredPOSummary = ({ statuses = [], dateField, from, to } = {}) => {
+  const qs = new URLSearchParams();
+  statuses.forEach((s) => qs.append('statuses[]', s));
+  if (dateField) qs.set('date_field', dateField);
+  if (from) qs.set('from', from);
+  if (to) qs.set('to', to);
+  return get(`/purchase-orders/filtered-summary?${qs.toString()}`);
+};
+
 // ── Procurement ──────────────────────────────────────────────────────────────
 export const getProcurementSummary = (params) => get('/dashboard/procurement/summary', params);
 export const getProcurementOrders = (params) => get('/dashboard/procurement/orders', params);

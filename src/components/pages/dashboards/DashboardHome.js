@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 
 const cards = [
   {
+    title: 'Active Purchase orders',
+    description: 'Track purchase spend, order volume, and pending items.',
+    to: '/dashboard/pos'
+  },
+  {
     title: 'Procurement',
     description: 'Track purchase spend, order volume, and pending items.',
     to: '/dashboard/procurement'
@@ -10,23 +15,23 @@ const cards = [
   {
     title: 'Inventory',
     description: 'View stock value, low stock alerts, and warehouse status.',
-    to: '/dashboard/inventory'
+    to: '/inventory'
   },
-  {
-    title: 'Consumption',
-    description: 'Understand material usage and batch-level efficiency.',
-    to: '/dashboard/consumption'
-  },
-  {
-    title: 'GRN',
-    description: 'Monitor GRN completion and supplier performance quickly.',
-    to: '/dashboard/grn'
-  },
-  {
-    title: 'Payments',
-    description: 'See paid vs outstanding values and payable pressure points.',
-    to: '/dashboard/payments'
-  }
+  // {
+  //   title: 'Consumption',
+  //   description: 'Understand material usage and batch-level efficiency.',
+  //   to: '/dashboard/consumption'
+  // },
+  // {
+  //   title: 'GRN',
+  //   description: 'Monitor GRN completion and supplier performance quickly.',
+  //   to: '/dashboard/grn'
+  // },
+  // {
+  //   title: 'Payments',
+  //   description: 'See paid vs outstanding values and payable pressure points.',
+  //   to: '/dashboard/payments'
+  // }
 ];
 
 const DashboardHome = () => {

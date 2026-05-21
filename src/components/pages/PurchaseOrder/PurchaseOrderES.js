@@ -43,7 +43,9 @@ const PurchaseOrder = () => {
         config['inputPoNumber'].setValue("");
         config['inputSupplier'].setValue([]);
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
-        config['inputExpectedDeliveryDate'].setDate('');
+        config['inputExpectedDeliveryDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputPaymentDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputInHouseDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputStatus'].setValue('DRAFT');
         config['inputNotes'].setValue('');
 
@@ -71,6 +73,8 @@ const PurchaseOrder = () => {
         config['inputPoNumber'].setValue("");
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputExpectedDeliveryDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputPaymentDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputInHouseDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputStatus'].setValue('DRAFT');
         config['inputSubtotal'].setValue('0.00');
         config['inputDiscount'].setValue('0.00');
@@ -384,6 +388,8 @@ const PurchaseOrder = () => {
         config['inputSupplier'].setValue('');
         config['inputOrderDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputExpectedDeliveryDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputPaymentDate'].setDate(new Date().toISOString().split('T')[0]);
+        config['inputInHouseDate'].setDate(new Date().toISOString().split('T')[0]);
         config['inputStatus'].setValue('');
         config['inputNotes'].setValue('');
         config['inputSubtotal'].setValue('0.00');
@@ -425,6 +431,8 @@ const PurchaseOrder = () => {
             config['inputSupplier'].setValue([{ name: po.supplier.name, id: po.supplier_id }]);
             config['inputOrderDate'].setDate(po.order_date);
             config['inputExpectedDeliveryDate'].setDate(po.expected_delivery_date || null);
+            config['inputPaymentDate'].setDate(po.payment_date || null);
+            config['inputInHouseDate'].setDate(po.in_house_date || null);
             config['inputStatus'].setValue(po.status);
             config['inputNotes'].setValue(po.notes || '');
 
@@ -473,6 +481,8 @@ const PurchaseOrder = () => {
             const supplierId = config['inputSupplier'].data.value;
             const orderDate = config['inputOrderDate'].data.value;
             const expDate = config['inputExpectedDeliveryDate'].data.value;
+            const paymentDate = config['inputPaymentDate'].data.value;
+            const inHouseDate = config['inputInHouseDate'].data.value;
             const status = config['inputStatus'].data.value;
             const notes = config['inputNotes'].data.value;
             const discountPct = parseFloat(config['inputDiscount'].data.value) || 0;
@@ -544,6 +554,8 @@ const PurchaseOrder = () => {
                 supplier_id: supplierId[0].id,
                 order_date: orderDate ? moment(orderDate).format('YYYY-MM-DD') : null,
                 expected_delivery_date: expDate ? moment(expDate).format('YYYY-MM-DD') : null,
+                payment_date: paymentDate ? moment(paymentDate).format('YYYY-MM-DD') : null,
+                in_house_date: inHouseDate ? moment(inHouseDate).format('YYYY-MM-DD') : null,
                 status: status,
                 notes: notes,
                 subtotal: subtotal.toFixed(2),
@@ -599,6 +611,10 @@ const PurchaseOrder = () => {
         const orderDate = _od ? moment(_od).format('YYYY-MM-DD') : ''
         const _ed = config['inputExpectedDeliveryDate'].data.value
         const expDate = _ed ? moment(_ed).format('YYYY-MM-DD') : ''
+        const _pd = config['inputPaymentDate'].data.value
+        const paymentDate = _pd ? moment(_pd).format('YYYY-MM-DD') : ''
+        const _ihd = config['inputInHouseDate'].data.value
+        const inHouseDate = _ihd ? moment(_ihd).format('YYYY-MM-DD') : ''
         const status = config['inputStatus'].data.value || ''
         const notes = config['inputNotes'].data.value || ''
         const subtotal = parseFloat(config['inputSubtotal'].data.value) || 0
@@ -662,7 +678,7 @@ const PurchaseOrder = () => {
   .party-box .party-sub   { font-size: 12px; color: #555; margin-top: 3px; line-height: 1.6; }
 
   /* ── Delivery / Terms bar ── */
-  .info-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; margin-bottom: 24px; border: 1px solid #dde1ed; border-radius: 6px; overflow: hidden; }
+  .info-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; margin-bottom: 24px; border: 1px solid #dde1ed; border-radius: 6px; overflow: hidden; }
   .info-cell { padding: 10px 14px; border-right: 1px solid #dde1ed; }
   .info-cell:last-child { border-right: none; }
   .info-cell .ic-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; margin-bottom: 3px; }
@@ -753,6 +769,14 @@ const PurchaseOrder = () => {
     <div class="info-cell">
       <div class="ic-label">Expected Delivery</div>
       <div class="ic-value">${expDate || '&mdash;'}</div>
+    </div>
+    <div class="info-cell">
+      <div class="ic-label">Payment Date</div>
+      <div class="ic-value">${paymentDate || '&mdash;'}</div>
+    </div>
+    <div class="info-cell">
+      <div class="ic-label">In House Date</div>
+      <div class="ic-value">${inHouseDate || '&mdash;'}</div>
     </div>
     <div class="info-cell">
       <div class="ic-label">Currency</div>

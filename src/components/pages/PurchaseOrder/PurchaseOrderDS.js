@@ -11,21 +11,19 @@ import {
 // ── Status colour map ─────────────────────────────────────────────────────────
 
 const STATUS_COLORS = {
-    'Draft': { bg: '#6c757d', text: '#fff' },
-    'Pending Approval': { bg: '#fd7e14', text: '#fff' },
-    'Approved': { bg: '#007bff', text: '#fff' },
-    'Sent': { bg: '#6f42c1', text: '#fff' },
-    'Partial': { bg: '#ffc107', text: '#212529' },
-    'Received': { bg: '#28a745', text: '#fff' },
-    'Closed': { bg: '#343a40', text: '#fff' },
+    'DRAFT': { bg: '#6c757d', text: '#fff' },
+    'OPEN': { bg: '#17a2b8', text: '#fff' },
+    'PENDING APPROVAL': { bg: '#fd7e14', text: '#fff' },
+    'APPROVED': { bg: '#007bff', text: '#fff' },
+    'SENT': { bg: '#6f42c1', text: '#fff' },
+    'RECEIVED': { bg: '#28a745', text: '#fff' },
+    'CLOSED': { bg: '#343a40', text: '#fff' },
+    'CANCELLED': { bg: '#dc3545', text: '#fff' },
 }
 
 function StatusBadge({ status }) {
     const c = STATUS_COLORS[status] || { bg: '#adb5bd', text: '#fff' }
-    const label = !status ? 'New'
-        : status === 'Partial' ? 'Partial Receipt'
-            : status === 'Received' ? 'Fully Received'
-                : status
+    const label = !status ? 'New' : status
     const color = !status ? { bg: '#adb5bd', text: '#fff' } : c
     return (
         <span style={{
@@ -499,14 +497,36 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12" >
                                     <span style={S.label}>
                                         <i className="fas fa-shipping-fast" style={{ marginRight: '4px' }}></i>
-                                        Expected Delivery
+                                        Ex Mill
                                     </span>
                                     <DateField
                                         item={componentList["inputExpectedDeliveryDate"]}
                                         dateFormat="yyyy-MM-dd"
                                     />
                                 </div>
+                                {/* Payment Date */}
+                                <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12">
+                                    <span style={S.label}>
+                                        <i className="fas fa-credit-card" style={{ marginRight: '4px' }}></i>
+                                        Payment Date
+                                    </span>
+                                    <DateField
+                                        item={componentList["inputPaymentDate"]}
+                                        dateFormat="yyyy-MM-dd"
+                                    />
+                                </div>
 
+                                {/* In House Date */}
+                                <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12">
+                                    <span style={S.label}>
+                                        <i className="fas fa-warehouse" style={{ marginRight: '4px' }}></i>
+                                        In House Date
+                                    </span>
+                                    <DateField
+                                        item={componentList["inputInHouseDate"]}
+                                        dateFormat="yyyy-MM-dd"
+                                    />
+                                </div>
                                 {/* Status */}
                                 <div className="form-group col-xl-2 col-md-4 col-sm-6 col-12">
                                     <span style={S.label}>
@@ -518,9 +538,8 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                         className="form-control form-control-sm"
                                     />
                                 </div>
-
                                 {/* Notes */}
-                                <div className="form-group col-12">
+                                <div className="form-group col-xl-8 col-md-4 col-sm-6 col-12">
                                     <span style={S.label}>
                                         <i className="fas fa-sticky-note" style={{ marginRight: '4px' }}></i>
                                         Notes / Remarks

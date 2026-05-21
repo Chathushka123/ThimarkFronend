@@ -51,6 +51,7 @@ import InventoryDashboard from './components/pages/dashboards/InventoryDashboard
 import ConsumptionDashboard from './components/pages/dashboards/ConsumptionDashboard';
 import GrnDashboard from './components/pages/dashboards/GrnDashboard';
 import PaymentsDashboard from './components/pages/dashboards/PaymentsDashboard';
+import ActivePODashboard from './components/pages/dashboards/ActivePODashboard';
 // import InvoiceRegistry from './components/pages/InvoiceRegistry/InvoiceRegistryES';
 // import Configuration from './components/pages/Configuration/ConfigurationES';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
@@ -95,6 +96,8 @@ const App = () => {
           <PrivateRoute path="/dashboard/consumption" screen="home" component={ConsumptionDashboard} theme={Theme} />
           <PrivateRoute path="/dashboard/grn" screen="home" component={GrnDashboard} theme={Theme} />
           <PrivateRoute path="/dashboard/payments" screen="home" component={PaymentsDashboard} theme={Theme} />
+          <PrivateRoute path="/dashboard/pos" screen="home" component={ActivePODashboard} theme={Theme} />
+
           {/* <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} /> */}
           <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
           {/* <PrivateRoute path="/grnPendingCompleted" screen="grnPendingCompleted" component={GrnPendingCompleted} theme={Theme} /> */}
