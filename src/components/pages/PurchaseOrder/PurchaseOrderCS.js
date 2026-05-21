@@ -326,6 +326,56 @@ componentListConfig["inputExpectedDeliveryDate"] = {
     event: {}
 }
 
+componentListConfig["inputPaymentDate"] = {
+    objectType: "DateField",
+    schema: {
+        name: "inputPaymentDate",
+        placeholder: "",
+        type: "text",
+        length: 20,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        readOnly: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: { name: "labelPaymentDate", type: "text", visible: true, value: "Payment Date" },
+        class: ""
+    },
+    data: { sqlcolumn: "payment_date", oldValue: null, value: null },
+    class: "",
+    event: {}
+}
+
+componentListConfig["inputInHouseDate"] = {
+    objectType: "DateField",
+    schema: {
+        name: "inputInHouseDate",
+        placeholder: "",
+        type: "text",
+        length: 20,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        readOnly: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: { name: "labelInHouseDate", type: "text", visible: true, value: "In House Date" },
+        class: ""
+    },
+    data: { sqlcolumn: "in_house_date", oldValue: null, value: null },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputStatus"] = {
     objectType: "DropDown",
     schema: {
@@ -353,9 +403,10 @@ componentListConfig["inputStatus"] = {
         { value: "APPROVED", text: "APPROVED" },
         { value: "SENT", text: "SENT" },
         { value: "RECEIVED", text: "RECEIVED" },
+        { value: "CLOSED", text: "CLOSED" },
         { value: "CANCELLED", text: "CANCELLED" },
     ],
-    data: { sqlcolumn: "status", oldValue: "", value: "Draft" },
+    data: { sqlcolumn: "status", oldValue: "", value: "DRAFT" },
     class: "",
     event: {}
 }
