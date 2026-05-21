@@ -91,12 +91,12 @@ const App = () => {
           <PrivateRoute path="/purchaseOrder" screen="purchaseOrder" component={PurchaseOrder} theme={Theme} />
           <PrivateRoute path="/suppliers" screen="suppliers" component={Supplier} theme={Theme} />
           <PrivateRoute exact path="/dashboard" screen="home" component={DashboardHome} theme={Theme} />
-          <PrivateRoute path="/dashboard/procurement" screen="home" component={ProcurementDashboard} theme={Theme} />
-          <PrivateRoute path="/dashboard/inventory" screen="home" component={InventoryDashboard} theme={Theme} />
+          <PrivateRoute path="/procuremntDashboard" screen="home" component={ProcurementDashboard} theme={Theme} />
+          {/* <PrivateRoute path="/dashboard/inventory" screen="home" component={InventoryDashboard} theme={Theme} />
           <PrivateRoute path="/dashboard/consumption" screen="home" component={ConsumptionDashboard} theme={Theme} />
           <PrivateRoute path="/dashboard/grn" screen="home" component={GrnDashboard} theme={Theme} />
-          <PrivateRoute path="/dashboard/payments" screen="home" component={PaymentsDashboard} theme={Theme} />
-          <PrivateRoute path="/dashboard/pos" screen="home" component={ActivePODashboard} theme={Theme} />
+          <PrivateRoute path="/dashboard/payments" screen="home" component={PaymentsDashboard} theme={Theme} /> */}
+          <PrivateRoute path="/posDashboard" screen="home" component={ActivePODashboard} theme={Theme} />
 
           {/* <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} /> */}
           <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
