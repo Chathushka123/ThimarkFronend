@@ -388,7 +388,7 @@ function LineItemsTable({ lineItems, handlers, materialsData }) {
 
 // ── Display function ──────────────────────────────────────────────────────────
 
-export function generatePurchaseOrderDisplay(componentList, currentStatus, lineItems, handlers, materialsData) {
+export function generatePurchaseOrderDisplay(componentList, currentStatus, lineItems, handlers, materialsData, paymentTransactions = []) {
 
     return (
         <>
@@ -570,13 +570,9 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                         <LineItemsTable lineItems={lineItems} handlers={handlers} materialsData={materialsData || []} />
                     </div>
 
-                    {/* ── Card 3: Financial Summary ───────────────────────────── */}
+                    {/* ── Card 3 & Card 4: Financial + Payments ───────────────── */}
                     <div className="row">
-                        {/* Left: empty spacer on large, collapses on mobile */}
-                        {/* <div className="col-xl-7 col-lg-6 d-none d-lg-block"></div> */}
-
-                        {/* Right: financial box */}
-                        <div className="col-xl-5 col-lg-6 col-12">
+                        <div className="col-xl-6 col-lg-6 col-12">
                             <div style={S.card}>
                                 <div style={S.cardHeaderGreen}>
                                     <span>
@@ -669,8 +665,84 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 </div>
                             </div>
                         </div>
-                    </div>
 
+                        <div className="col-xl-6 col-lg-6 col-12">
+                            <div style={S.card}>
+                                <div style={S.cardHeaderDark}>
+                                    <span>
+                                        <i className="fas fa-money-check-alt" style={{ marginRight: '8px' }}></i>
+                                        Payment Transactions
+                                    </span>
+                                    <span style={{ fontSize: '11px', fontWeight: '400', opacity: 0.75 }}>
+                                        Add amount and note, then save transaction
+                                    </span>
+                                </div>
+                                <div style={S.cardBody}>
+                                    <div className="row">
+                                        <div className="form-group col-md-4 col-sm-6 col-12">
+                                            <span style={S.label}>Amount (LKR)</span>
+                                            <TextBox
+                                                item={componentList["inputPaymentAmount"]}
+                                                className="form-control form-control-sm text-right"
+                                                style={{ fontFamily: "'Courier New', monospace", fontWeight: '700' }}
+                                            />
+                                        </div>
+                                        <div className="form-group col-md-8 col-sm-6 col-12">
+                                            <span style={S.label}>Note</span>
+                                            <TextArea
+                                                item={componentList["inputPaymentNote"]}
+                                                className="form-control form-control-sm"
+                                                rows={2}
+                                                style={{ resize: 'vertical' }}
+                                            />
+                                        </div>
+                                        <div className="form-group col-12 d-flex justify-content-end">
+                                            <Button
+                                                className="btn btn-primary btn-sm"
+                                                item={componentList["buttonAddPaymentTransaction"]}
+                                            >
+                                                <i className="fas fa-plus-circle" style={{ marginRight: '6px' }}></i>
+                                                Add Transaction
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ overflowX: 'auto', marginTop: '8px' }}>
+                                        <table style={{ ...S.itemTable, minWidth: '460px' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={S.itemTh} width="40">#</th>
+                                                    <th style={{ ...S.itemTh, textAlign: 'right' }} width="150">Amount (LKR)</th>
+                                                    <th style={S.itemTh}>Note</th>
+                                                    <th style={S.itemTh} width="170">Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(!paymentTransactions || paymentTransactions.length === 0) && (
+                                                    <tr>
+                                                        <td colSpan={4} style={S.itemEmptyCell}>
+                                                            No payment transactions yet
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                                {(paymentTransactions || []).map((tx, idx) => (
+                                                    <tr key={tx.id || idx} style={idx % 2 === 0 ? S.itemRowEven : S.itemRowOdd}>
+                                                        <td style={{ ...S.itemTd, textAlign: 'center' }}>{idx + 1}</td>
+                                                        <td style={{ ...S.itemTd, textAlign: 'right', fontFamily: "'Courier New', monospace", fontWeight: '700' }}>
+                                                            {(parseFloat(tx.amount) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </td>
+                                                        <td style={S.itemTd}>{tx.note || '-'}</td>
+                                                        <td style={S.itemTd}>{tx.created_at || tx.payment_date || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     
                 </div>
             </ControlCenter>
         </>

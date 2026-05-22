@@ -10,7 +10,7 @@ const Material = () => {
     const [categories, setCategories] = useState([
         { value: 'Not selected', text: '- Select Category -' },
         { value: 'material', text: 'Material' },
-        { value: 'consumable', text: 'Consumable' },
+        { value: 'consumble', text: 'Consumable' },
         { value: 'returnable', text: 'Returnable' }
     ]);
     function reRender() {
@@ -400,7 +400,7 @@ const Material = () => {
                 return;
             }
 
-            if (!['material', 'consumable', 'returnable'].includes(category)) {
+            if (!['material', 'consumble', 'returnable'].includes(category)) {
                 config["CONTROL_CENTER"].promptWarningMessage("A valid category should be selected!", "");
                 return;
             }

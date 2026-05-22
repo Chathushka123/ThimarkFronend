@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { generateGrnPendingCompletedDisplay } from './GrnPendingCompletedDS'
 import config from './GrnPendingCompletedCS'
 import API from '../../../../api/API'
@@ -8,14 +8,18 @@ const GrnPendingCompleted = () => {
     const [count, setCount] = useState(0)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [fromDate, setFromDate] = useState(() => {
+        const now = new Date()
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+    })
+    const [toDate, setToDate] = useState(() => {
+        const now = new Date()
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    })
 
     useEffect(() => {
         config['CONTROL_CENTER'].state.new = true
         config['CONTROL_CENTER'].state.modified = false
-
-        if (!config['inputQueryType'].data.value) {
-            config['inputQueryType'].setValue('1')
-        }
     }, [])
 
     config['buttonRunReport'].event.onClick = handleRunReport
@@ -24,15 +28,6 @@ const GrnPendingCompleted = () => {
     function setButtonsDisabled(value) {
         if (config['buttonRunReport'].setDisabled) config['buttonRunReport'].setDisabled(value)
         if (config['buttonDownloadCsv'].setDisabled) config['buttonDownloadCsv'].setDisabled(value)
-    }
-
-    function getQueryType() {
-        const qt = String(config['inputQueryType'].data.value || '')
-        if (!qt) {
-            config['CONTROL_CENTER'].promptWarningMessage('Please select a query type', '')
-            return null
-        }
-        return qt
     }
 
     function extractErrorMessage(err, fallback) {
@@ -53,8 +48,10 @@ const GrnPendingCompleted = () => {
     }
 
     async function handleRunReport() {
-        const queryType = getQueryType()
-        if (!queryType) return
+        if (!fromDate || !toDate) {
+            config['CONTROL_CENTER'].promptWarningMessage('Please select both From Date and To Date', '')
+            return
+        }
 
         document.getElementById('spinner').style.display = ''
         setLoading(true)
@@ -62,8 +59,8 @@ const GrnPendingCompleted = () => {
         setButtonsDisabled(true)
 
         try {
-            const response = await API.get('/reports/grn-pending-vs-completed', {
-                params: { query_type: queryType }
+            const response = await API.get('/reports/grn-report', {
+                params: { from_date: fromDate, to_date: toDate }
             })
 
             const payload = response?.data || {}
@@ -93,19 +90,21 @@ const GrnPendingCompleted = () => {
     }
 
     async function handleDownloadCsv() {
-        const queryType = getQueryType()
-        if (!queryType) return
+        if (!fromDate || !toDate) {
+            config['CONTROL_CENTER'].promptWarningMessage('Please select both From Date and To Date', '')
+            return
+        }
 
         document.getElementById('spinner').style.display = ''
         setButtonsDisabled(true)
 
         try {
-            const response = await API.get('/reports/grn-pending-vs-completed/download', {
-                params: { query_type: queryType },
+            const response = await API.get('/reports/grn-report/download', {
+                params: { from_date: fromDate, to_date: toDate },
                 responseType: 'blob',
             })
 
-            let filename = `grn_pending_vs_completed_q${queryType}.csv`
+            let filename = `grn_report_${fromDate}_${toDate}.csv`
             const disposition = response.headers?.['content-disposition']
             if (disposition) {
                 const match = disposition.match(/filename[^;=\n]*=["']?([^"';\n]+)["']?/)
@@ -131,14 +130,11 @@ const GrnPendingCompleted = () => {
         }
     }
 
-    const columns = useMemo(() => {
-        if (!Array.isArray(rows) || rows.length === 0) return []
-        return Object.keys(rows[0])
-    }, [rows])
+    const columns = ['Date', 'RMPONO', 'supplier', 'code', 'name', 'unite_price', 'qty', 'grn_status','remarks']
 
     return generateGrnPendingCompletedDisplay(
         config,
-        { rows, columns, count, loading, error }
+        { rows, columns, count, loading, error, fromDate, toDate, setFromDate, setToDate }
     )
 }
 

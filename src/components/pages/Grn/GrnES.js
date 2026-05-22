@@ -31,6 +31,7 @@ const Grn = () => {
     config["buttonCompleteGrnNo"].event.onClick = handleCompleteGrnNo;
     config["buttonPoItemNotFoundYes"].event.onClick = handlePoItemNotFoundYes;
     config["buttonPoItemNotFoundNo"].event.onClick = handlePoItemNotFoundNo;
+    config['inputLocationId'].event.onBlur = handleBlurLocationId;
 
     // Advance Search
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
@@ -130,7 +131,7 @@ const Grn = () => {
             });
             response.data.forEach((value) => {
                 pos.push({
-                    "value": value.po_number,
+                    "value": value.id,
                     "text": value.po_number,
                     "_fullData": value
                 });
@@ -143,6 +144,42 @@ const Grn = () => {
         }
     }
 
+    async function handleBlurLocationId() {
+        const locationId = config['inputLocationId'].data.value;
+        config['inputMaterial'].setValue("");
+        config['inputPrice'].setValue("");
+        config['inputPrice'].data.value = "";
+        if (!locationId || locationId.trim() === "") return;
+
+        try {
+            const id = String(locationId).trim();
+            const response = await API.get(`warehouse-locations/${id}`);
+            console.log(response.data);
+            if(response.status === 200) {
+                if(response.data.stock_material){
+                    const material = response.data.stock_material.code + " - " + response.data.stock_material.name;
+                    const materialId = response.data.stock_material.id;
+                    config['inputMaterial'].setValue(material);
+
+                    let unitPrice = 0;
+                    if (selectedPoDetails && Array.isArray(selectedPoDetails.items)) {
+                        const matchedItem = selectedPoDetails.items.find(
+                            item => String(item.material_id) === String(materialId)
+                        );
+                        if (matchedItem) {
+                            unitPrice = Number(matchedItem.unit_price);
+                        }
+                    }
+                    config['inputPrice'].setValue(String(unitPrice));
+                }
+            }
+            reRender();
+        } catch (error) {
+            console.log(error);
+            handleError(error);
+        }
+    }
+
     async function __getPoDetailsById(poId) {
         if (!poId) return null;
         const response = await API.get(`purchase-orders/${poId}/details`);
@@ -151,12 +188,13 @@ const Grn = () => {
 
     async function handlePoChange() {
         const selectedPoNumber = config['inputRmpoNo'].data.value;
+        
         if (!selectedPoNumber || selectedPoNumber === "") {
             setSelectedPoDetails(null);
             return;
         }
         const allPOs = config['inputRmpoNo']._allPOs || [];
-        const found = allPOs.find(p => String(p.po_number) === String(selectedPoNumber));
+        const found = allPOs.find(p => String(p.id) === String(selectedPoNumber));
 
         if (!found?.id) {
             setSelectedPoDetails(null);
@@ -648,7 +686,7 @@ const Grn = () => {
                 const allPOs = config['inputRmpoNo']._allPOs || [];
                 const foundPO = allPOs.find(p =>
                     String(p.id) === String(data.purchase_order_id) ||
-                    String(p.po_number) === String(data.rmpono)
+                    String(p.id) === String(data.rmpono)
                 );
 
                 if (foundPO?.id) {

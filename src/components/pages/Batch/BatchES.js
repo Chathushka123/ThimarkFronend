@@ -5,6 +5,7 @@ import API from '../../../api/API';
 
 const Batch = () => {
     let [rendered, setRendered] = useState(true);
+    let [models, setModels] = useState([]);
 
     function reRender() {
         setRendered(!rendered);
@@ -15,7 +16,8 @@ const Batch = () => {
     /*********************************************************/
 
     config["CONTROL_CENTER"].renderFunction = reRender;
-    config['inputModel'].event.onSelect = handleSelectModel;
+    config['inputMainModel'].event.onSelect = handleSelectModel;
+    config["buttonAddToGrid"].event.onClick = handleAddToGrid;
 
     config["CONTROL_CENTER"].event.onSave = handleSave;
 
@@ -93,12 +95,21 @@ const Batch = () => {
             // Get form values
             const id = config['inputBatchID'].data.value;
             const batch_no = config['inputBatchNo'].data.value;
-            const model = config['inputModel'].getValue(); // Assuming this returns an array of selected models
+            const main_model = config['inputMainModel'].getValue(); // Assuming this returns an array of selected models
 
             const qtyData = config['gridSize'].data; // Assuming this returns an array of size and quantity objects
-            let qty_json = {};
+            let qty_data = [];
             qtyData.forEach(item => {
-                qty_json[item.size] = item.quantity > 0 ? item.quantity : 0; // Ensure quantity is not negative
+                console.log("Item in Grid:", item);
+                if(item._rowstate == 'NEW' || item._rowstate == 'DELETED' || item._rowstate == 'MODIFIED'){
+                    qty_data.push({
+                        id: item.id,
+                        model_id: item.model_id,
+                        quantity: item.quantity,
+                        _rowstate: item._rowstate
+                    });
+                }
+                
             });
 
             // Validations 
@@ -106,8 +117,8 @@ const Batch = () => {
                 config["CONTROL_CENTER"].promptWarningMessage("Batch No is required", "");
                 return;
             }
-            if(model.length === 0){
-                config["CONTROL_CENTER"].promptWarningMessage("Please Select the Model", "");
+            if(main_model.length === 0){
+                config["CONTROL_CENTER"].promptWarningMessage("Please Select the Main Model", "");
                 return;
             }
 
@@ -116,8 +127,8 @@ const Batch = () => {
             const apiRequest = {
                 id: parseInt(id),
                 batch_no: batch_no,
-                qty_json: qty_json,
-                model_id: model[0]
+                qty_data: qty_data,
+                main_model_id: main_model[0]
             };
 
             // Call API based on whether it's create or update
@@ -126,11 +137,14 @@ const Batch = () => {
             if (response.status === 200 || response.status === 201) {
                
                 if (!id || id == "") {
+                    id =response.data.data.id;
                     config['inputBatchID'].setValue(response.data.data.id);
                 }
 
                 config["CONTROL_CENTER"].promptBaseMessage("Batch saved successfully", "");
-                resetInputForm()
+                //resetInputForm()
+                await formPopulate(id);
+
 
                
             } else {
@@ -191,17 +205,29 @@ const Batch = () => {
     async function __getModels(){
         try{
 
-            const statusData = await API.get(`models`)
-            
-            let models = [];
-            statusData.data.forEach((value, index) => {
-                models.push({
-                    "id":value.id,
-                    "name":value.name
-                })
+            const modelData = await API.get(`models`)
+            setModels(modelData.data);
+
+            let main_models = [];
+
+            const uniqueMainModelIds = new Set();
+            modelData.data.forEach((value) => {
+                if (
+                    value &&
+                    value.main_model &&
+                    value.main_model.id !== undefined &&
+                    value.main_model.name !== undefined &&
+                    !uniqueMainModelIds.has(value.main_model.id)
+                ) {
+                    uniqueMainModelIds.add(value.main_model.id);
+                    main_models.push({
+                        "id": value.main_model.id,
+                        "name": value.main_model.name
+                    });
+                }
             });
 
-            config['inputModel'].setOptions(models);
+            config['inputMainModel'].setOptions(main_models);
     
             
 
@@ -218,19 +244,17 @@ const Batch = () => {
 
         try{
 
-            const Data = await API.get(`models/${model_id}`)
-            const sizeJson = Data.data.sizes || [];
-
-            let sizeRows = [];
-            sizeJson.forEach((value, index) => {
-
-                sizeRows.push({
-                    "size": value,
-                    "quantity": ""
-                })
-            });
-            console.log(sizeRows);
-            config['gridSize'].setData(sizeRows);
+                const filteredModels = models.filter(model => model.main_model_id === model_id);
+                if (filteredModels.length > 0) {
+                    let filterModelArray = [];
+                    filteredModels.forEach((value) => {
+                        filterModelArray.push({
+                            "id": value.id,
+                            "name": value.name
+                        });
+                    });
+                    config['inputModel'].setOptions(filterModelArray);
+                }
             
 
         }catch(err){
@@ -298,7 +322,7 @@ const Batch = () => {
                     data.push({
                         "batch_id_search": value.id,
                         "batch_no_search": value.batch_no,
-                        "model_search": value.model.name
+                        "model_search": value.main_model.name
                     })
                 });
             }
@@ -324,7 +348,7 @@ const Batch = () => {
                 const orderby = "created_at:desc";
                 const limit = 25;
                 const relations = [
-                    "model"
+                    "mainModel"
                 ];
 
     
@@ -376,7 +400,7 @@ const Batch = () => {
                     data.push({
                         "batch_id_search": value.id,
                         "batch_no_search": value.batch_no,
-                        "model_search": value.model_name
+                        "model_search": value.main_model_name
                     }) })
                 ;
             }
@@ -400,7 +424,7 @@ const Batch = () => {
                         
                             "id": searchCriteria.batch_id_search === "" ? "%" : searchCriteria.batch_id_search,
                             "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
-                            "model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search
+                            "main_model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search
                         
                     };
                     const getSearchDetails = await API.post(`Batch/getSearchByBatch`, apiRequest);
@@ -442,28 +466,26 @@ const Batch = () => {
                 let batchData = response.data.data;
                 config['inputBatchID'].setValue(batchData.id);
                 config['inputBatchNo'].setValue(batchData.batch_no);
-                config['inputModel'].setValueByID(batchData.model_id);
+                config['inputMainModel'].setValueByID(batchData.main_model_id);
 
-                 const sizeJson = batchData.qty_json || {};
+                handleSelectModel({id: batchData.main_model_id}, {id: batchData.main_model_id});
+
+                 const size_data = batchData.batch_details || [];
                  let gridRows = [];
 
-                 if (Array.isArray(sizeJson)) {
-                    sizeJson.forEach((value) => {
+                 if (Array.isArray(size_data)) {
+                    size_data.forEach((value) => {
+                        console.log("Value in size_data:", value);
                         if (value && typeof value === "object") {
                             gridRows.push({
-                                "size": value.size || "",
+                                "id": value.id,
+                                "model_id": value.model_id,
+                                "model_name": value.model.name,
                                 "quantity": value.quantity || 0
                             });
                         }
                     });
-                 } else {
-                    Object.entries(sizeJson).forEach(([size, quantity]) => {
-                        gridRows.push({
-                            "size": size,
-                            "quantity": quantity || 0
-                        });
-                    });
-                 }
+                 } 
 
                  config['gridSize'].setData(gridRows);
                 config["CONTROL_CENTER"].state.populate = true;
@@ -479,6 +501,42 @@ const Batch = () => {
         finally {
             document.getElementById("spinner").style.display = "none";
         }
+    }
+
+    function handleAddToGrid() {
+        // Get values from multiselects
+        
+        const selectedModel= config["inputModel"].getSelectedArray() || [];
+        const quantity = config["inputQuantity"].data.value;
+        
+        if (selectedModel.length === 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("Please select  model", "");
+            return;
+        }
+        
+        if (!quantity || quantity === "") {
+            config["CONTROL_CENTER"].promptWarningMessage("Please enter quantity", "");
+            return;
+        }
+        
+        if (quantity === 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be zero", "");
+            return;
+        }
+        
+        let newRows ={
+            
+            model_id: selectedModel[0].id,
+            model_name: selectedModel[0].name,
+            quantity: quantity
+        }
+        
+        config["gridSize"].addRow(newRows);
+        
+        // Clear selection fields
+        
+        config["inputModel"].setValue([]);
+        config["inputQuantity"].setValue("");
     }
 
 
