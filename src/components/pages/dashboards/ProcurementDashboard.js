@@ -211,6 +211,33 @@ const AllPODashboard = () => {
     setColWidths(ws4, [22, 28, 12, 22, 18, 14, 22, 30]);
     XLSX.utils.book_append_sheet(wb, ws4, 'Payment History');
 
+    // ── Sheet 5: GRN Details ──────────────────────────────────────────────
+    const grnRows = [
+      ['PO Number', 'Supplier', 'Status', 'Material', 'GRN Qty', 'Available Qty', 'GRN Price (LKR)', 'GRN Value (LKR)'],
+    ];
+    allPOs.forEach((po) => {
+      const grnBreak = po.grn_qty?.breakdown || [];
+      if (grnBreak.length === 0) {
+        grnRows.push([po.po_number || '', po.supplier_name || '', po.status || '', '—', 0, 0, 0, 0]);
+      } else {
+        grnBreak.forEach((g) => {
+          grnRows.push([
+            po.po_number || '',
+            po.supplier_name || '',
+            po.status || '',
+            g.material_name || '',
+            g.qty || 0,
+            g.available_qty || 0,
+            g.grn_price || 0,
+            g.grn_value || 0,
+          ]);
+        });
+      }
+    });
+    const ws5 = XLSX.utils.aoa_to_sheet(grnRows);
+    setColWidths(ws5, [22, 28, 12, 30, 12, 14, 18, 18]);
+    XLSX.utils.book_append_sheet(wb, ws5, 'GRN Details');
+
     XLSX.writeFile(wb, `PO-Dashboard-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
@@ -295,6 +322,17 @@ const AllPODashboard = () => {
       amount: all.reduce((s, p) => s + (p.total_amount?.amount || 0), 0),
       paid: all.reduce((s, p) => s + (p.paid_amount?.amount || 0), 0),
       balance: all.reduce((s, p) => s + (p.balance?.amount || 0), 0),
+    };
+  }, [data]);
+
+  const grnTotals = useMemo(() => {
+    if (!data) return { qty: 0, availableQty: 0, value: 0, poQty: 0 };
+    const all = Object.values(data).flatMap((d) => d?.po_details || []);
+    return {
+      qty: all.reduce((s, p) => s + (p.grn_qty?.qty || 0), 0),
+      availableQty: all.reduce((s, p) => s + (p.grn_qty?.available_qty || 0), 0),
+      value: all.reduce((s, p) => s + (p.grn_qty?.grn_value || 0), 0),
+      poQty: all.reduce((s, p) => s + (p.po_qty?.qty || 0), 0),
     };
   }, [data]);
 
@@ -464,15 +502,17 @@ const AllPODashboard = () => {
                     <span style={{ fontSize: '13px', color: '#718096', fontWeight: '600' }}>POs</span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                     {[
-                      { label: 'TOTAL VALUE', value: sd.total_amount_all_pos },
-                      { label: 'BALANCE', value: sd.total_balance_all_pos },
+                      { label: 'TOTAL VALUE', value: sd.total_amount_all_pos, isQty: false },
+                      { label: 'BALANCE', value: sd.total_balance_all_pos, isQty: false },
+                      { label: 'GRN QTY', value: sd.total_grn_qty_all_pos, isQty: true },
+                      { label: 'GRN VALUE', value: sd.total_grn_value_all_pos, isQty: false },
                     ].map((k) => (
                       <div key={k.label} style={{ background: 'rgba(255,255,255,0.75)', borderRadius: '7px', padding: '7px 10px' }}>
                         <div style={{ fontSize: '9px', color: '#888', fontWeight: '700', letterSpacing: '0.5px' }}>{k.label}</div>
                         <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#1a202c', fontFamily: 'monospace', marginTop: '2px' }}>
-                          {loading ? '…' : `LKR ${Number(k.value || 0).toLocaleString('en-LK', { maximumFractionDigits: 0 })}`}
+                          {loading ? '…' : k.isQty ? fmtN(k.value) : `LKR ${Number(k.value || 0).toLocaleString('en-LK', { maximumFractionDigits: 0 })}`}
                         </div>
                       </div>
                     ))}
@@ -500,6 +540,31 @@ const AllPODashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── GRN KPI Strip ── */}
+        <div style={{ marginBottom: '22px' }}>
+          <div style={{ fontSize: '11px', color: '#00838f', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '10px' }}>
+            <i className="fas fa-warehouse" style={{ marginRight: '6px' }}></i>GRN Summary — Goods Received
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+            {[
+              { label: 'Total GRN Qty', value: fmtN(grnTotals.qty), icon: 'fa-boxes', accent: '#00838f', sub: 'Total units received across all POs' },
+              { label: 'Available Qty', value: fmtN(grnTotals.availableQty), icon: 'fa-layer-group', accent: '#2e7d32', sub: 'Units still in stock' },
+              { label: 'Consumed Qty', value: fmtN(grnTotals.qty - grnTotals.availableQty), icon: 'fa-dolly', accent: '#6a1fb5', sub: 'Units consumed from stock' },
+              { label: 'Total GRN Value', value: fmtK(grnTotals.value), icon: 'fa-receipt', accent: '#e65100', sub: `${grnTotals.poQty ? ((grnTotals.qty / grnTotals.poQty) * 100).toFixed(1) : 0}% of PO qty received` },
+            ].map((k) => (
+              <div key={k.label} style={{ background: '#fff', borderRadius: '10px', padding: '14px 18px', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', borderLeft: `4px solid ${k.accent}` }}>
+                <div style={{ fontSize: '11px', color: '#718096', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '5px' }}>
+                  <i className={`fas ${k.icon}`} style={{ marginRight: '5px', color: k.accent }}></i>{k.label}
+                </div>
+                <div style={{ fontSize: '16px', fontWeight: '800', color: '#1a202c', fontFamily: 'monospace', marginBottom: '3px' }}>
+                  {loading ? '…' : k.value}
+                </div>
+                <div style={{ fontSize: '10px', color: '#a0aec0' }}>{k.sub}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* ── Charts Row ── */}
@@ -609,21 +674,26 @@ const AllPODashboard = () => {
                   <th style={TH}>Supplier</th>
                   <th style={TH}>Order Date</th>
                   <th style={TH}>Exp. Delivery</th>
+                  <th style={TH}>Payment Date</th>
+                  <th style={TH}>In House Date</th>
                   <th style={TH}>Status</th>
                   <th style={{ ...TH, textAlign: 'right' }}>Total Qty</th>
                   <th style={{ ...TH, textAlign: 'right' }}>Amount (LKR)</th>
                   <th style={{ ...TH, textAlign: 'right' }}>Paid (LKR)</th>
                   <th style={{ ...TH, textAlign: 'right' }}>Balance (LKR)</th>
+                  <th style={{ ...TH, textAlign: 'right' }}>GRN Qty</th>
+                  <th style={{ ...TH, textAlign: 'right' }}>Available Qty</th>
+                  <th style={{ ...TH, textAlign: 'right' }}>GRN Value (LKR)</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px', color: '#aaa', fontSize: '13px' }}>
+                  <tr><td colSpan={15} style={{ textAlign: 'center', padding: '40px', color: '#aaa', fontSize: '13px' }}>
                     <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>Loading data…
                   </td></tr>
                 )}
                 {!loading && filteredPOs.length === 0 && (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '13px' }}>
+                  <tr><td colSpan={15} style={{ textAlign: 'center', padding: '48px', color: '#aaa', fontSize: '13px' }}>
                     <i className="fas fa-inbox" style={{ marginRight: '8px', fontSize: '18px' }}></i>
                     No records for the selected statuses.
                   </td></tr>
@@ -654,6 +724,8 @@ const AllPODashboard = () => {
                         <td style={TD}>{po.supplier_name || '—'}</td>
                         <td style={TD}>{po.order_date || '—'}</td>
                         <td style={TD}>{po.expected_delivery_date || '—'}</td>
+                        <td style={TD}>{po.payment_date || '—'}</td>
+                        <td style={TD}>{po.in_house_date || '—'}</td>
                         <td style={TD}>
                           <span style={{ background: `${sCfg.color}18`, color: sCfg.color, padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: '700', whiteSpace: 'nowrap' }}>
                             {po.status}
@@ -663,11 +735,14 @@ const AllPODashboard = () => {
                         <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', fontWeight: '700' }}>{fmt(po.total_amount?.amount)}</td>
                         <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', color: '#2e7d32' }}>{fmt(po.paid_amount?.amount)}</td>
                         <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', fontWeight: '700', color: balColor }}>{fmt(balance)}</td>
+                        <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace' }}>{fmtN(po.grn_qty?.qty)}</td>
+                        <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', color: po.grn_qty?.available_qty > 0 ? '#2e7d32' : '#718096' }}>{fmtN(po.grn_qty?.available_qty)}</td>
+                        <td style={{ ...TD, textAlign: 'right', fontFamily: 'monospace', color: '#00838f' }}>{fmt(po.grn_qty?.grn_value)}</td>
                       </tr>
 
                       {exp && (
                         <tr>
-                          <td colSpan={10} style={{ padding: 0, background: '#f0f4ff', borderBottom: '2px solid #c5cae9' }}>
+                          <td colSpan={15} style={{ padding: 0, background: '#f0f4ff', borderBottom: '2px solid #c5cae9' }}>
                             <div style={{ padding: '16px 20px 16px 48px' }}>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
 
@@ -763,6 +838,48 @@ const AllPODashboard = () => {
                                     )}
                                   </table>
                                 </div>
+                              </div>
+
+                              {/* GRN Details */}
+                              <div style={{ marginTop: '14px' }}>
+                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                                  <i className="fas fa-warehouse" style={{ marginRight: '5px', color: '#00838f' }}></i>GRN Details
+                                </div>
+                                <table style={{ width: '100%', fontSize: '11.5px', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                                  <thead>
+                                    <tr style={{ background: '#e0f7fa' }}>
+                                      <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: '700', color: '#4a5568', fontSize: '11px' }}>Material</th>
+                                      <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#4a5568', fontSize: '11px' }}>GRN Qty</th>
+                                      <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#4a5568', fontSize: '11px' }}>Available Qty</th>
+                                      <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#4a5568', fontSize: '11px' }}>GRN Price</th>
+                                      <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#4a5568', fontSize: '11px' }}>GRN Value</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(po.grn_qty?.breakdown || []).length === 0
+                                      ? <tr><td colSpan={5} style={{ textAlign: 'center', padding: '12px', color: '#aaa', fontSize: '11px' }}>No GRN recorded</td></tr>
+                                      : (po.grn_qty.breakdown).map((g, i) => (
+                                        <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f0fdff' }}>
+                                          <td style={{ padding: '6px 10px', color: '#2d3748' }}>{g.material_name || '—'}</td>
+                                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{fmtN(g.qty)}</td>
+                                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: g.available_qty > 0 ? '#2e7d32' : '#718096' }}>{fmtN(g.available_qty)}</td>
+                                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{fmt(g.grn_price)}</td>
+                                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '700' }}>{fmt(g.grn_value)}</td>
+                                        </tr>
+                                      ))}
+                                  </tbody>
+                                  {(po.grn_qty?.breakdown || []).length > 0 && (
+                                    <tfoot>
+                                      <tr style={{ background: '#e0f7fa', borderTop: '2px solid #b2ebf2' }}>
+                                        <td style={{ padding: '7px 10px', fontWeight: '700', fontSize: '11.5px', color: '#1a202c' }}>Total</td>
+                                        <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '800', color: '#00838f' }}>{fmtN(po.grn_qty?.qty)}</td>
+                                        <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '800', color: '#2e7d32' }}>{fmtN(po.grn_qty?.available_qty)}</td>
+                                        <td></td>
+                                        <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '800', color: '#00838f' }}>{fmt(po.grn_qty?.grn_value)}</td>
+                                      </tr>
+                                    </tfoot>
+                                  )}
+                                </table>
                               </div>
                             </div>
                           </td>
