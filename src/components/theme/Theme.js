@@ -1,31 +1,13 @@
 import React from "react";
 import SettingsIcon from "../../images/settings-icon.svg";
 import LogoutIcon from "../../images/power.svg";
-import { getUser, removeUserSession } from '../../utils/Common';
-import { useHistory } from 'react-router-dom';
-import API from '../../api/API';
+import { logoutUser } from '../../api/API';
 
 const Theme = ({ sidebar: Sidebar, main: Main, footer: Footer, }) => {
 
-  const history = useHistory();
-
   // handle click event of logout button
   const handleLogout = () => {
-    API.post('logout').then(response => {
-      console.log("************response.data**********");
-      console.log(response.data);
-       
-      removeUserSession();
-      history.push('/login');
-      //window.location.reload();
-    }).catch(error => {
-      console.log("************error.response**********");
-      console.log(error.response);
-      console.log("Log Out Error");
-      removeUserSession();
-      history.push('/login');
-      //window.location.reload();
-    });
+    logoutUser();
   }
 
 

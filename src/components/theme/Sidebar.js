@@ -1,23 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { getUser, removeUserSession } from "../../utils/Common";
-import { useHistory } from "react-router-dom";
+import { getUser } from "../../utils/Common";
 import Logo from "../../images/logo.png";
 import SettingsIcon from "../../images/settings-icon.svg";
 import LogoutIcon from "../../images/logout-icon.svg";
 import ReactTooltip from 'react-tooltip';
-import API from '../../api/API';
+import API, { logoutUser } from '../../api/API';
 
 const Sidebar = () => {
   const user = getUser();
-  const history = useHistory();
   const [toggle, setToggle] = useState(false);
   const [navigator, setNavigator] = useState();
   const [navigationData, setNavigationData] = useState([]);
 
   // handle click event of logout button
   const handleLogout = () => {
-    removeUserSession();
-    history.push(`/login`);
+    logoutUser();
   };
 
   useEffect(() => {
