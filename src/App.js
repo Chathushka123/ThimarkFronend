@@ -34,6 +34,9 @@ import Inventory from './components/pages/Inventory/InventoryES';
 import CostSheetView from './components/pages/CostSheetView/CostSheetES';
 import PurchaseOrder from './components/pages/PurchaseOrder/PurchaseOrderES';
 import Supplier from './components/pages/Supplier/SupplierES';
+import Team from './components/pages/Team/TeamES';
+import Shift from './components/pages/Shift/ShiftES';
+import DailyShift from './components/pages/DailyShift/DailyShiftES';
 import CSCharts from './components/pages/CostSheetCharts/CSCharts';
 import Returnable from './components/pages/Returnable/ReturnableES';
 import StockTransfer from './components/pages/StockTransfer/StockTransferES';
@@ -90,6 +93,9 @@ const App = () => {
 
           <PrivateRoute path="/purchaseOrder" screen="purchaseOrder" component={PurchaseOrder} theme={Theme} />
           <PrivateRoute path="/suppliers" screen="suppliers" component={Supplier} theme={Theme} />
+          <PrivateRoute path="/team" screen="team" component={Team} theme={Theme} />
+          <PrivateRoute path="/shift" screen="shift" component={Shift} theme={Theme} />
+          <PrivateRoute path="/dailyShift" screen="dailyShift" component={DailyShift} theme={Theme} />
           <PrivateRoute exact path="/dashboard" screen="home" component={DashboardHome} theme={Theme} />
           <PrivateRoute path="/procuremntDashboard" screen="home" component={ProcurementDashboard} theme={Theme} />
           {/* <PrivateRoute path="/dashboard/inventory" screen="home" component={InventoryDashboard} theme={Theme} />

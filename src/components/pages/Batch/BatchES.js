@@ -43,11 +43,11 @@ const Batch = () => {
 
     // Set initial values of Component Schema etc.
 
-    // Executes when Page Load 
-    useEffect(async() => {
-       // __checkIsAuthorized();
-       __setFormReadWrite(true);
-         await __getModels();
+    // Executes when Page Load
+    useEffect(async () => {
+        // __checkIsAuthorized();
+        __setFormReadWrite(true);
+        await __getModels();
     }, []);
 
     function __checkIsAuthorized() {
@@ -77,7 +77,7 @@ const Batch = () => {
     /********        User Defined Functions         **********/
     /*********************************************************/
 
-    function resetInputForm () {
+    function resetInputForm() {
         config['inputBatchID'].setValue("");
         config['inputBatchNo'].setValue("");
         config['inputModel'].setValue([{}]);
@@ -93,7 +93,7 @@ const Batch = () => {
             document.getElementById("spinner").style.display = "";
 
             // Get form values
-            const id = config['inputBatchID'].data.value;
+            let id = config['inputBatchID'].data.value;
             const batch_no = config['inputBatchNo'].data.value;
             const main_model = config['inputMainModel'].getValue(); // Assuming this returns an array of selected models
 
@@ -101,7 +101,7 @@ const Batch = () => {
             let qty_data = [];
             qtyData.forEach(item => {
                 console.log("Item in Grid:", item);
-                if(item._rowstate == 'NEW' || item._rowstate == 'DELETED' || item._rowstate == 'MODIFIED'){
+                if (item._rowstate == 'NEW' || item._rowstate == 'DELETED' || item._rowstate == 'MODIFIED') {
                     qty_data.push({
                         id: item.id,
                         model_id: item.model_id,
@@ -109,20 +109,20 @@ const Batch = () => {
                         _rowstate: item._rowstate
                     });
                 }
-                
+
             });
 
-            // Validations 
+            // Validations
             if (!batch_no || batch_no.trim() === "") {
                 config["CONTROL_CENTER"].promptWarningMessage("Batch No is required", "");
                 return;
             }
-            if(main_model.length === 0){
+            if (main_model.length === 0) {
                 config["CONTROL_CENTER"].promptWarningMessage("Please Select the Main Model", "");
                 return;
             }
 
-           
+
             // Prepare API request
             const apiRequest = {
                 id: parseInt(id),
@@ -135,9 +135,9 @@ const Batch = () => {
             let response = await API.post(`Batch/createAndUpdateBatch`, apiRequest);
 
             if (response.status === 200 || response.status === 201) {
-               
+
                 if (!id || id == "") {
-                    id =response.data.data.id;
+                    id = response.data.data.id;
                     config['inputBatchID'].setValue(response.data.data.id);
                 }
 
@@ -146,7 +146,7 @@ const Batch = () => {
                 await formPopulate(id);
 
 
-               
+
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in saving Batch", "");
             }
@@ -166,15 +166,15 @@ const Batch = () => {
 
             // Get form values
             const id = config['inputBatchID'].data.value;
-            
-            // Validations 
+
+            // Validations
             if (!id || id === "") {
                 config["CONTROL_CENTER"].promptWarningMessage("Batch ID is required", "");
                 return;
             }
 
 
-           
+
             // Prepare API request
             const apiRequest = {
                 id: parseInt(id),
@@ -186,9 +186,9 @@ const Batch = () => {
             if (response.status === 200 || response.status === 201) {
 
                 config["CONTROL_CENTER"].promptBaseMessage("Batch Deleted successfully", "");
-                
+
                 resetInputForm();
-               
+
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in deleting Batch", "");
             }
@@ -202,8 +202,8 @@ const Batch = () => {
         }
     }
 
-    async function __getModels(){
-        try{
+    async function __getModels() {
+        try {
 
             const modelData = await API.get(`models`)
             setModels(modelData.data);
@@ -228,36 +228,36 @@ const Batch = () => {
             });
 
             config['inputMainModel'].setOptions(main_models);
-    
-            
 
 
-        }catch(err){
+
+
+        } catch (err) {
             console.log(err);
             // toast.error(`Something went wrong`+err)
         }
     }
 
-    async function handleSelectModel(selectedList, selectedItem){
-        
+    async function handleSelectModel(selectedList, selectedItem) {
+
         let model_id = selectedItem.id;
 
-        try{
+        try {
 
-                const filteredModels = models.filter(model => model.main_model_id === model_id);
-                if (filteredModels.length > 0) {
-                    let filterModelArray = [];
-                    filteredModels.forEach((value) => {
-                        filterModelArray.push({
-                            "id": value.id,
-                            "name": value.name
-                        });
+            const filteredModels = models.filter(model => model.main_model_id === model_id);
+            if (filteredModels.length > 0) {
+                let filterModelArray = [];
+                filteredModels.forEach((value) => {
+                    filterModelArray.push({
+                        "id": value.id,
+                        "name": value.name
                     });
-                    config['inputModel'].setOptions(filterModelArray);
-                }
-            
+                });
+                config['inputModel'].setOptions(filterModelArray);
+            }
 
-        }catch(err){
+
+        } catch (err) {
             console.log(err);
             // toast.error(`Something went wrong`+err)
         }
@@ -307,150 +307,151 @@ const Batch = () => {
 
 
 
-//////////////////////////////////////////////////////////////////////
-//                      ADVANCE SEARCH APIs                         //
-//////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    //                      ADVANCE SEARCH APIs                         //
+    //////////////////////////////////////////////////////////////////////
 
     async function handleAdvanceSearchPopup() {
-            let data = [];
-            const getData = await __getAll();
-    
-            if (getData && getData !== "Error" && getData[0].Batch.length > 0) {
-                const listData = getData[0].Batch;
-                listData.forEach((value, index) => {
-                    
-                    data.push({
-                        "batch_id_search": value.id,
-                        "batch_no_search": value.batch_no,
-                        "model_search": value.main_model.name
-                    })
-                });
-            }
-    
-            console.log("*******All Data********");
-            console.log(data);
-    
-            let msg = "";
-            if (data.length > 20) {
-                msg = "Only 20 records are loaded. Please narrow your search";
-                data = data.slice(0, 20);
-            }
-    
-            config["CONTROL_CENTER"].showAdvanceSearch(data, msg);
-        }
-    
-        async function __getAll() {
-            try {
-                const key = "Batch";
-                const distinct = false;
-                const select = ["*"];
-                const where = [{"active":true}];
-                const orderby = "created_at:desc";
-                const limit = 25;
-                const relations = [
-                    "mainModel"
-                ];
+        let data = [];
+        const getData = await __getAll();
 
-    
-                const data = await __getDetails(key, distinct, select, where, relations, orderby, limit);
-    
-                return data;
-    
-            } catch (error) {
-                console.log("***********GetAll Error**********");
-                console.log(error.response);
-                return "Error";
-            }
+        if (getData && getData !== "Error" && getData[0].Batch.length > 0) {
+            const listData = getData[0].Batch;
+            listData.forEach((value, index) => {
+
+                data.push({
+                    "batch_id_search": value.id,
+                    "batch_no_search": value.batch_no,
+                    "model_search": value.main_model.name
+                })
+            });
         }
-    
-        async function __getDetails(key, distinct, select, where, relations, orderby, limit) {
-            try {
-                const apiRequest = {
-                    [key]: {
-                        "distinct": distinct,
-                        "select": select,
-                        "where": where,
-                        "relations": relations,
-                        "orderby": orderby,
-                        "limit": limit
-                    }
-                };
-    
-                const getDetails = await API.post(`searchByParameters`, apiRequest);
-                const details = getDetails.data;
-    
-                return details;
-    
-            } catch (error) {
-                console.log("***********GetDetails Error**********");
-                console.log(error.response);
-                return "Error";
-            }
+
+        console.log("*******All Data********");
+        console.log(data);
+
+        let msg = "";
+        if (data.length > 20) {
+            msg = "Only 20 records are loaded. Please narrow your search";
+            data = data.slice(0, 20);
         }
-    
-        async function handleAdvanceSearch(event, searchCriteria, callback) {
-            console.log("*******Search Criteria********");
-            console.log(searchCriteria);
-    
-            let data = [];
-            let searchDetails = await __getAdvanceSearchDetails(searchCriteria);
-    
-            if (searchDetails.length > 0) {
-                searchDetails.forEach((value, index) => {
-                    data.push({
-                        "batch_id_search": value.id,
-                        "batch_no_search": value.batch_no,
-                        "model_search": value.main_model_name
-                    }) })
-                ;
-            }
-    
-            console.log("*******Search Results********");
-            console.log(data);
-    
-            let msg = "";
-            if (data.length > 20) {
-                msg = "Only 20 records are loaded. Please narrow your search";
-                data = data.slice(0, 20);
-            }
-    
-            callback(data, msg);
+
+        config["CONTROL_CENTER"].showAdvanceSearch(data, msg);
+    }
+
+    async function __getAll() {
+        try {
+            const key = "Batch";
+            const distinct = false;
+            const select = ["*"];
+            const where = [{ "active": true }];
+            const orderby = "created_at:desc";
+            const limit = 25;
+            const relations = [
+                "mainModel"
+            ];
+
+
+            const data = await __getDetails(key, distinct, select, where, relations, orderby, limit);
+
+            return data;
+
+        } catch (error) {
+            console.log("***********GetAll Error**********");
+            console.log(error.response);
+            return "Error";
         }
-    
-            // Get Advance Search Details
-        async function __getAdvanceSearchDetails(searchCriteria) {
-                try {
-                    const apiRequest = {
-                        
-                            "id": searchCriteria.batch_id_search === "" ? "%" : searchCriteria.batch_id_search,
-                            "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
-                            "main_model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search
-                        
-                    };
-                    const getSearchDetails = await API.post(`Batch/getSearchByBatch`, apiRequest);
-                    const details = getSearchDetails.data.data;
-        
-                    return details;
-        
-                } catch (error) {
-                    console.log("***********GetDetails Error**********");
-                    console.log(error.response);
-                    return "Error";
+    }
+
+    async function __getDetails(key, distinct, select, where, relations, orderby, limit) {
+        try {
+            const apiRequest = {
+                [key]: {
+                    "distinct": distinct,
+                    "select": select,
+                    "where": where,
+                    "relations": relations,
+                    "orderby": orderby,
+                    "limit": limit
                 }
-            }
-    
-    async function handleAdvanceSearchDone(event, selectedRow){
+            };
+
+            const getDetails = await API.post(`searchByParameters`, apiRequest);
+            const details = getDetails.data;
+
+            return details;
+
+        } catch (error) {
+            console.log("***********GetDetails Error**********");
+            console.log(error.response);
+            return "Error";
+        }
+    }
+
+    async function handleAdvanceSearch(event, searchCriteria, callback) {
+        console.log("*******Search Criteria********");
+        console.log(searchCriteria);
+
+        let data = [];
+        let searchDetails = await __getAdvanceSearchDetails(searchCriteria);
+
+        if (searchDetails.length > 0) {
+            searchDetails.forEach((value, index) => {
+                data.push({
+                    "batch_id_search": value.id,
+                    "batch_no_search": value.batch_no,
+                    "model_search": value.main_model_name
+                })
+            })
+                ;
+        }
+
+        console.log("*******Search Results********");
+        console.log(data);
+
+        let msg = "";
+        if (data.length > 20) {
+            msg = "Only 20 records are loaded. Please narrow your search";
+            data = data.slice(0, 20);
+        }
+
+        callback(data, msg);
+    }
+
+    // Get Advance Search Details
+    async function __getAdvanceSearchDetails(searchCriteria) {
+        try {
+            const apiRequest = {
+
+                "id": searchCriteria.batch_id_search === "" ? "%" : searchCriteria.batch_id_search,
+                "batch_no": searchCriteria.batch_no_search === "" ? "%" : searchCriteria.batch_no_search,
+                "main_model_name": searchCriteria.model_search === "" ? "%" : searchCriteria.model_search
+
+            };
+            const getSearchDetails = await API.post(`Batch/getSearchByBatch`, apiRequest);
+            const details = getSearchDetails.data.data;
+
+            return details;
+
+        } catch (error) {
+            console.log("***********GetDetails Error**********");
+            console.log(error.response);
+            return "Error";
+        }
+    }
+
+    async function handleAdvanceSearchDone(event, selectedRow) {
         const id = selectedRow.batch_id_search;
         const name = selectedRow.batch_no_search;
         const mobile = selectedRow.model_search;
-        
-            
-        
+
+
+
         await formPopulate(id);
 
     }
 
-    async function formPopulate(id){
+    async function formPopulate(id) {
         try {
             document.getElementById("spinner").style.display = "";
             // Prepare API request
@@ -462,18 +463,18 @@ const Batch = () => {
             let response = await API.post(`Batch/getBatchById`, apiRequest);
 
             if (response.status === 200 || response.status === 201) {
-                
+
                 let batchData = response.data.data;
                 config['inputBatchID'].setValue(batchData.id);
                 config['inputBatchNo'].setValue(batchData.batch_no);
                 config['inputMainModel'].setValueByID(batchData.main_model_id);
 
-                handleSelectModel({id: batchData.main_model_id}, {id: batchData.main_model_id});
+                handleSelectModel({ id: batchData.main_model_id }, { id: batchData.main_model_id });
 
-                 const size_data = batchData.batch_details || [];
-                 let gridRows = [];
+                const size_data = batchData.batch_details || [];
+                let gridRows = [];
 
-                 if (Array.isArray(size_data)) {
+                if (Array.isArray(size_data)) {
                     size_data.forEach((value) => {
                         console.log("Value in size_data:", value);
                         if (value && typeof value === "object") {
@@ -485,11 +486,11 @@ const Batch = () => {
                             });
                         }
                     });
-                 } 
+                }
 
-                 config['gridSize'].setData(gridRows);
+                config['gridSize'].setData(gridRows);
                 config["CONTROL_CENTER"].state.populate = true;
-               
+
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error in fetching Batch details", "");
             }
@@ -505,49 +506,49 @@ const Batch = () => {
 
     function handleAddToGrid() {
         // Get values from multiselects
-        
-        const selectedModel= config["inputModel"].getSelectedArray() || [];
+
+        const selectedModel = config["inputModel"].getSelectedArray() || [];
         const quantity = config["inputQuantity"].data.value;
-        
+
         if (selectedModel.length === 0) {
             config["CONTROL_CENTER"].promptWarningMessage("Please select  model", "");
             return;
         }
-        
+
         if (!quantity || quantity === "") {
             config["CONTROL_CENTER"].promptWarningMessage("Please enter quantity", "");
             return;
         }
-        
+
         if (quantity === 0) {
             config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be zero", "");
             return;
         }
-        
-        let newRows ={
-            
+
+        let newRows = {
+
             model_id: selectedModel[0].id,
             model_name: selectedModel[0].name,
             quantity: quantity
         }
-        
+
         config["gridSize"].addRow(newRows);
-        
+
         // Clear selection fields
-        
+
         config["inputModel"].setValue([]);
         config["inputQuantity"].setValue("");
     }
 
 
 
-  
 
 
 
 
 
-    
+
+
 
     return generateBatchDisplay(config)
 }

@@ -95,7 +95,7 @@ const CostSheetView = () => {
           config["CONTROL_CENTER"].promptErrorMessage(
             "Error",
             error.response.data.message ||
-              "Please Contact System Administrator",
+            "Please Contact System Administrator",
           );
           return;
         }
@@ -128,10 +128,10 @@ const CostSheetView = () => {
 
     // ── Build single sheet data ───────────────────────────────────
     const wsData = [
-      ["Batch No",            costSheetData.batch_no       || "–"],
-      ["Main Model",          costSheetData.main_model_name || "–"],
-      ["Model",               costSheetData.model_name      || "–"],
-      ["Total Qty",           costSheetData.total_qty],
+      ["Batch No", costSheetData.batch_no || "–"],
+      ["Main Model", costSheetData.main_model_name || "–"],
+      ["Model", costSheetData.model_name || "–"],
+      ["Total Qty", costSheetData.total_qty],
       ["Total Material Cost", costSheetData.total_material_cost],
       [], // blank separator
       ["Category", "Material Code", "Material Name", "Req. Qty", "Consumption", "Issued Qty", "Actual Consumption", "Unit Cost", "Total Req. Cost", "Total Issued Cost"],
@@ -210,7 +210,7 @@ const CostSheetView = () => {
         data.push({
           batch_id_search: value.id,
           batch_no_search: value.batch_no,
-          model_search: value.model.name,
+          model_search: value.model?.name || "",
         });
       });
     }

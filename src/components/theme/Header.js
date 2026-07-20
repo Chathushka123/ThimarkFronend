@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getUser, removeUserSession } from '../../utils/Common';
-import { useHistory } from 'react-router-dom';
+import { getUser } from '../../utils/Common';
+import { logoutUser } from '../../api/API';
 
 const Header = () => {
     const user = getUser();
-    const history = useHistory();
     const [toggle, setToggle] = useState(false);
 
     // handle click event of logout button
     const handleLogout = () => {
-       
-        removeUserSession();
-        history.push(`/login`);
+        logoutUser();
     }
 
     useEffect(() => {

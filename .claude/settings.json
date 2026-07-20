@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -e 's/Team/Shift/g' -e 's/team_code/shift_code/g' -e 's/team_name/shift_name/g' -e 's/gridShifts\\\\.length > 0\\) {/gridShifts.length > 0\\) {/g' Team/TeamCS.js)",
+      "Bash(sed -e 's/Team/Shift/g' -e 's/team_code/shift_code/g' -e 's/team_name/shift_name/g' Team/TeamDS.js)",
+      "Bash(sed -e 's/Team/Shift/g' -e 's/team_code/shift_code/g' -e 's/team_name/shift_name/g' Team/TeamES.js)",
+      "Bash(npx env-cmd *)",
+      "Bash(grep -v \"^--$\")",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(git checkout *)",
+      "Bash(lsof -i :3000 -sTCP:LISTEN -t)",
+      "Bash(fuser 3000/tcp)",
+      "Bash(ps -p 11077 -o pid,ppid,cmd)",
+      "Bash(kill 11077)",
+      "Bash(node /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/195b82e4-df47-4838-8540-74d4706f9c78/scratchpad/inspect_dailyshift.js)",
+      "Bash(kill -9 37729)"
+    ]
+  }
+}
