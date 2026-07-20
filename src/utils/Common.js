@@ -10,6 +10,20 @@ export const getToken = () => {
   return localStorage.getItem('token') || null;
 }
 
+// overwrite just the access token (used after a silent refresh-token renewal,
+// so it doesn't wipe the selected company/plant like setUserSession would)
+export const updateToken = (token) => {
+  localStorage.setItem('token', token);
+}
+
+// read a cookie value by name (used to echo the csrf_refresh_token cookie
+// back as the X-CSRF-TOKEN header on /refreshToken and /logout requests)
+export const getCookie = (name) => {
+  const row = document.cookie.split('; ').find((r) => r.startsWith(`${name}=`));
+  if (!row) return undefined;
+  return row.split('=').slice(1).join('=');
+}
+
 // remove the token and user from the session storage
 export const removeUserSession = () => {
   localStorage.removeItem('token');
