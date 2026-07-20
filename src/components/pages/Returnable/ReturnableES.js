@@ -17,7 +17,7 @@ const Returnable = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["buttonPrint"].event.onClick = handleSaveReturnable;
     config["inputRequester"].event.onEnterKey = handleGetReturnableDetails;
-    config["inputRequester"].event.onBlur = handleGetReturnableDetails;
+    // config["inputRequester"].event.onBlur = handleGetReturnableDetails;
     config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
 
     config["inputMaterial"].event.onEnterKey = handleGetMaterialDeleDetails;
@@ -238,6 +238,7 @@ const Returnable = () => {
 
     async function handleGetReturnableDetails(){
         document.getElementById("spinner").style.display = "";
+        config['gridReturnableItem'].setData([]);
         try {
             if(config["inputRequester"].data.value == "" ){
                 return;
@@ -248,9 +249,6 @@ const Returnable = () => {
             
             // Call API to get returnable details
             let response = await API.post(`inventory/getReturnable`, apiRequest);
-            console.log('====================================');
-            console.log(response.data.data);
-            console.log('====================================');
             if (response.data.data && response.data.data.length > 0) {
                 const rows = response.data.data.map(item => {
 
