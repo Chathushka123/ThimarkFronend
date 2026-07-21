@@ -13,7 +13,35 @@
       "Bash(ps -p 11077 -o pid,ppid,cmd)",
       "Bash(kill 11077)",
       "Bash(node /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/195b82e4-df47-4838-8540-74d4706f9c78/scratchpad/inspect_dailyshift.js)",
-      "Bash(kill -9 37729)"
+      "Bash(kill -9 37729)",
+      "Bash(npx babel *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(cd /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend && grep -rin \"table\\('users'\\\\|create\\('users'\\\\|::table\\(\\\\\"users\\\\\"\" database/migrations/*.php; echo \"---count---\"; ls database/migrations | wc -l; echo \"---check laravel default---\"; find database/migrations -newer /dev/null -iname \"*2014*\" -o -iname \"*2016*\" -o -iname \"*2017*\" -o -iname \"*2018*\" -o -iname \"*2019*\" -o -iname \"*2020*\" 2>/dev/null)",
+      "Read(//dev/**)",
+      "Bash(composer dump-autoload *)",
+      "Bash(python3 -c ' *)",
+      "Bash(git status *)",
+      "Bash(rm -rf build/static build/favicon1.ico build/faviconNew.png build/favicon.png build/logo192.png build/logo512.png build/manifest.json \"build/%PUBLIC_URL%\" build/sap.png build/Wfx.png build/.htaccess)",
+      "Bash(php -l app/Http/Repositories/UserOperationRepository.php)",
+      "Bash(awk 'NR==1709,NR==3465 && /customButton/ {print NR\": \"$0}' \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/_nodist/_nativeElements.js\")",
+      "Bash(chromium-cli --help)",
+      "Bash(curl -sf -o /dev/null -w \"%{http_code}\" http://localhost:3000 --max-time 3)",
+      "Bash(lsof -ti:3000 -sTCP:LISTEN)",
+      "Bash(node -e \"const {chromium} = require\\('playwright'\\); console.log\\('ok', typeof chromium\\);\")",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw)",
+      "Bash(npm install *)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU3ODY1LCJleHAiOjE3ODQ2NTg3NjUsIm5iZiI6MTc4NDY1Nzg2NSwianRpIjoiTHRvS0c3TDVrdll4RmpjSCIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.8f2Ga4s0gHqyUwW7ri_EMcvdCWovo6EKj19Hv5sIFXs\" node inspect.js)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4MDM4LCJleHAiOjE3ODQ2NTg5MzgsIm5iZiI6MTc4NDY1ODAzOCwianRpIjoidjNIdXBGdXpacEpJN2xMZiIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.JmvabPXjKPK_H6OK_abLbi6pwshR6BQYFkjPuTlyNYU\" node inspect2.js)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4MDM4LCJleHAiOjE3ODQ2NTg5MzgsIm5iZiI6MTc4NDY1ODAzOCwianRpIjoidjNIdXBGdXpacEpJN2xMZiIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.JmvabPXjKPK_H6OK_abLbi6pwshR6BQYFkjPuTlyNYU\" node inspect3.js)",
+      "Bash(curl -sf -o /dev/null http://localhost:3000/productionWIPScanning)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4Mjk5LCJleHAiOjE3ODQ2NTkxOTksIm5iZiI6MTc4NDY1ODI5OSwianRpIjoiaGdEdDFCUGE5dUU2akhLTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.5n626BVazZ-0tVApEcjni27Jagwd6rbZ9wiW7_1i0Pk\" node inspect2.js)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4Mjk5LCJleHAiOjE3ODQ2NTkxOTksIm5iZiI6MTc4NDY1ODI5OSwianRpIjoiaGdEdDFCUGE5dUU2akhLTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.5n626BVazZ-0tVApEcjni27Jagwd6rbZ9wiW7_1i0Pk\" node inspect_mobile.js)"
+    ],
+    "additionalDirectories": [
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/database/migrations",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/routes",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Repositories"
     ]
   }
 }

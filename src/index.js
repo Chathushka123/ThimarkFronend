@@ -4,7 +4,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import './css/theme.css';
 import './css/custom.css';
-import './css/hrManagement.css';
 import App from './App';
 
 ReactDOM.render(

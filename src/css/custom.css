@@ -2082,3 +2082,9 @@ td {
   color: #132138 !important;
 }
 
+/* react-datepicker (DateField) renders its popup with position: fixed, which
+   landed behind the grid's sticky thead (z-index: 3 above) without this. */
+.react-datepicker-popper {
+  z-index: 10000 !important;
+}
+
