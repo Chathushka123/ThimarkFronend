@@ -19,13 +19,26 @@ function canStillFix(scannedAt) {
 }
 
 function DirectionBadge({ direction }) {
+    if (!direction) return null;
     const isIn = direction === 'IN';
     return (
         <span
-            className={`badge ${isIn ? 'badge-success' : 'badge-primary'}`}
-            style={{ fontSize: '13px', padding: '6px 10px', minWidth: '48px', display: 'inline-block' }}
+            className={`badge ${isIn ? 'badge-success' : 'badge-primary'} ml-2`}
+            style={{ fontSize: '11px', padding: '4px 8px' }}
         >
             {direction}
+        </span>
+    );
+}
+
+function TypeQtyBadge({ type, qty }) {
+    const isReject = type === 'REJECT';
+    return (
+        <span
+            className={`badge ${isReject ? 'badge-danger' : 'badge-success'}`}
+            style={{ fontSize: '13px', padding: '6px 10px', minWidth: '70px', display: 'inline-block' }}
+        >
+            {isReject ? 'REJECT' : 'SCAN'} {qty}
         </span>
     );
 }
@@ -36,16 +49,26 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
         operations,
         selectedOperation,
         showOperationPicker,
+        loadingTeams,
+        teams,
+        selectedTeam,
+        showTeamPicker,
         ticketCode,
+        lookingUp,
         scanning,
+        pendingScan,
         lastResult,
         recentScans,
         showQrScanner,
-        scansToday
+        scansToday,
+        scanQtyInput,
+        rejectQtyInput,
+        rejectReasonInput
     } = state;
 
     const {
         scanInputRef,
+        qtyInputRef,
         onTicketCodeChange,
         onTicketCodeKeyDown,
         onOpenCamera,
@@ -53,8 +76,19 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
         onQrScanClose,
         onSelectOperation,
         onChangeOperationClick,
-        onFixDirection
+        onSelectTeam,
+        onChangeTeamClick,
+        onScanQtyChange,
+        onRejectQtyChange,
+        onRejectReasonChange,
+        onQtyKeyDown,
+        onConfirmScan,
+        onCancelPendingScan,
+        onUndoScan
     } = handlers;
+
+    const enteredQty = (scanQtyInput === '' ? 0 : Number(scanQtyInput) || 0) + (rejectQtyInput === '' ? 0 : Number(rejectQtyInput) || 0);
+    const overRemaining = pendingScan ? enteredQty > pendingScan.remaining : false;
 
     return (
         <>
@@ -144,35 +178,193 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                         )}
                     </div>
 
+                    {/* Team card */}
+                    <div className="form-wrp background-white mb-3 p-3">
+                        {loadingTeams && (
+                            <div className="text-center py-3">
+                                <i className="fas fa-spinner fa-spin mr-2"></i>Loading active shift teams&#8230;
+                            </div>
+                        )}
+
+                        {!loadingTeams && teams.length === 0 && (
+                            <div className="text-center py-4">
+                                <i className="fas fa-people-arrows" style={{ fontSize: '40px', color: '#adb5bd' }}></i>
+                                <h5 className="mt-3 mb-2">No active shift team</h5>
+                                <p className="text-muted mb-0">
+                                    There's no shift team active right now.<br />
+                                    Ask your supervisor to set one up before scanning.
+                                </p>
+                            </div>
+                        )}
+
+                        {!loadingTeams && teams.length > 0 && !showTeamPicker && selectedTeam && (
+                            <div className="d-flex justify-content-between align-items-center flex-wrap">
+                                <div>
+                                    <small className="text-muted d-block">SHIFT TEAM</small>
+                                    <span style={{ fontSize: '20px', fontWeight: 700 }}>{selectedTeam.team_code || selectedTeam.team_name}</span>
+                                    {selectedTeam.shift_name && <span className="text-muted ml-2">{selectedTeam.shift_name}</span>}
+                                </div>
+                                {teams.length > 1 && (
+                                    <button type="button" className="btn common-btn common-btn-lg btn-sm" onClick={onChangeTeamClick}>
+                                        <i className="fas fa-exchange-alt mr-1"></i>Change
+                                    </button>
+                                )}
+                            </div>
+                        )}
+
+                        {!loadingTeams && teams.length > 0 && (showTeamPicker || !selectedTeam) && (
+                            <div>
+                                <small className="text-muted d-block mb-2">SELECT YOUR SHIFT TEAM</small>
+                                <div className="d-flex flex-wrap" style={{ gap: '10px' }}>
+                                    {teams.map(t => (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            className="btn common-btn common-btn-lg"
+                                            style={{ minHeight: '48px', minWidth: '160px' }}
+                                            onClick={() => onSelectTeam(t)}
+                                        >
+                                            <strong>{t.team_code || t.team_name}</strong>
+                                            {t.shift_name && <div style={{ fontSize: '12px' }}>{t.shift_name}</div>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Scan + recent scans */}
-                    {!loadingOperations && selectedOperation && !showOperationPicker && (
+                    {!loadingOperations && selectedOperation && !showOperationPicker &&
+                     !loadingTeams && selectedTeam && !showTeamPicker && (
                         <div className="row">
                             <div className="col-12 col-md-7 mb-3">
                                 <div className="form-wrp background-white p-3">
-                                    <label className="mb-2" style={{ fontWeight: 600 }}>
-                                        <i className="fas fa-barcode mr-2"></i>Scan Bundle
-                                    </label>
-                                    <input
-                                        ref={scanInputRef}
-                                        type="text"
-                                        className="form-control"
-                                        style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 600 }}
-                                        placeholder="Scan or type bundle code, then press Enter"
-                                        value={ticketCode}
-                                        onChange={(e) => onTicketCodeChange(e.target.value)}
-                                        onKeyDown={onTicketCodeKeyDown}
-                                        disabled={scanning}
-                                        autoComplete="off"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn common-btn common-btn-lg btn-block mt-2"
-                                        style={{ minHeight: '48px' }}
-                                        onClick={onOpenCamera}
-                                        disabled={scanning}
-                                    >
-                                        <i className="fas fa-camera mr-2"></i>Scan with Camera
-                                    </button>
+
+                                    {!pendingScan && (
+                                        <>
+                                            <label className="mb-2" style={{ fontWeight: 600 }}>
+                                                <i className="fas fa-barcode mr-2"></i>Scan Bundle
+                                            </label>
+                                            <input
+                                                ref={scanInputRef}
+                                                type="text"
+                                                className="form-control"
+                                                style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 600 }}
+                                                placeholder="Scan or type bundle code, then press Enter"
+                                                value={ticketCode}
+                                                onChange={(e) => onTicketCodeChange(e.target.value)}
+                                                onKeyDown={onTicketCodeKeyDown}
+                                                disabled={lookingUp}
+                                                autoComplete="off"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn common-btn common-btn-lg btn-block mt-2"
+                                                style={{ minHeight: '48px' }}
+                                                onClick={onOpenCamera}
+                                                disabled={lookingUp}
+                                            >
+                                                <i className="fas fa-camera mr-2"></i>Scan with Camera
+                                            </button>
+
+                                            {lookingUp && (
+                                                <div className="text-muted text-center mt-2" style={{ fontSize: '13px' }}>
+                                                    <i className="fas fa-spinner fa-spin mr-1"></i>Looking up bundle&#8230;
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {pendingScan && (
+                                        <div>
+                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <small className="text-muted d-block">BUNDLE FOUND</small>
+                                                    <span style={{ fontSize: '18px', fontWeight: 700 }}>#{pendingScan.bundleId}</span>
+                                                    <DirectionBadge direction={pendingScan.direction} />
+                                                </div>
+                                                <span className="badge badge-light" style={{ fontSize: '12px' }}>
+                                                    {pendingScan.remaining} due &middot; {pendingScan.operationLabel}
+                                                </span>
+                                            </div>
+
+                                            <div className="form-row">
+                                                <div className="form-group col-6 mb-2">
+                                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600 }}>Scan Qty</label>
+                                                    <input
+                                                        ref={qtyInputRef}
+                                                        type="number"
+                                                        min="0"
+                                                        className="form-control"
+                                                        style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center' }}
+                                                        value={scanQtyInput}
+                                                        onChange={(e) => onScanQtyChange(e.target.value)}
+                                                        onKeyDown={onQtyKeyDown}
+                                                        disabled={scanning}
+                                                    />
+                                                </div>
+                                                <div className="form-group col-6 mb-2">
+                                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600 }}>Reject Qty</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        className="form-control"
+                                                        style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center' }}
+                                                        placeholder="0"
+                                                        value={rejectQtyInput}
+                                                        onChange={(e) => onRejectQtyChange(e.target.value)}
+                                                        onKeyDown={onQtyKeyDown}
+                                                        disabled={scanning}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {rejectQtyInput && Number(rejectQtyInput) > 0 && (
+                                                <div className="form-group mb-2">
+                                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600 }}>Reject Reason</label>
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="e.g. Stitch defect"
+                                                        value={rejectReasonInput}
+                                                        onChange={(e) => onRejectReasonChange(e.target.value)}
+                                                        onKeyDown={onQtyKeyDown}
+                                                        disabled={scanning}
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {overRemaining && (
+                                                <div className="text-danger mb-2" style={{ fontSize: '12px' }}>
+                                                    <i className="fas fa-exclamation-triangle mr-1"></i>
+                                                    Only {pendingScan.remaining} left on this ticket.
+                                                </div>
+                                            )}
+
+                                            <div className="d-flex" style={{ gap: '8px' }}>
+                                                <button
+                                                    type="button"
+                                                    className="btn common-btn common-btn-lg flex-grow-1"
+                                                    style={{ minHeight: '48px' }}
+                                                    onClick={onConfirmScan}
+                                                    disabled={scanning || overRemaining}
+                                                >
+                                                    {scanning
+                                                        ? <><i className="fas fa-spinner fa-spin mr-2"></i>Saving&#8230;</>
+                                                        : <><i className="fas fa-check mr-2"></i>Confirm Scan</>}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-outline-secondary"
+                                                    style={{ minHeight: '48px' }}
+                                                    onClick={onCancelPendingScan}
+                                                    disabled={scanning}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {scansToday > 0 && (
                                         <div className="text-muted text-center mt-2" style={{ fontSize: '13px' }}>
@@ -192,6 +384,11 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                             {lastResult.type === 'success' && (
                                                 <div className="mt-1" style={{ fontSize: '13px' }}>
                                                     Bundle #{lastResult.bundleId} &middot; {lastResult.operationLabel}
+                                                    {lastResult.scanQty > 0 && <> &middot; {lastResult.scanQty} scanned</>}
+                                                    {lastResult.rejectQty > 0 && <> &middot; {lastResult.rejectQty} rejected</>}
+                                                    {!lastResult.ticketComplete && lastResult.remainingAfter > 0 && (
+                                                        <> &middot; {lastResult.remainingAfter} remaining on this step</>
+                                                    )}
                                                     {lastResult.progress && (
                                                         <> &middot; {lastResult.progress.completed}/{lastResult.progress.total} operations complete</>
                                                     )}
@@ -223,27 +420,32 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                     <div style={{ maxHeight: '480px', overflowY: 'auto' }}>
                                         {recentScans.map(scan => (
                                             <div
-                                                key={scan.bundle_ticket_id}
+                                                key={`${scan.type}-${scan.id}`}
                                                 className="d-flex justify-content-between align-items-center py-2"
                                                 style={{ borderBottom: '1px solid #eee' }}
                                             >
                                                 <div>
-                                                    <div style={{ fontWeight: 600 }}>Bundle #{scan.bundle_id}</div>
+                                                    <div style={{ fontWeight: 600 }}>Bundle #{scan.bundle_id} <DirectionBadge direction={scan.direction} /></div>
                                                     <div className="text-muted" style={{ fontSize: '12px' }}>
-                                                        {scan.operation_description || scan.operation_code} &middot; {formatTime(scan.scanned_at)}
+                                                        {scan.operation_description || scan.operation_code} &middot; {scan.team_name} &middot; {formatTime(scan.scanned_at)}
                                                     </div>
+                                                    {scan.type === 'REJECT' && scan.reject_reason && (
+                                                        <div className="text-muted" style={{ fontSize: '12px', fontStyle: 'italic' }}>
+                                                            "{scan.reject_reason}"
+                                                        </div>
+                                                    )}
                                                     {canStillFix(scan.scanned_at) && (
                                                         <button
                                                             type="button"
                                                             className="btn btn-link p-0"
                                                             style={{ fontSize: '12px' }}
-                                                            onClick={() => onFixDirection(scan.bundle_ticket_id, scan.direction === 'IN' ? 'OUT' : 'IN')}
+                                                            onClick={() => onUndoScan(scan)}
                                                         >
-                                                            Wrong? Switch to {scan.direction === 'IN' ? 'OUT' : 'IN'}
+                                                            Wrong? Undo this entry
                                                         </button>
                                                     )}
                                                 </div>
-                                                <DirectionBadge direction={scan.direction} />
+                                                <TypeQtyBadge type={scan.type} qty={scan.qty} />
                                             </div>
                                         ))}
                                     </div>

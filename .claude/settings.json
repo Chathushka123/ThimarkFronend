@@ -35,13 +35,35 @@
       "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4MDM4LCJleHAiOjE3ODQ2NTg5MzgsIm5iZiI6MTc4NDY1ODAzOCwianRpIjoidjNIdXBGdXpacEpJN2xMZiIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.JmvabPXjKPK_H6OK_abLbi6pwshR6BQYFkjPuTlyNYU\" node inspect3.js)",
       "Bash(curl -sf -o /dev/null http://localhost:3000/productionWIPScanning)",
       "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4Mjk5LCJleHAiOjE3ODQ2NTkxOTksIm5iZiI6MTc4NDY1ODI5OSwianRpIjoiaGdEdDFCUGE5dUU2akhLTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.5n626BVazZ-0tVApEcjni27Jagwd6rbZ9wiW7_1i0Pk\" node inspect2.js)",
-      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4Mjk5LCJleHAiOjE3ODQ2NTkxOTksIm5iZiI6MTc4NDY1ODI5OSwianRpIjoiaGdEdDFCUGE5dUU2akhLTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.5n626BVazZ-0tVApEcjni27Jagwd6rbZ9wiW7_1i0Pk\" node inspect_mobile.js)"
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NjU4Mjk5LCJleHAiOjE3ODQ2NTkxOTksIm5iZiI6MTc4NDY1ODI5OSwianRpIjoiaGdEdDFCUGE5dUU2akhLTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.5n626BVazZ-0tVApEcjni27Jagwd6rbZ9wiW7_1i0Pk\" node inspect_mobile.js)",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw2)",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw3)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NzMzMzg0LCJleHAiOjE3ODQ3MzQyODQsIm5iZiI6MTc4NDczMzM4NCwianRpIjoiSktxV0tWcWtiRVZXaEZmTSIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.AH-N0-nqFhDIIEZBX4fWmo5dpkZz-XvmpRvy487kGYE\" node verify.js)",
+      "Bash(git -C \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend\" diff --stat src/utils/PrivateRoute.js)",
+      "Bash(grep -noE \"#[0-9a-fA-F]{3,6}\" \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/components/pages/PurchaseOrder/PurchaseOrderDS.js\")",
+      "Bash(sort -t: -k2)",
+      "Bash(uniq -c -f1)",
+      "Bash(grep -oE \"#[0-9a-fA-F]{3,8}\" \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/components/pages/PurchaseOrder/PurchaseOrderDS.js\")",
+      "Bash(grep -noE \"#[0-9a-fA-F]{3,8}\" \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/components/pages/PurchaseOrder/PurchaseOrderES.js\")",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw4)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NzQxNjk0LCJleHAiOjE3ODQ3NDI1OTQsIm5iZiI6MTc4NDc0MTY5NCwianRpIjoibnBiM2hkSEtqQ3BzMXBWUCIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.k771ynELxCvQ-ZFL32VpumrTwjSRT89YJoVGj24cqUc\" node inspect_po.js)",
+      "Bash(curl -sf -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000 --max-time 5)",
+      "Bash(grep -oE \"#[0-9a-fA-F]{3,8}\" \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/components/pages/CostSheetView/CostSheetDS.js\")",
+      "Bash(grep -oE \"#[0-9a-fA-F]{3,8}\" \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkFronend/src/components/pages/CostSheetView/CostSheetES.js\")",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw5)",
+      "Bash(php -l \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/WipScanController.php\")",
+      "Bash(php -l \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Requests/LookupBundleTicketRequest.php\")",
+      "Bash(php -l \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/routes/api.php\")",
+      "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw6)",
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NzQ1MDgwLCJleHAiOjE3ODQ3NDU5ODAsIm5iZiI6MTc4NDc0NTA4MCwianRpIjoiVmliT1p0QnVRN2ZpMURZayIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.fYobZ1wPuSFvAs0rIY3hBsWh9O9R157E3ADG30qFVYc\" node verify_scan.js)"
     ],
     "additionalDirectories": [
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/database/migrations",
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/routes",
-      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Repositories"
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Repositories",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Requests"
     ]
   }
 }

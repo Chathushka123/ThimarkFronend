@@ -2,6 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getUser } from '../utils/Common';
 import { getPOSummary } from './pages/dashboards/dashboard';
+import useIsMobile from '../utils/useIsMobile';
+import API from '../api/API';
+
+// ─── Mobile nav grid card ──────────────────────────────────────────────────────
+// Unlike ModuleCard below, permissions/getNavigator already returns a complete
+// FontAwesome class string per item (e.g. "fas fa-boxes", sometimes "far ..."),
+// so this renders it directly instead of prefixing "fas ".
+const NAV_CARD_COLORS = [
+    { color: '#1565c0', bg: '#e3f2fd' },
+    { color: '#6a1fb5', bg: '#f3e8ff' },
+    { color: '#2e7d32', bg: '#e8f5e9' },
+    { color: '#b71c1c', bg: '#ffebee' },
+    { color: '#e65100', bg: '#fff3e0' },
+    { color: '#00838f', bg: '#e0f7fa' },
+    { color: '#37474f', bg: '#eceff1' },
+    { color: '#ad1457', bg: '#fce4ec' },
+];
+
+const NavGridCard = ({ label, to, icon, index }) => {
+    const { color, bg } = NAV_CARD_COLORS[index % NAV_CARD_COLORS.length];
+    return (
+        <Link to={to} style={{ textDecoration: 'none' }}>
+            <div style={{ background: '#fff', border: '1.5px solid #edf2f7', borderRadius: '14px', padding: '18px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', textAlign: 'center' }}>
+                <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <i className={icon || 'fas fa-th-large'} style={{ color, fontSize: '20px' }}></i>
+                </div>
+                <div style={{ fontSize: '12.5px', fontWeight: '700', color: '#1a202c', lineHeight: 1.3 }}>{label}</div>
+            </div>
+        </Link>
+    );
+};
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 const fmt = (n) => Number(n || 0).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -77,10 +108,25 @@ const ModuleCard = ({ label, sub, to, icon, color, bg }) => (
 // ═════════════════════════════════════════════════════════════════════════════
 const Home = () => {
     const user = getUser();
+    const isMobile = useIsMobile();
     const [kpi, setKpi] = useState(null);
     const [kpiLoading, setKpiLoading] = useState(true);
+    const [navSections, setNavSections] = useState(null);
+    const [navLoading, setNavLoading] = useState(true);
 
     useEffect(() => {
+        if (!isMobile) return;
+        setNavLoading(true);
+        API.post('permissions/getNavigator').then(response => {
+            setNavSections(response.data || []);
+        }).catch(error => {
+            console.log(error.response);
+            setNavSections([]);
+        }).finally(() => setNavLoading(false));
+    }, [isMobile]);
+
+    useEffect(() => {
+        if (isMobile) return;
         setKpiLoading(true);
         getPOSummary()
             .then((res) => {
@@ -96,7 +142,45 @@ const Home = () => {
             })
             .catch(() => setKpi(null))
             .finally(() => setKpiLoading(false));
-    }, []);
+    }, [isMobile]);
+
+    if (isMobile) {
+        const cards = (navSections || []).map(item => (
+            item.type === 'folder'
+                ? { label: item.caption, icon: item.icon, to: (item.nodes && item.nodes[0]) ? item.nodes[0].path : '#' }
+                : { label: item.caption, icon: item.icon, to: item.path }
+        ));
+
+        return (
+            <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", background: '#f0f2f8', minHeight: '100vh', padding: '20px 16px' }}>
+                <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '19px', fontWeight: '800', color: '#1a202c' }}>
+                        {getGreeting()}, {user?.name?.split(' ')[0] || 'there'} 👋
+                    </div>
+                    <div style={{ fontSize: '12.5px', color: '#718096', marginTop: '2px' }}>Tap a section to get started.</div>
+                </div>
+
+                {navLoading && (
+                    <div style={{ textAlign: 'center', padding: '40px 0', color: '#a0aec0' }}>
+                        <i className="fas fa-spinner fa-spin" style={{ fontSize: '22px' }}></i>
+                    </div>
+                )}
+
+                {!navLoading && cards.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', color: '#a0aec0' }}>
+                        <i className="fas fa-compass" style={{ fontSize: '28px', marginBottom: '10px', display: 'block' }}></i>
+                        Nothing to show yet — contact your supervisor if this looks wrong.
+                    </div>
+                )}
+
+                {!navLoading && cards.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                        {cards.map((c, i) => <NavGridCard key={c.to + i} {...c} index={i} />)}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", background: '#f0f2f8', minHeight: '100vh' }}>
