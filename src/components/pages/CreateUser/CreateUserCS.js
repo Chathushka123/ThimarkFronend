@@ -320,6 +320,51 @@ componentListConfig["inputUserRole"] = {
     event: {}
 }
 
+componentListConfig["inputOperations"] = {
+    objectType: "Multiselect",
+    schema: {
+        name: "inputOperations",
+        id: "inputOperations",
+        placeholder: "Operations",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandatory: false,
+        searchable: true,
+        avoidHighlightFirstOption: true,
+        showCheckbox: true,
+        disable: false,
+        onSearch: "",
+        loading: false,
+        style: "",
+        selectionLimit: -1,
+        endpoint: "",
+        singleSelect: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelOperations",
+            type: "text",
+            visible: true,
+            value: "Operations"
+        },
+        class: ""
+    },
+    options: [],
+    data: {
+        sqlcolumn: "operations",
+        oldValue: "",
+        value: []
+    },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputEmailSearch"] = {
     objectType: "TextBox",
     schema: {
@@ -736,6 +781,57 @@ componentListConfig["inputIsCommonUser"] = {
         value: ""
     },
     class: "",
+    event: {}
+}
+
+let gridUserCols = [];
+
+gridUserCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "70px", width: "70px" } };
+gridUserCols["email"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "email", placeholder: "Email", editable: false, filterring: true, sqlColumn: "email", style: { textAlign: "left", minWidth: "220px", width: "220px" } };
+gridUserCols["name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "name", placeholder: "Name", editable: false, filterring: true, sqlColumn: "name", style: { textAlign: "left", minWidth: "180px", width: "180px" } };
+gridUserCols["role_code"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "role_code", placeholder: "Role", editable: false, filterring: true, sqlColumn: "role_code", style: { textAlign: "left", minWidth: "140px", width: "140px" } };
+gridUserCols["is_active"] = { objectType: "CheckBox", colIndex: 4, datatype: "checkbox", name: "is_active", placeholder: "Active", editable: false, checkedValue: "1", uncheckedValue: "0", sqlColumn: "is_active", style: { textAlign: "center", minWidth: "90px", width: "90px" } };
+
+componentListConfig["gridUsers"] = {
+    objectType: "Grid",
+    schema: {
+        name: "gridUsers",
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        filterring: true,
+        sorting: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    controller: {
+        id: "gridUsers",
+        name: "gridUsers",
+        descriptoin: "Users",
+        type: "table",
+        keyField: "id",
+        visible: true,
+        Create: false,
+        CreateAPI: "",
+        Read: true,
+        ReadAPI: "",
+        Update: false,
+        UpdateAPI: "",
+        delete: true,
+        DeleteAPI: "",
+        State: {
+            Populated: false,
+            Modified: false
+        },
+        Actions: {
+            Save: "buttonSave",
+            Delete: "",
+            Read: "buttonSearch"
+        }
+    },
+    defaultRowCount: 0,
+    columns: gridUserCols,
+    data: [],
     event: {}
 }
 

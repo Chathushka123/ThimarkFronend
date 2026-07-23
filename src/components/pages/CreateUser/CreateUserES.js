@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { generateCreateUserDisplay } from './CreateUserDS';
 import config from './CreateUserCS';
 import API from '../../../api/API';
@@ -6,6 +6,7 @@ import { getUser } from '../../../utils/Common';
 
 const CreateUser = () => {
     let [rendered, setRendered] = useState(true);
+    const existingUserOperationIdsRef = useRef([]);
 
     function reRender() {
         setRendered(!rendered);
@@ -28,6 +29,8 @@ const CreateUser = () => {
     config["buttonDeleteMaster"].event.onClick = handleDeleteMaster;
     config["buttonDeleteMasterYes"].event.onClick = handleDeleteMasterYes;
     config["buttonDeleteMasterNo"].event.onClick = handleDeleteMasterNo;
+
+    config["gridUsers"].event.onRowCustomButton = handleRowEditClick;
 
     config["CONTROL_CENTER"].event.onPopulate = handlePopulate;
     config["CONTROL_CENTER"].event.onNew = handleNew;
@@ -91,6 +94,12 @@ const CreateUser = () => {
         // Set Role Dropdown Options
         __getRoleDropdownOptions();
 
+        // Set Operations Multiselect Options
+        __getOperationDropdownOptions();
+
+        // Load Users grid
+        getAllUsersForGrid();
+
         config["buttonChangePassword"].setDisabled(true);
     }, []);
 
@@ -110,6 +119,9 @@ const CreateUser = () => {
             config["buttonSave"].setVisible(false);
             config["buttonDeleteMaster"].setVisible(false);
             config["buttonChangePassword"].setVisible(false);
+            if (typeof config["inputOperations"].setDesabled === "function") {
+                config["inputOperations"].setDesabled(true);
+            }
         }
     }
 
@@ -150,6 +162,134 @@ const CreateUser = () => {
         } catch (error) {
             console.log("***********GetRoleDropdownOptions Error**********");
             console.log(error.response);
+        }
+    }
+
+    // Set Operations Multiselect Options
+    async function __getOperationDropdownOptions() {
+        try {
+            const response = await API.get('operation/list');
+            const list = (response.data && response.data.data) || [];
+            const options = list.map(op => ({ "id": op.id, "name": `${op.operation_code} - ${op.description}` }));
+
+            config["inputOperations"].setOptions(options);
+
+        } catch (error) {
+            console.log("***********GetOperationDropdownOptions Error**********");
+            console.log(error.response);
+        }
+    }
+
+    // Load the operations already assigned to a user (for edit/populate)
+    async function __loadUserOperations(userId) {
+        try {
+            const apiRequest = {
+                "UserOperation": {
+                    "distinct": false,
+                    "select": ["*"],
+                    "where": [
+                        { "field-name": "user_id", "operator": "=", "value": userId },
+                        { "field-name": "active", "operator": "=", "value": true }
+                    ],
+                    "relations": ["operation"],
+                    "orderby": "id:asc",
+                    "limit": 100
+                }
+            };
+
+            const response = await API.post('searchByParameters', apiRequest);
+            const rows = (response.data && response.data[0] && response.data[0].UserOperation) || [];
+
+            existingUserOperationIdsRef.current = rows.map(row => row.id);
+
+            const selected = rows
+                .filter(row => row.operation)
+                .map(row => ({ "id": row.operation.id, "name": `${row.operation.operation_code} - ${row.operation.description}` }));
+
+            config["inputOperations"].setValue(selected);
+
+        } catch (error) {
+            console.log("***********GetUserOperations Error**********");
+            console.log(error.response);
+            existingUserOperationIdsRef.current = [];
+            config["inputOperations"].setValue([]);
+        }
+    }
+
+    // Replace a user's assigned operations with whatever is currently selected in the multiselect
+    async function __saveUserOperations(userId) {
+        try {
+            // data.value is normally an array (see onNew's comment), but guard
+            // against it since some framework reset paths (e.g. Refresh/Undo)
+            // can still blank it to "" rather than [].
+            const rawValue = config["inputOperations"].data.value;
+            const selectedIds = (Array.isArray(rawValue) ? rawValue : [])
+                .map(item => item.id)
+                .filter(id => id !== "select_all");
+            const existingRowIds = existingUserOperationIdsRef.current;
+
+            if (existingRowIds && existingRowIds.length > 0) {
+                await API.post('masterDetails', { "UserOperation": { "DEL": existingRowIds } });
+            }
+
+            if (selectedIds.length > 0) {
+                await API.post('masterDetails', {
+                    "UserOperation": {
+                        "CRE": selectedIds.map(operationId => ({
+                            "user_id": userId,
+                            "operation_id": operationId,
+                            "active": true
+                        }))
+                    }
+                });
+            }
+        } catch (error) {
+            console.log("***********SaveUserOperations Error**********");
+            console.log(error.response);
+            config["CONTROL_CENTER"].promptWarningMessage("User saved, but failed to update assigned operations", "");
+        }
+    }
+
+    // The grid's Active checkbox column compares its value against the string
+    // checkedValue "1" (BASE/Components.js's TbCheckBox does a strict ===),
+    // but the API returns a real boolean/number for a tinyint column, and
+    // role is a nested relation rather than a flat column — both need
+    // flattening onto the row before it reaches the grid.
+    function __normalizeUserRow(row) {
+        return {
+            ...row,
+            is_active: row.is_active === true || row.is_active === 1 || row.is_active === "1" ? "1" : "0",
+            role_code: row.role ? row.role.role_code : ""
+        };
+    }
+
+    async function getAllUsersForGrid() {
+        try {
+            const data = await __getDetails("User", false, ["*"], [], ["role"], "name:asc", 1000);
+            if (data && data !== "Error" && data[0].User.length > 0) {
+                config['gridUsers'].setData(data[0].User.map(__normalizeUserRow));
+            } else {
+                config['gridUsers'].setData([]);
+            }
+        } catch (error) {
+            console.log("***********GetAllUsersForGrid Error**********");
+            console.log(error.response);
+        }
+    }
+
+    function handleRowEditClick(e, r) {
+        const row = config["gridUsers"].data[r];
+        if (!row) return;
+
+        formPopulate(row.id);
+    }
+
+    // Clears the form back to a blank "ready for a new user" state — replays
+    // the same reset the "New" button triggers (see onNew) rather than
+    // re-populating with the record that was just saved.
+    function resetFormAfterSave() {
+        if (typeof config["CONTROL_CENTER"].event.__onNew !== 'undefined') {
+            config["CONTROL_CENTER"].event.__onNew();
         }
     }
 
@@ -457,6 +597,7 @@ const CreateUser = () => {
                     }
 
                     config["CONTROL_CENTER"].populate(dataArray);
+                    await __loadUserOperations(userData.id);
 
                 } else {
                     config["CONTROL_CENTER"].promptErrorMessage("Please Enter valid Email", "");
@@ -471,6 +612,8 @@ const CreateUser = () => {
 
         } else {
             //config["CONTROL_CENTER"].promptWarningMessage("Please Enter Email", "");
+            existingUserOperationIdsRef.current = [];
+            config["inputOperations"].setValue([]);
             config["CONTROL_CENTER"].populate(dataArray);
         }
     }
@@ -556,7 +699,12 @@ const CreateUser = () => {
     }
 
     function onNew() {
-        let dataArray = {};
+        // "operations" is included (rather than left out like the other
+        // blank fields) because the framework's own resetData/readAndApplyData
+        // cycle blanks any field missing from this dataArray to "" — fine for
+        // TextBox fields, but inputOperations is a Multiselect whose value
+        // must stay an array or the MultiSelectDropDown component breaks.
+        let dataArray = { "operations": [] };
         //Action handling when NEW buttion clicked...
 
         config["inputName"].setDisabled(false);
@@ -565,6 +713,8 @@ const CreateUser = () => {
         config["buttonDeleteMaster"].setDisabled(false);
 
         config["buttonChangePassword"].setDisabled(true);
+
+        existingUserOperationIdsRef.current = [];
 
         return dataArray;
     }
@@ -629,7 +779,9 @@ const CreateUser = () => {
                         config["CONTROL_CENTER"].promptBaseMessage("Created Successfully", "");
                         // Get User Id from Email
                         const userId = await __getUserIdByEmail(email);
-                        await formPopulate(userId);
+                        await __saveUserOperations(userId);
+                        resetFormAfterSave();
+                        await getAllUsersForGrid();
                     } else {
                         config["CONTROL_CENTER"].promptWarningMessage("Error", "");
                         isValid = false;
@@ -718,7 +870,9 @@ const CreateUser = () => {
                     resultArr = updateUser.data;
                     if (resultArr.status === "success") {
                         config["CONTROL_CENTER"].promptBaseMessage("Updated Successfully", "");
-                        await formPopulate(userId);
+                        await __saveUserOperations(userId);
+                        resetFormAfterSave();
+                        await getAllUsersForGrid();
                     } else {
                         config["CONTROL_CENTER"].promptWarningMessage("Error", "");
                         isValid = false;
@@ -879,6 +1033,7 @@ const CreateUser = () => {
                 if (deleteMaster.data.status === "success") {
                     config["CONTROL_CENTER"].promptBaseMessage("Record Deleted Successfully", "");
                     formPopulate();
+                    await getAllUsersForGrid();
                 } else {
                     config["CONTROL_CENTER"].promptWarningMessage("Error", "");
                 }

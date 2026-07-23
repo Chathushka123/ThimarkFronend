@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { generateDailyShiftDisplay } from './DailyShiftDS';
 import config from './DailyShiftCS';
 import API from '../../../api/API';
-import { fromDateTimeLocal, toDateTimeLocal } from '../_shared/HrUiKit';
+import { fromDateTimeLocal, toDateTimeLocal } from './DailyShiftHelpers';
 
 const DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}(:\d{2})?$/;
 
@@ -86,12 +86,17 @@ const DailyShift = () => {
         }
     }
 
-    let teamOptionsCache = [];
+    // useRef (not a plain variable) so the fetched list survives this
+    // component's re-renders — a plain `let` here gets reset to [] on every
+    // render, and since handleNew/formPopulate always run from whichever
+    // render's closure the framework's event handlers currently point to
+    // (almost never the original mount render), they'd see an empty cache.
+    const teamOptionsCacheRef = useRef([]);
 
     async function __loadTeamOptions() {
         const data = await __getDetails("Team", false, ["*"], [{ "field-name": "active", "operator": "=", "value": true }], [], "team_name:asc", 1000);
         if (data && data !== "Error" && data[0].Team.length > 0) {
-            teamOptionsCache = data[0].Team.map(t => ({ value: t.id, text: `${t.team_code} - ${t.team_name}` }));
+            teamOptionsCacheRef.current = data[0].Team.map(t => ({ value: t.id, text: `${t.team_code} - ${t.team_name}` }));
         }
         config["gridTeamAssignments"].setColumns(__getGridTeamAssignmentColumns());
     }
@@ -99,7 +104,7 @@ const DailyShift = () => {
     function __getGridTeamAssignmentColumns() {
         let gridCols = [];
         gridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "70px", width: "70px" } };
-        gridCols["team_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "team_id", placeholder: "Select Team", editable: true, exclusiveOptions: true, sqlColumn: "team_id", options: [{ value: "", text: "- Select Team -" }, ...teamOptionsCache], style: { textAlign: "left", minWidth: "220px", width: "220px" } };
+        gridCols["team_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "team_id", placeholder: "Select Team", editable: true, exclusiveOptions: true, sqlColumn: "team_id", options: [{ value: "", text: "- Select Team -" }, ...teamOptionsCacheRef.current], style: { textAlign: "left", minWidth: "220px", width: "220px" } };
         gridCols["start_date_time"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "start_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "start_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
         gridCols["end_date_time"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "end_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "end_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
         gridCols["active"] = { objectType: "CheckBox", colIndex: 4, datatype: "checkbox", name: "active", placeholder: "Active", editable: true, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "80px", width: "80px" } };
@@ -156,7 +161,11 @@ const DailyShift = () => {
             start_date_time: d.start_date_time,
             end_date_time: d.end_date_time,
             team_count: (d.daily_shift_teams || []).length,
-            active: d.active,
+            // The grid's Active checkbox column compares against the string
+            // checkedValue "1" (BASE/Components.js's TbCheckBox does a strict
+            // ===), but the API returns a real boolean/number here — coerce
+            // it or the checkbox always renders unchecked regardless of status.
+            active: d.active === true || d.active === 1 || d.active === "1" ? "1" : "0",
             updated_at: d.updated_at
         };
     }
@@ -343,6 +352,18 @@ const DailyShift = () => {
         }
     }
 
+    // "YYYY-MM-DD" from a DateField's Date object, using local date parts
+    // (not toISOString, which is UTC and can roll the date over near
+    // midnight) since react-datepicker hands back a Date representing local
+    // midnight of the picked day.
+    function __formatLocalDate(date) {
+        if (!date) return '';
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
     // Default working window for a freshly (re)picked Shift Date: 08:00-18:00
     // on that same day. dateStr is "YYYY-MM-DD".
     function __defaultShiftTimes(dateStr) {
@@ -350,15 +371,10 @@ const DailyShift = () => {
     }
 
     // Fired via DateField's onChange whenever the user picks a Shift Date —
-    // (re)stamps Start/End Date-Time to 08:00/18:00 of that day. Uses local
-    // date parts (not toISOString, which is UTC) since react-datepicker hands
-    // back a Date representing local midnight of the picked day.
+    // (re)stamps Start/End Date-Time to 08:00/18:00 of that day.
     function handleShiftDateChange(date) {
         if (!date) return;
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        const { start, end } = __defaultShiftTimes(`${y}-${m}-${d}`);
+        const { start, end } = __defaultShiftTimes(__formatLocalDate(date));
         config["inputStartDateTime"].setValue(start);
         config["inputEndDateTime"].setValue(end);
     }
@@ -478,7 +494,7 @@ const DailyShift = () => {
                         "CRE": [
                             {
                                 "shift_id": shiftId,
-                                "shift_date": shiftDate,
+                                "shift_date": __formatLocalDate(shiftDate),
                                 "start_date_time": fromDateTimeLocal(startDateTime),
                                 "end_date_time": fromDateTimeLocal(endDateTime),
                                 "active": active,
@@ -499,9 +515,8 @@ const DailyShift = () => {
                     // Re-select the just-created record so Save afterwards dispatches
                     // "MODIFY" (with a real id) instead of "NEW" again. There's no
                     // unique business key to look it up by, so match on shift + date
-                    // (both sides normalized to "YYYY-MM-DD" since the backend may
-                    // serialize the date cast as a full ISO timestamp).
-                    const shiftDateStr = shiftDate instanceof Date ? shiftDate.toISOString().split('T')[0] : String(shiftDate || '').split('T')[0];
+                    // (both sides normalized to "YYYY-MM-DD").
+                    const shiftDateStr = __formatLocalDate(shiftDate);
                     const created = config["gridDailyShifts"].data.find(r => String(r.shift_id) === String(shiftId) && String(r.shift_date || '').split('T')[0] === shiftDateStr);
                     if (created) await formPopulate(created.id);
                 } else {
@@ -542,7 +557,7 @@ const DailyShift = () => {
                             {
                                 [dailyShiftId]: {
                                     "shift_id": shiftId,
-                                    "shift_date": shiftDate,
+                                    "shift_date": __formatLocalDate(shiftDate),
                                     "start_date_time": fromDateTimeLocal(startDateTime),
                                     "end_date_time": fromDateTimeLocal(endDateTime),
                                     "active": active,
