@@ -25,6 +25,7 @@ import Batch from './components/pages/Batch/BatchES';
 import Grn from './components/pages/Grn/GrnES';
 import Mrn from './components/pages/Mrn/MrnES';
 import MrnIssuance from './components/pages/MrnIssuance/MrnIssuanceES';
+import ProductionWIPScanning from './components/pages/ProductionWIPScanning/ProductionWIPScanningES';
 // import Style from './components/pages/Style/StyleES';
 // import Marker from './components/pages/Marker/MarkerES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
@@ -90,6 +91,7 @@ const App = () => {
           <PrivateRoute path="/openGrns" screen="openGrns" component={OpenGrn} theme={Theme} />
           <PrivateRoute path="/mrnCreation" screen="mrnCreation" component={Mrn} theme={Theme} />
           <PrivateRoute path="/mrnIssuance" screen="mrnIssuance" component={MrnIssuance} theme={Theme} />
+          <PrivateRoute path="/productionWIPScanning" screen="productionWIPScanning" component={ProductionWIPScanning} theme={Theme} />
           <PrivateRoute path="/costSheetView" screen="costSheetView" component={CostSheetView} theme={Theme} />
           <PrivateRoute path="/csCharts/:model_id" screen="costSheetView" component={CSCharts} theme={Theme} />
 

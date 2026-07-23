@@ -1,5 +1,29 @@
 import React from 'react'
-import { TextBox, DropDown, Label, TextArea, PasswordField, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+import { TextBox, DropDown, Label, TextArea, PasswordField, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, MultiSelectDropDown, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+
+function generateUsersGrid(componentList) {
+    return (
+        <div className="row pb-4">
+            <div className="col-12">
+                <div className="table-wrp background-white">
+                    <h5>All Users</h5>
+                    <Grid item={componentList["gridUsers"]}
+                        customButton={<i className="fa fa-edit"></i>}
+                        className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
+                        <div className="row">
+                            <div className="col-12">
+                                <div className="master-table-wrp">
+                                    <GridHeader typeName="GridHeader" columns={componentList["gridUsers"].columns} />
+                                    <GridBody typeName="GridBody" rows={componentList["gridUsers"].data} />
+                                </div>
+                            </div>
+                        </div>
+                    </Grid>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 export function generateCreateUserDisplay(componentList, handlers) {
 
@@ -98,6 +122,12 @@ export function generateCreateUserDisplay(componentList, handlers) {
                                     </div>
                                 </div>
                             </div>
+                            <div className="form-row">
+                                <div className="form-group col-md-6">
+                                    <Label item={componentList["inputOperations"].label} />
+                                    <MultiSelectDropDown item={componentList["inputOperations"]} className="form-control form-control-sm" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="row py-3">
@@ -106,6 +136,8 @@ export function generateCreateUserDisplay(componentList, handlers) {
                         </div>
                     </div>
                 </div>
+
+                {generateUsersGrid(componentList)}
             </div>
         </>
     )

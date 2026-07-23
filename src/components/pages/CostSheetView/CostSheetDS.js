@@ -38,33 +38,32 @@ function getPaletteColor(category) {
 
 const S = {
     card: {
-        background: '#f5fdfa',
+        background: '#fff',
         borderRadius: '10px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
         marginBottom: '20px',
         overflow: 'hidden',
     },
     cardHeader: {
-        background: 'linear-gradient(135deg, #0C2C55 0%, #296374 100%)',
-        color: '#fff',
+        background: '#f8f9fc',
+        color: '#0f014b',
         padding: '12px 20px',
         fontSize: '14px',
-        fontWeight: '600',
-        letterSpacing: '0.5px',
+        fontWeight: '700',
+        letterSpacing: '0.3px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottom: '2px solid #638ad6',
     },
     infoBody: { padding: '16px 8px' },
     fieldWrap: { padding: '6px 10px', marginBottom: '4px' },
     fieldInner: (hi) => ({
         padding: '10px 14px',
-        background:'linear-gradient(135deg, #BDE8F5 0%, #4988C4 100%)',
+        background: hi ? '#eef2f9' : '#f8f9fc',
         borderRadius: '8px',
-        borderLeft: '4px solid #1D4ED8',
-        borderRight: '1px solid #1D4ED8',
-        borderTop: '1px solid #1D4ED8',
-        borderBottom: '1px solid #1D4ED8',
+        border: '1px solid #dde3f0',
+        borderLeft: `4px solid ${hi ? '#1D4ED8' : '#a8b6d6'}`,
         height: '100%',
     }),
     fieldLabel: (hi) => ({
@@ -92,16 +91,17 @@ const S = {
     table: { width: '100%', borderCollapse: 'collapse', fontSize: '12px' },
     thead: { position: 'sticky', top: 0, zIndex: 2 },
     th: {
-        background: '#1A3263    ',
-        color: '#fff',
+        background: '#eef2f9',
+        color: '#0f014b',
         padding: '10px',
         textAlign: 'left',
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: '11px',
         textTransform: 'uppercase',
         letterSpacing: '0.5px',
         whiteSpace: 'nowrap',
-        borderRight: '1px solid rgba(255,255,255,0.1)',
+        borderRight: '1px solid #dde3f0',
+        borderBottom: '2px solid #c5cee0',
     },
     thNum: { textAlign: 'right' },
     groupRow: (c) => ({
@@ -110,7 +110,7 @@ const S = {
         userSelect: 'none',
         // borderLeft: `4px solid ${c}`,
         borderTop: '2px solid #e9ecef',
-        borderBottom: '1px solid #444444',
+        borderBottom: '1px solid #dde3f0',
     }),
     groupCell: {
         padding: '9px 12px',
@@ -167,19 +167,19 @@ const S = {
     underIssued: { background: '#fffbeb', color: '#b45309' },
     warnIcon:    { color: '#e53e3e', marginLeft: '5px', fontSize: '10px' },
     grandRow: {
-        background: '#1A3263',
-        borderTop: '3px solid #4fc3f7',
+        background: '#eef2f9',
+        borderTop: '3px solid #638ad6',
     },
     grandLabel: {
         padding: '12px 16px',
-        color: '#fff',
+        color: '#0f014b',
         fontWeight: '700',
         fontSize: '13px',
         letterSpacing: '1px',
     },
     grandCell: {
         padding: '12px 10px',
-        color: '#fff',
+        color: '#0f014b',
         fontWeight: '700',
         fontSize: '15px',
         textAlign: 'right',
@@ -455,7 +455,7 @@ export function generateCostSheetDisplay(componentList, costSheetData, expandedG
                                                 <td style={S.grandCell}>{fmt(grandRequired)}</td>
                                                 <td style={{
                                                     ...S.grandCell,
-                                                    color: variance > 0 ? '#fca5a5' : variance < 0 ? '#fde68a' : '#6ee7b7',
+                                                    color: variance > 0 ? '#c53030' : variance < 0 ? '#b45309' : '#1a7a4a',
                                                 }}>
                                                     {fmt(grandIssued)}
                                                     {variance !== 0 && (

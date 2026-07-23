@@ -54,37 +54,40 @@ const S = {
         overflow: 'visible',
     },
     cardHeader: {
-        background: 'linear-gradient(135deg, #000841 0%, #020f75 100%)',
-        color: '#fff',
+        background: '#f8f9fc',
+        color: '#0f014b',
         padding: '12px 20px',
         fontSize: '14px',
-        fontWeight: '600',
-        letterSpacing: '0.5px',
+        fontWeight: '700',
+        letterSpacing: '0.3px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottom: '2px solid #638ad6',
     },
     cardHeaderGreen: {
-        background: 'linear-gradient(135deg, #0a4a2e 0%, #1a7a4a 100%)',
-        color: '#fff',
+        background: '#f8f9fc',
+        color: '#0f014b',
         padding: '12px 20px',
         fontSize: '14px',
-        fontWeight: '600',
-        letterSpacing: '0.5px',
+        fontWeight: '700',
+        letterSpacing: '0.3px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottom: '2px solid #28a745',
     },
     cardHeaderDark: {
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-        color: '#fff',
+        background: '#f8f9fc',
+        color: '#0f014b',
         padding: '12px 20px',
         fontSize: '14px',
-        fontWeight: '600',
-        letterSpacing: '0.5px',
+        fontWeight: '700',
+        letterSpacing: '0.3px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        borderBottom: '2px solid #4a5568',
     },
     cardBody: { padding: '20px 20px 10px 20px' },
     label: {
@@ -154,16 +157,17 @@ const S = {
     // ── Item table ────────────────────────────────────────────────────────────
     itemTable: { width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', minWidth: '720px' },
     itemTh: {
-        background: '#1a1a2e',
-        color: '#fff',
+        background: '#eef2f9',
+        color: '#0f014b',
         padding: '10px 12px',
         textAlign: 'left',
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: '11px',
         textTransform: 'uppercase',
         letterSpacing: '0.4px',
         whiteSpace: 'nowrap',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+        borderRight: '1px solid #dde3f0',
+        borderBottom: '2px solid #c5cee0',
     },
     itemRowEven: { background: '#fff' },
     itemRowOdd: { background: '#f8f9fb' },
@@ -225,9 +229,9 @@ const S = {
         lineHeight: '1',
     },
     addRowBtn: {
-        background: '#0f014b',
+        background: '#7b8eb5',
         color: '#fff',
-        border: 'none',
+        border: '1px solid #638ad6',
         padding: '8px 18px',
         borderRadius: '6px',
         fontSize: '12px',
@@ -449,7 +453,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                                 Purchase Order Information
                             </span>
                             <span style={{ fontSize: '11px', fontWeight: '400', opacity: 0.75 }}>
-                                Fields marked <span style={{ color: '#fca5a5' }}>*</span> are required
+                                Fields marked <span style={{ color: '#e53e3e' }}>*</span> are required
                             </span>
                         </div>
                         <div style={S.cardBody}>
@@ -576,7 +580,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                             <div style={S.card}>
                                 <div style={S.cardHeaderGreen}>
                                     <span>
-                                        <i className="fas fa-calculator" ></i>
+                                        <i className="fas fa-calculator" style={{ marginRight: '8px' }}></i>
                                         Financial Summary
                                     </span>
                                 </div>
@@ -742,7 +746,7 @@ export function generatePurchaseOrderDisplay(componentList, currentStatus, lineI
                             </div>
                         </div>
                     </div>
-                     
+
                 </div>
             </ControlCenter>
         </>

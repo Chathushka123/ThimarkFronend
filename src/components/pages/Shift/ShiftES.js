@@ -73,12 +73,21 @@ const Shift = () => {
         }
     }
 
+    // The grid's Active checkbox column compares its value against the string
+    // checkedValue "1" (BASE/Components.js's TbCheckBox does a strict ===),
+    // but the API returns a real boolean/number for a tinyint column — so the
+    // raw row must be coerced to "1"/"0" here or the checkbox always renders
+    // unchecked regardless of the real status.
+    function __normalizeActive(row) {
+        return { ...row, active: row.active === true || row.active === 1 || row.active === "1" ? "1" : "0" };
+    }
+
     async function getAllShifts() {
         try {
             document.getElementById("spinner").style.display = "";
             const data = await __getDetails("Shift", false, ["*"], [], [], "shift_name:asc", 1000);
             if (data && data !== "Error" && data[0].Shift.length > 0) {
-                config['gridShifts'].setData(data[0].Shift);
+                config['gridShifts'].setData(data[0].Shift.map(__normalizeActive));
             } else {
                 config['gridShifts'].setData([]);
             }

@@ -157,7 +157,7 @@ componentListConfig["inputShiftDate"] = {
     class: "", event: {}
 }
 
-// Native datetime-local inputs (rendered via HrUiKit's DateTimeField) — BASE's
+// Native datetime-local inputs (rendered via DailyShiftHelpers' DateTimeField) — BASE's
 // DateField only supports date-only pickers and start/end_date_time are full
 // datetime columns on the backend.
 componentListConfig["inputStartDateTime"] = {
