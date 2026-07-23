@@ -17,8 +17,8 @@ const Returnable = () => {
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["buttonPrint"].event.onClick = handleSaveReturnable;
     config["inputRequester"].event.onEnterKey = handleGetReturnableDetails;
-    // config["inputRequester"].event.onBlur = handleGetReturnableDetails;
-    config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
+     config["inputRequester"].event.onBlur = handleGetReturnableDetails;
+    //config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
 
     config["inputMaterial"].event.onEnterKey = handleGetMaterialDeleDetails;
     config["inputMaterial"].event.onBlur = handleGetMaterialDeleDetails;

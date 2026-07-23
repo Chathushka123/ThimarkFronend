@@ -1,5 +1,82 @@
 import React, { useState } from 'react'
+import Select from 'react-select'
 import { TextBox, DropDown, Label, TextArea, Button, ControlCenter, IntegerField, NumberField, PopUpPage, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+
+// Searchable drop-down that plugs into the same DataSourceController contract
+// as the framework's <DropDown/> (reRender/setOptions/setValue/setDisabled),
+// but renders react-select so the options list can be typed/filtered.
+function SearchableDropDown(props) {
+    const item = props.item
+    const state = item.schema.dataSourceController.state
+    const [, setRendered] = useState(true)
+    const [disabled, setDisabled] = useState(false)
+    let itemDisabled = disabled
+    if (!disabled) {
+        itemDisabled = ((((!state.populated) && (item.schema.searchable)) || state.new || state.populated) ? false : true)
+    }
+
+    function reRender() {
+        setRendered(r => !r)
+    }
+    function setOptions(optionList, reset) {
+        item.options = optionList
+        if (reset) {
+            item.data.value = ""
+        }
+        reRender()
+    }
+    function setValue(value) {
+        item.data.value = value
+        reRender()
+    }
+    item.reRender = reRender
+    item.setOptions = setOptions
+    item.setValue = setValue
+    item.setDisabled = setDisabled
+
+    const options = (item.options || []).map(o => ({ value: o.value, label: o.text }))
+    const selected = options.find(o => String(o.value) === String(item.data.value)) || null
+
+    const handleChange = (option) => {
+        item.data.value = option ? option.value : ""
+        state.modified = true
+        if (typeof item.event.onChange !== 'undefined') {
+            item.event.onChange({ target: { value: item.data.value } })
+        }
+        if (typeof item.schema.dataSourceController.renderControlButtons !== "undefined") {
+            item.schema.dataSourceController.renderControlButtons()
+        }
+        reRender()
+    }
+
+    if (!item.schema.visible) return null
+
+    return (
+        <Select
+            inputId={item.schema.name}
+            classNamePrefix="react-select"
+            isClearable
+            isSearchable
+            isDisabled={itemDisabled || props.disabled}
+            placeholder={item.schema.placeholder}
+            value={selected}
+            options={options}
+            onChange={handleChange}
+            styles={{
+                control: (base) => ({
+                    ...base,
+                    minHeight: 'unset',
+                    ...(props.style || {}),
+                }),
+                valueContainer: (base) => ({ ...base, padding: '0px 5px' }),
+                input: (base) => ({ ...base, margin: '0px' }),
+                indicatorsContainer: (base) => ({ ...base, padding: '2px' }),
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+            }}
+            menuPortalTarget={document.body}
+        />
+    )
+}
 
 function PoDetailsPanel({ selectedPoDetails }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -324,13 +401,11 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                         <i className="fas fa-file-alt mr-2"></i>
                                         {componentList["inputRmpoNo"].label.schema.value}
                                     </label>
-                                    <DropDown
+                                    <SearchableDropDown
                                         item={componentList["inputRmpoNo"]}
-                                        className="form-control"
                                         disabled={componentList["inputGrnID"].data.value !== ""}
                                         style={{
                                             fontSize: '12px',
-                                            padding: '2px 5px',
                                             borderRadius: '5px',
                                             border: '2px solid #d0d9ff',
                                             backgroundColor: '#ffffff',

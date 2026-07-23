@@ -60,6 +60,8 @@ import ActivePODashboard from './components/pages/dashboards/ActivePODashboard';
 // import TransactionSummary from './components/pages/TransactionSummary/TransactionSummaryES';
 // import DayBook from './components/pages/DayBook/DayBookES';
 
+import Operation from './components/pages/Operations/OperationES';
+import Routing from './components/pages/Routing/RoutingES';
 
 const getBaseName = path => path.substr(0, path.lastIndexOf('/'));
 
@@ -107,6 +109,7 @@ const App = () => {
           {/* <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} /> */}
           <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
           <PrivateRoute path="/grnReport" screen="grnReport" component={GrnPendingCompleted} theme={Theme} />
+
           {/* <PrivateRoute path="/mrnActivityPerUser" screen="mrnActivityPerUser" component={MrnActivityPerUser} theme={Theme} />
           <PrivateRoute path="/mrnTurnaroundTime" screen="mrnTurnaroundTime" component={MrnTurnaroundTime} theme={Theme} />
           <PrivateRoute path="/materialConsumptionPerModel" screen="materialConsumptionPerModel" component={MaterialConsumptionPerModel} theme={Theme} />
@@ -118,6 +121,11 @@ const App = () => {
           <PrivateRoute path="/configuration" screen="configuration" component={Configuration} theme={Theme} />
           <PrivateRoute path="/transactionSummary" screen="transactionSummary" component={TransactionSummary} theme={Theme} />
           <PrivateRoute path="/dayBook" screen="dayBook" component={DayBook} theme={Theme} /> */}
+
+
+
+            <PrivateRoute path="/operation" screen="operation" component={Operation} theme={Theme} />
+            <PrivateRoute path="/routing" screen="routing" component={Routing} theme={Theme} />
 
           <PrivateRoute path="/createUser" screen="createUser" component={CreateUser} theme={Theme} />
           <PrivateRoute path="/userRoles" screen="userRoles" component={UserRoles} theme={Theme} />
