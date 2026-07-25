@@ -105,6 +105,7 @@ const WipFloorDashboard = () => {
   const stations = (data && data.stations) || [];
   const alerts = (data && data.alerts) || [];
   const teamScoreboard = (data && data.team_scoreboard) || [];
+  const batchBreakdown = (data && data.batch_breakdown) || [];
 
   const totalQueued = stations.reduce((sum, s) => sum + s.queued_qty, 0);
   const totalBlocked = stations.reduce((sum, s) => sum + s.blocked_qty, 0);
@@ -187,6 +188,7 @@ const WipFloorDashboard = () => {
                           <th className="py-1 text-right">Scanned</th>
                           <th className="py-1 text-right">Rejected</th>
                           <th className="py-1 text-right">Rework</th>
+                          <th className="py-1 text-right">WIP</th>
                           <th className="py-1 text-right">Reject %</th>
                           <th className="py-1 text-right">Rework %</th>
                         </tr>
@@ -198,8 +200,45 @@ const WipFloorDashboard = () => {
                             <td className="py-1 text-right" style={{ color: C.success }}>{t.scanned_qty}</td>
                             <td className="py-1 text-right" style={{ color: C.danger }}>{t.rejected_qty}</td>
                             <td className="py-1 text-right" style={{ color: C.amber }}>{t.rework_qty}</td>
+                            <td className="py-1 text-right" style={{ color: C.ink, fontWeight: 700 }}>{t.wip_qty}</td>
                             <td className="py-1 text-right" style={{ color: C.muted }}>{t.reject_rate_pct}%</td>
                             <td className="py-1 text-right" style={{ color: C.muted }}>{t.rework_rate_pct}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-3" style={card}>
+                <div style={{ fontWeight: 600, color: C.ink, marginBottom: '8px' }}>
+                  WIP by Main Model / Model / Batch
+                </div>
+                {batchBreakdown.length === 0 ? (
+                  <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>Nothing currently on the floor.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="w-100" style={{ fontSize: '13px' }}>
+                      <thead>
+                        <tr style={{ borderBottom: `1px solid ${C.border}`, color: C.muted, textAlign: 'left' }}>
+                          <th className="py-1">Main Model</th>
+                          <th className="py-1">Model</th>
+                          <th className="py-1">Batch</th>
+                          <th className="py-1 text-right">Queued</th>
+                          <th className="py-1 text-right">Blocked</th>
+                          <th className="py-1 text-right">Rework</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {batchBreakdown.map((b) => (
+                          <tr key={`${b.batch_id}-${b.model_id}`} style={{ borderBottom: `1px solid ${C.subtleBg}` }}>
+                            <td className="py-1" style={{ color: C.ink }}>{b.main_model_name || '—'}</td>
+                            <td className="py-1" style={{ color: C.ink, fontWeight: 600 }}>{b.model_name || '—'}</td>
+                            <td className="py-1" style={{ color: C.muted }}>{b.batch_no || '—'}</td>
+                            <td className="py-1 text-right" style={{ color: C.success }}>{b.queued_qty}</td>
+                            <td className="py-1 text-right" style={{ color: C.danger }}>{b.blocked_qty}</td>
+                            <td className="py-1 text-right" style={{ color: C.amber }}>{b.outstanding_rework}</td>
                           </tr>
                         ))}
                       </tbody>

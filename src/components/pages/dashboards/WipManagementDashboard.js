@@ -63,6 +63,7 @@ const WipManagementDashboard = () => {
   }, [days]);
 
   const summary = (data && data.summary) || null;
+  const batchBreakdown = (data && data.batch_breakdown) || [];
   const chartData = ((data && data.daily) || []).map((d) => ({
     date: formatDateLabel(d.date),
     Scanned: d.scanned_qty,
@@ -133,6 +134,46 @@ const WipManagementDashboard = () => {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+          </div>
+
+          <div className="p-3 mt-3" style={card}>
+            <div style={{ fontWeight: 600, color: C.ink, marginBottom: '8px' }}>
+              Production by Main Model / Model / Batch ({days} days)
+            </div>
+            {batchBreakdown.length === 0 ? (
+              <p style={{ color: C.muted, fontSize: '13px', margin: 0 }}>No production recorded in this window.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table className="w-100" style={{ fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: `1px solid ${C.border}`, color: C.muted, textAlign: 'left' }}>
+                      <th className="py-1">Main Model</th>
+                      <th className="py-1">Model</th>
+                      <th className="py-1">Batch</th>
+                      <th className="py-1 text-right">Scanned</th>
+                      <th className="py-1 text-right">Rejected</th>
+                      <th className="py-1 text-right">Rework</th>
+                      <th className="py-1 text-right">Reject %</th>
+                      <th className="py-1 text-right">Rework %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {batchBreakdown.map((b) => (
+                      <tr key={`${b.batch_id}-${b.model_id}`} style={{ borderBottom: '1px solid #f7f8fa' }}>
+                        <td className="py-1" style={{ color: C.ink }}>{b.main_model_name || '—'}</td>
+                        <td className="py-1" style={{ color: C.ink, fontWeight: 600 }}>{b.model_name || '—'}</td>
+                        <td className="py-1" style={{ color: C.muted }}>{b.batch_no || '—'}</td>
+                        <td className="py-1 text-right" style={{ color: C.success }}>{b.scanned_qty}</td>
+                        <td className="py-1 text-right" style={{ color: C.danger }}>{b.rejected_qty}</td>
+                        <td className="py-1 text-right" style={{ color: C.amber }}>{b.rework_qty}</td>
+                        <td className="py-1 text-right" style={{ color: C.muted }}>{b.reject_rate_pct}%</td>
+                        <td className="py-1 text-right" style={{ color: C.muted }}>{b.rework_rate_pct}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </>
       )}
