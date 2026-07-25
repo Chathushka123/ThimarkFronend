@@ -55,7 +55,11 @@
       "Bash(php -l \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Requests/LookupBundleTicketRequest.php\")",
       "Bash(php -l \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/routes/api.php\")",
       "Bash(mkdir -p /tmp/claude-1000/-home-chathura-jayawardane-Documents-Programming-WithChathushka-Thimark-ThimarkFronend/17575b14-b146-4da1-9c9c-cb744cff6de7/scratchpad/pw6)",
-      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NzQ1MDgwLCJleHAiOjE3ODQ3NDU5ODAsIm5iZiI6MTc4NDc0NTA4MCwianRpIjoiVmliT1p0QnVRN2ZpMURZayIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.fYobZ1wPuSFvAs0rIY3hBsWh9O9R157E3ADG30qFVYc\" node verify_scan.js)"
+      "Bash(WIP_TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiaWF0IjoxNzg0NzQ1MDgwLCJleHAiOjE3ODQ3NDU5ODAsIm5iZiI6MTc4NDc0NTA4MCwianRpIjoiVmliT1p0QnVRN2ZpMURZayIsInN1YiI6IjEiLCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.fYobZ1wPuSFvAs0rIY3hBsWh9O9R157E3ADG30qFVYc\" node verify_scan.js)",
+      "Bash(git -C \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend\" status --short)",
+      "Bash(git -C \"/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend\" log --oneline -8)",
+      "Bash(xargs -I{} echo {})",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/productionWIPScanning)"
     ],
     "additionalDirectories": [
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",
