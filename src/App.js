@@ -26,6 +26,9 @@ import Grn from './components/pages/Grn/GrnES';
 import Mrn from './components/pages/Mrn/MrnES';
 import MrnIssuance from './components/pages/MrnIssuance/MrnIssuanceES';
 import ProductionWIPScanning from './components/pages/ProductionWIPScanning/ProductionWIPScanningES';
+import ReasonsMaster from './components/pages/ReasonsMaster/ReasonsMasterES';
+import WipFloorDashboard from './components/pages/dashboards/WipFloorDashboard';
+import WipManagementDashboard from './components/pages/dashboards/WipManagementDashboard';
 // import Style from './components/pages/Style/StyleES';
 // import Marker from './components/pages/Marker/MarkerES';
 import UserRoles from './components/pages/UserRoles/UserRolesES';
@@ -92,6 +95,9 @@ const App = () => {
           <PrivateRoute path="/mrnCreation" screen="mrnCreation" component={Mrn} theme={Theme} />
           <PrivateRoute path="/mrnIssuance" screen="mrnIssuance" component={MrnIssuance} theme={Theme} />
           <PrivateRoute path="/productionWIPScanning" screen="productionWIPScanning" component={ProductionWIPScanning} theme={Theme} />
+          <PrivateRoute path="/reasonsMaster" screen="reasonsMaster" component={ReasonsMaster} theme={Theme} />
+          <PrivateRoute path="/wipFloorDashboard" screen="wipFloorDashboard" component={WipFloorDashboard} theme={Theme} />
+          <PrivateRoute path="/wipManagementDashboard" screen="wipManagementDashboard" component={WipManagementDashboard} theme={Theme} />
           <PrivateRoute path="/costSheetView" screen="costSheetView" component={CostSheetView} theme={Theme} />
           <PrivateRoute path="/csCharts/:model_id" screen="costSheetView" component={CSCharts} theme={Theme} />
 

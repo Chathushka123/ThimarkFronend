@@ -77,7 +77,11 @@ API.interceptors.response.use(
 
     // Bare axios call (not the API instance) so this doesn't recurse through
     // this same response interceptor.
-    return axios
+    // The refresh call and the retried original request are chained but
+    // caught separately: a failure of the *retry* (e.g. a 422 the original
+    // request would have hit anyway) must not fall into the refresh's
+    // .catch and trigger a logout redirect.
+    const refreshPromise = axios
       .post(
         `${API.defaults.baseURL}refreshToken`,
         {},
@@ -90,13 +94,15 @@ API.interceptors.response.use(
         const newToken = res.data.access_token;
         updateToken(newToken);
         processQueue(null, newToken);
-        return API(original);
       })
       .catch((refreshError) => {
         processQueue(refreshError, null);
         clearSessionAndRedirect();
-        return Promise.reject(refreshError);
-      })
+        throw refreshError;
+      });
+
+    return refreshPromise
+      .then(() => API(original))
       .finally(() => {
         isRefreshing = false;
       });
