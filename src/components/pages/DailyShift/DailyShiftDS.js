@@ -2,7 +2,11 @@ import React from 'react'
 import { TextBox, Label, CheckBox, DateField, LovComboBox, Grid, GridBody, GridHeader, AddRowButton, ControlCenter, NewButton, SaveButton, Button } from '../../../BASE/Components'
 import { DateTimeField } from './DailyShiftHelpers'
 
-export function generateDailyShiftDisplay(componentList) {
+export function generateDailyShiftDisplay(componentList, options = {}) {
+    const {
+        filterDate = '',
+        onFilterDateChange = () => { },
+    } = options;
 
     return (
         <>
@@ -89,7 +93,18 @@ export function generateDailyShiftDisplay(componentList) {
                     <div className="row pb-4">
                         <div className="col-12">
                             <div className='table-wrp background-white'>
-                                <h5>All Daily Shifts</h5>
+                                <div className="row pb-3 align-items-center">
+                                    <div className="col-9"><h5>All Daily Shifts</h5></div>
+                                    <div className="col-3 d-flex justify-content-end">
+                                        <input
+                                            type="date"
+                                            className="form-control form-control-sm"
+                                            style={{ maxWidth: "180px" }}
+                                            value={filterDate}
+                                            onChange={(e) => onFilterDateChange(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                                 <Grid item={componentList["gridDailyShifts"]}
                                     customButton={<i className="fa fa-edit"></i>}
                                     deleteButton={<i className="fa fa-trash"></i>}
