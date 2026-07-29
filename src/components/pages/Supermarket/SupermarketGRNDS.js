@@ -1,227 +1,11 @@
-import React, { useState } from 'react'
-import Select from 'react-select'
-import { TextBox, DropDown, Label, TextArea, Button, ControlCenter, IntegerField, NumberField, PopUpPage, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+import React from 'react'
+import { TextBox, DropDown, Label, TextArea, Button, ControlCenter, IntegerField, PopUpPage, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
-// Searchable drop-down that plugs into the same DataSourceController contract
-// as the framework's <DropDown/> (reRender/setOptions/setValue/setDisabled),
-// but renders react-select so the options list can be typed/filtered.
-function SearchableDropDown(props) {
-    const item = props.item
-    const state = item.schema.dataSourceController.state
-    const [, setRendered] = useState(true)
-    const [disabled, setDisabled] = useState(false)
-    let itemDisabled = disabled
-    if (!disabled) {
-        itemDisabled = ((((!state.populated) && (item.schema.searchable)) || state.new || state.populated) ? false : true)
-    }
-
-    function reRender() {
-        setRendered(r => !r)
-    }
-    function setOptions(optionList, reset) {
-        item.options = optionList
-        if (reset) {
-            item.data.value = ""
-        }
-        reRender()
-    }
-    function setValue(value) {
-        item.data.value = value
-        reRender()
-    }
-    item.reRender = reRender
-    item.setOptions = setOptions
-    item.setValue = setValue
-    item.setDisabled = setDisabled
-
-    const options = (item.options || []).map(o => ({ value: o.value, label: o.text }))
-    const selected = options.find(o => String(o.value) === String(item.data.value)) || null
-
-    const handleChange = (option) => {
-        item.data.value = option ? option.value : ""
-        state.modified = true
-        if (typeof item.event.onChange !== 'undefined') {
-            item.event.onChange({ target: { value: item.data.value } })
-        }
-        if (typeof item.schema.dataSourceController.renderControlButtons !== "undefined") {
-            item.schema.dataSourceController.renderControlButtons()
-        }
-        reRender()
-    }
-
-    if (!item.schema.visible) return null
-
-    return (
-        <Select
-            inputId={item.schema.name}
-            classNamePrefix="react-select"
-            isClearable
-            isSearchable
-            isDisabled={itemDisabled || props.disabled}
-            placeholder={item.schema.placeholder}
-            value={selected}
-            options={options}
-            onChange={handleChange}
-            styles={{
-                control: (base) => ({
-                    ...base,
-                    minHeight: 'unset',
-                    ...(props.style || {}),
-                }),
-                valueContainer: (base) => ({ ...base, padding: '0px 5px' }),
-                input: (base) => ({ ...base, margin: '0px' }),
-                indicatorsContainer: (base) => ({ ...base, padding: '2px' }),
-                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-            }}
-            menuPortalTarget={document.body}
-        />
-    )
-}
-
-function PoDetailsPanel({ selectedPoDetails }) {
-    const [collapsed, setCollapsed] = useState(false);
-    if (!selectedPoDetails) return null;
-    return (
-        <div className="mb-4" style={{
-            borderRadius: '16px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.07)',
-            background: 'linear-gradient(135deg, #fffbe6 0%, #fff8dc 100%)',
-            border: '2px solid #fde68a',
-            overflow: 'hidden'
-        }}>
-            {/* Header / Toggle Bar */}
-            <div
-                className="d-flex align-items-center p-3"
-                style={{ cursor: 'pointer', userSelect: 'none' }}
-                onClick={() => setCollapsed(c => !c)}
-            >
-                <div style={{
-                    width: '40px', height: '40px', borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginRight: '12px', flexShrink: 0
-                }}>
-                    <i className="fas fa-file-invoice" style={{ color: 'white', fontSize: '18px' }}></i>
-                </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{ color: '#92400e', fontWeight: '800', fontSize: '15px' }}>Purchase Order Details</div>
-                    <small style={{ color: '#b45309', fontWeight: '600' }}>{selectedPoDetails.po_number}</small>
-                </div>
-                <span style={{
-                    backgroundColor: selectedPoDetails.status === 'APPROVED' ? '#d1fae5' : '#fee2e2',
-                    color: selectedPoDetails.status === 'APPROVED' ? '#065f46' : '#991b1b',
-                    padding: '4px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '700',
-                    marginRight: '12px'
-                }}>
-                    {selectedPoDetails.status}
-                </span>
-                <i className={`fas fa-chevron-${collapsed ? 'down' : 'up'}`} style={{ color: '#b45309', fontSize: '14px' }}></i>
-            </div>
-
-            {/* Collapsible Body */}
-            {!collapsed && (
-                <div className="p-4" style={{ borderTop: '1px solid #fde68a' }}>
-                    <div className="row mb-3">
-                        <div className="col-md-4 col-12 mb-2">
-                            <div style={{ background: 'white', borderRadius: '10px', padding: '10px 14px', border: '1px solid #fde68a' }}>
-                                <small style={{ color: '#92400e', fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}><i className="fas fa-truck mr-1"></i>Supplier</small>
-                                <div style={{ color: '#1e293b', fontWeight: '700', fontSize: '14px', marginTop: '2px' }}>
-                                    {selectedPoDetails.supplier?.name || '-'}
-                                </div>
-                                <div style={{ color: '#64748b', fontSize: '12px' }}>{selectedPoDetails.supplier?.email || ''}</div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 col-12 mb-2">
-                            <div style={{ background: 'white', borderRadius: '10px', padding: '10px 14px', border: '1px solid #fde68a' }}>
-                                <small style={{ color: '#92400e', fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}><i className="fas fa-calendar mr-1"></i>Order Date</small>
-                                <div style={{ color: '#1e293b', fontWeight: '700', fontSize: '14px', marginTop: '2px' }}>
-                                    {selectedPoDetails.order_date || '-'}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 col-12 mb-2">
-                            <div style={{ background: 'white', borderRadius: '10px', padding: '10px 14px', border: '1px solid #fde68a' }}>
-                                <small style={{ color: '#92400e', fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}><i className="fas fa-coins mr-1"></i>Total Amount</small>
-                                <div style={{ color: '#065f46', fontWeight: '800', fontSize: '18px', marginTop: '2px' }}>
-                                    {Number(selectedPoDetails.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {selectedPoDetails.notes && (
-                        <div className="mb-3" style={{ background: 'white', borderRadius: '10px', padding: '10px 14px', border: '1px solid #fde68a' }}>
-                            <small style={{ color: '#92400e', fontWeight: '700', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}><i className="fas fa-sticky-note mr-1"></i>Notes</small>
-                            <div style={{ color: '#374151', fontSize: '13px', marginTop: '4px' }}>{selectedPoDetails.notes}</div>
-                        </div>
-                    )}
-                    {selectedPoDetails.items && selectedPoDetails.items.length > 0 && (
-                        <div>
-                            <div style={{ color: '#92400e', fontWeight: '700', fontSize: '13px', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                <i className="fas fa-boxes mr-1"></i>Ordered Items ({selectedPoDetails.items.length})
-                            </div>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 6px' }}>
-                                    <thead>
-                                        <tr style={{ background: '#fef3c7' }}>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>#</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Material</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Quantity</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>GRN Qty</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Balance Qty</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Unit Price</th>
-                                            <th style={{ padding: '8px 12px', color: '#92400e', fontWeight: '700', fontSize: '12px', textTransform: 'uppercase' }}>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {selectedPoDetails.items.map((item, idx) => (
-                                            <tr key={item.id || idx} style={{ background: 'white' }}>
-                                                <td style={{ padding: '8px 12px', color: '#64748b', fontWeight: '600', fontSize: '13px', borderRadius: '8px 0 0 8px' }}>{idx + 1}</td>
-                                                <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{item.material.code + " - " + item.material.name}</td>
-                                                <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.quantity).toLocaleString()}</td>
-                                                <td style={{ padding: '8px 12px', color: '#d97706', fontWeight: '700', fontSize: '13px' }}>{Number(item.grn_qty || 0).toLocaleString()}</td>
-                                                <td style={{ padding: '8px 12px', color: item.balance_qty === 0 ? '#dc3545' : '#059669', fontWeight: '700', fontSize: '13px' }}>{Number(item.balance_qty || 0).toLocaleString()}</td>
-                                                <td style={{ padding: '8px 12px', color: '#1e293b', fontWeight: '700', fontSize: '13px' }}>{Number(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td style={{ padding: '8px 12px', color: '#065f46', fontWeight: '800', fontSize: '13px', borderRadius: '0 8px 8px 0' }}>{Number(item.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
-export function generateGrnDisplay(componentList, grnTransactions = [], selectedPoDetails = null) {
+export function generateSupermarketGRNDisplay(componentList, grnTransactions = []) {
 
     return (
         <>
             <div className="loading" id="spinner" style={{ display: "none" }}>Loading&#8230;</div>
-
-            {/* PO Item Not Found Confirmation Popup */}
-            <PopUpPage item={componentList["confirmPoItemNotFoundPopUp"]} headerText="Item Not in PO" className="">
-                <div className="p-4">
-                    <div className="text-center mb-3">
-                        <i className="fas fa-exclamation-triangle" style={{ fontSize: '48px', color: '#ffc107' }}></i>
-                    </div>
-                    <h5 className="text-center mb-3" style={{ color: '#3a4a6b' }}>Item Not Found in PO</h5>
-                    <p className="text-center mb-4" style={{ color: '#7b8eb5' }}>
-                        This stock item is not listed in the selected Purchase Order.<br />
-                        Do you want to proceed anyway?
-                    </p>
-                    <div className="d-flex justify-content-center gap-2">
-                        <Button className="btn btn-warning mr-2" item={componentList["buttonPoItemNotFoundYes"]}>
-                            <i className="fas fa-check mr-1"></i> Yes, Proceed
-                        </Button>
-                        <Button className="btn btn-secondary" item={componentList["buttonPoItemNotFoundNo"]}>
-                            <i className="fas fa-times mr-1"></i> Cancel
-                        </Button>
-                    </div>
-                </div>
-            </PopUpPage>
 
             {/* Delete Transaction Confirmation Popup */}
             <PopUpPage item={componentList["deleteTransactionPopUp"]} headerText="Confirm Delete" className="">
@@ -398,34 +182,6 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                         marginBottom: '8px',
                                         display: 'block'
                                     }}>
-                                        <i className="fas fa-file-alt mr-2"></i>
-                                        {componentList["inputRmpoNo"].label.schema.value}
-                                    </label>
-                                    <SearchableDropDown
-                                        item={componentList["inputRmpoNo"]}
-                                        disabled={componentList["inputGrnID"].data.value !== ""}
-                                        style={{
-                                            fontSize: '12px',
-                                            borderRadius: '5px',
-                                            border: '2px solid #d0d9ff',
-                                            backgroundColor: '#ffffff',
-                                            fontWeight: '600',
-                                            color: '#1e293b'
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            <div className="col-md-6 col-12">
-                                <div className="form-group">
-                                    <label style={{
-                                        color: '#4c5fd5',
-                                        fontWeight: '700',
-                                        fontSize: '13px',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.5px',
-                                        marginBottom: '8px',
-                                        display: 'block'
-                                    }}>
                                         <i className="fas fa-warehouse mr-2"></i>
                                         {componentList["inputWarehouse"].label.schema.value}
                                     </label>
@@ -542,9 +298,6 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                         </div>
                     </div>
 
-                    {/* PO Details Panel */}
-                    <PoDetailsPanel selectedPoDetails={selectedPoDetails} />
-
                     {/* Transaction Entry Section - Only visible when GRN is created and open */}
                     {componentList["inputGrnID"].data.value !== "" &&
                         componentList["inputStatus"].data.value === "open" &&
@@ -656,35 +409,6 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                                 item={componentList["inputQuantity"]}
                                                 className="form-control"
                                                 placeholder="Enter Quantity"
-                                                style={{
-                                                    fontSize: '15px',
-                                                    padding: '12px 16px',
-                                                    borderRadius: '10px',
-                                                    border: '2px solid #e2e8f0',
-                                                    fontWeight: '700',
-                                                    color: '#1e293b'
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="col-md-4 col-12">
-                                        <div className="form-group">
-                                            <label style={{
-                                                color: '#4a5568',
-                                                fontWeight: '700',
-                                                fontSize: '12px',
-                                                textTransform: 'uppercase',
-                                                letterSpacing: '0.5px',
-                                                marginBottom: '8px',
-                                                display: 'block'
-                                            }}>
-                                                <i className="fas fa-dollar-sign mr-2" style={{ color: '#3b82f6' }}></i>
-                                                {componentList["inputPrice"].label.schema.value}
-                                            </label>
-                                            <NumberField
-                                                item={componentList["inputPrice"]}
-                                                className="form-control"
-                                                placeholder="Enter Price"
                                                 style={{
                                                     fontSize: '15px',
                                                     padding: '12px 16px',
@@ -976,32 +700,6 @@ export function generateGrnDisplay(componentList, grnTransactions = [], selected
                                                                     {transaction.available_qty || 0}
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="mb-0" style={{
-                                                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                                                        padding: '14px',
-                                                        borderRadius: '12px',
-                                                        border: '2px solid #f59e0b',
-                                                        textAlign: 'center'
-                                                    }}>
-                                                        <small style={{
-                                                            color: '#92400e',
-                                                            fontWeight: '700',
-                                                            fontSize: '11px',
-                                                            textTransform: 'uppercase',
-                                                            letterSpacing: '0.5px',
-                                                            display: 'block'
-                                                        }}>
-                                                            <i className="fas fa-dollar-sign mr-1"></i>Price
-                                                        </small>
-                                                        <div style={{
-                                                            color: '#78350f',
-                                                            fontWeight: '800',
-                                                            fontSize: '24px',
-                                                            marginTop: '2px'
-                                                        }}>
-                                                            ${transaction.grn_price ? parseFloat(transaction.grn_price).toFixed(2) : '0.00'}
                                                         </div>
                                                     </div>
                                                 </div>
