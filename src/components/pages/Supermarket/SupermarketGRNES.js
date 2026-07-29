@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { generateGrnDisplay } from './GrnDS';
-import config from './GrnCS';
+import { generateSupermarketGRNDisplay } from './SupermarketGRNDS';
+import config from './SupermarketGRNCS';
 import API from '../../../api/API';
 
-const Grn = () => {
+const SupermarketGRN = () => {
     let [rendered, setRendered] = useState(true);
     let [grnTransactions, setGrnTransactions] = useState([]);
-    let [selectedPoDetails, setSelectedPoDetails] = useState(null);
 
     function reRender() {
         setRendered(!rendered);
@@ -17,8 +16,6 @@ const Grn = () => {
     /*********************************************************/
 
     config["CONTROL_CENTER"].renderFunction = reRender;
-    config['inputRmpoNo'].event.onChange = handlePoChange;
-    config['inputStockItemId'].event.onChange = handleStockItemIdChange;
 
     // Button Events
     config["buttonCreateGrn"].event.onClick = handleCreateGrn;
@@ -29,8 +26,6 @@ const Grn = () => {
     config["buttonDeleteTransactionNo"].event.onClick = handleDeleteTransactionNo;
     config["buttonCompleteGrnYes"].event.onClick = handleCompleteGrnYes;
     config["buttonCompleteGrnNo"].event.onClick = handleCompleteGrnNo;
-    config["buttonPoItemNotFoundYes"].event.onClick = handlePoItemNotFoundYes;
-    config["buttonPoItemNotFoundNo"].event.onClick = handlePoItemNotFoundNo;
     config['inputLocationId'].event.onBlur = handleBlurLocationId;
 
     // Advance Search
@@ -50,7 +45,6 @@ const Grn = () => {
         __checkIsAuthorized();
         __setFormReadWrite(true);
         __getWarehouses();
-        __getValidPOs();
     }, []);
 
     useEffect(() => {
@@ -121,34 +115,9 @@ const Grn = () => {
         }
     }
 
-    async function __getValidPOs() {
-        try {
-            const response = await API.get(`purchase-orders/approved-sent`);
-            let pos = [];
-            pos.push({
-                "value": "",
-                "text": "Select PO"
-            });
-            response.data.forEach((value) => {
-                pos.push({
-                    "value": value.id,
-                    "text": value.po_number,
-                    "_fullData": value
-                });
-            });
-            config['inputRmpoNo'].setOptions(pos);
-            config['inputRmpoNo']._allPOs = response.data;
-        } catch (err) {
-            console.log(err);
-            config["CONTROL_CENTER"].promptWarningMessage("Error loading POs", "");
-        }
-    }
-
     async function handleBlurLocationId() {
         const locationId = config['inputLocationId'].data.value;
         config['inputMaterial'].setValue("");
-        config['inputPrice'].setValue("");
-        config['inputPrice'].data.value = "";
         if (!locationId || locationId.trim() === "") return;
 
         try {
@@ -158,19 +127,7 @@ const Grn = () => {
             if(response.status === 200) {
                 if(response.data.stock_material){
                     const material = response.data.stock_material.code + " - " + response.data.stock_material.name;
-                    const materialId = response.data.stock_material.id;
                     config['inputMaterial'].setValue(material);
-
-                    let unitPrice = 0;
-                    if (selectedPoDetails && Array.isArray(selectedPoDetails.items)) {
-                        const matchedItem = selectedPoDetails.items.find(
-                            item => String(item.material_id) === String(materialId)
-                        );
-                        if (matchedItem) {
-                            unitPrice = Number(matchedItem.unit_price);
-                        }
-                    }
-                    config['inputPrice'].setValue(String(unitPrice));
                 }
             }
             reRender();
@@ -180,83 +137,15 @@ const Grn = () => {
         }
     }
 
-    async function __getPoDetailsById(poId) {
-        if (!poId) return null;
-        const response = await API.get(`purchase-orders/${poId}/details`);
-        return response.data?.data || response.data || null;
-    }
-
-    async function handlePoChange() {
-        const selectedPoNumber = config['inputRmpoNo'].data.value;
-        
-        if (!selectedPoNumber || selectedPoNumber === "") {
-            setSelectedPoDetails(null);
-            return;
-        }
-        const allPOs = config['inputRmpoNo']._allPOs || [];
-        const found = allPOs.find(p => String(p.id) === String(selectedPoNumber));
-
-        if (!found?.id) {
-            setSelectedPoDetails(null);
-            return;
-        }
-
-        let poDetails = null;
-        try {
-            poDetails = await __getPoDetailsById(found.id);
-        } catch (error) {
-            console.log(error);
-            config["CONTROL_CENTER"].promptWarningMessage("Error loading PO details", "");
-        }
-
-        setSelectedPoDetails(poDetails || null);
-
-        // If a stock item is already entered, refresh qty/price from the newly selected PO.
-        const stockItemId = config['inputStockItemId'].data.value;
-        autoFillFromPoItem(stockItemId, poDetails || null);
-    }
-
-    function handleStockItemIdChange() {
-        const stockItemId = config['inputStockItemId'].data.value;
-        autoFillFromPoItem(stockItemId, selectedPoDetails);
-    }
-
-    function autoFillFromPoItem(stockItemId, poDetails) {
-        if (!stockItemId || String(stockItemId).trim() === "") return;
-        if (!poDetails || !Array.isArray(poDetails.items) || poDetails.items.length === 0) return;
-
-        const selectedItem = poDetails.items.find(
-            item => String(item.material_id) === String(stockItemId).trim()
-        );
-
-        if (!selectedItem) return;
-
-        const quantity = Number(selectedItem.quantity);
-        const unitPrice = Number(selectedItem.unit_price);
-
-        if (!Number.isNaN(quantity)) {
-            config['inputQuantity'].setValue(String(quantity));
-        }
-
-        if (!Number.isNaN(unitPrice)) {
-            config['inputPrice'].setValue(String(unitPrice));
-        }
-    }
-
     async function handleCreateGrn() {
         try {
             document.getElementById("spinner").style.display = "";
 
             // Get form values
-            const rmpo_no = config['inputRmpoNo'].data.value;
             const remarks = config['inputRemarks'].data.value;
             const warehouse_id = config['inputWarehouse'].data.value;
 
             // Validations
-            if (!rmpo_no || rmpo_no === "") {
-                config["CONTROL_CENTER"].promptWarningMessage("RMPO No is required", "");
-                return;
-            }
             if (!warehouse_id) {
                 config["CONTROL_CENTER"].promptWarningMessage("Please select a Warehouse", "");
                 return;
@@ -264,7 +153,7 @@ const Grn = () => {
 
             // Prepare API request
             const apiRequest = {
-                rmpono: String(rmpo_no),
+                rmpono: null,
                 remark: remarks,
                 warehouse_id: parseInt(warehouse_id),
                 status: "open"
@@ -308,14 +197,13 @@ const Grn = () => {
             const location_id = config['inputLocationId'].data.value;
             const stock_item_id = config['inputStockItemId'].data.value;
             const quantity = config['inputQuantity'].data.value;
-            const price = config['inputPrice'].data.value;
 
             const apiRequest = {
                 grn_id: parseInt(grn_id),
                 location_id: location_id,
                 stock_item_id: stock_item_id,
                 quantity: parseInt(quantity),
-                grn_price: parseFloat(price)
+                grn_price: 0
             };
 
             let response = await API.post(`grns/addTransaction`, apiRequest);
@@ -326,7 +214,6 @@ const Grn = () => {
                 config['inputLocationId'].setValue("");
                 config['inputStockItemId'].setValue("");
                 config['inputQuantity'].setValue("");
-                config['inputPrice'].setValue("");
 
                 await loadGrnTransactions(grn_id);
 
@@ -345,15 +232,6 @@ const Grn = () => {
         }
     }
 
-    async function handlePoItemNotFoundYes() {
-        config["confirmPoItemNotFoundPopUp"].closePopUp();
-        await __submitAddTransaction();
-    }
-
-    function handlePoItemNotFoundNo() {
-        config["confirmPoItemNotFoundPopUp"].closePopUp();
-    }
-
     async function handleAddTransaction() {
         try {
             document.getElementById("spinner").style.display = "";
@@ -361,9 +239,7 @@ const Grn = () => {
             // Get form values
             const grn_id = config['inputGrnID'].data.value;
             const location_id = config['inputLocationId'].data.value;
-            const stock_item_id = config['inputStockItemId'].data.value;
             const quantity = config['inputQuantity'].data.value;
-            const price = config['inputPrice'].data.value;
 
             // Validations
             if (!grn_id) {
@@ -374,29 +250,9 @@ const Grn = () => {
                 config["CONTROL_CENTER"].promptWarningMessage("Location ID is required", "");
                 return;
             }
-            // if (!stock_item_id || stock_item_id.trim() === "") {
-            //     config["CONTROL_CENTER"].promptWarningMessage("Stock Item ID is required", "");
-            //     return;
-            // }
             if (!quantity || quantity.trim() === "") {
                 config["CONTROL_CENTER"].promptWarningMessage("Quantity is required", "");
                 return;
-            }
-            if (!price || parseFloat(price) <= 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Price must be greater than 0", "");
-                return;
-            }
-
-            // Check if stock item exists in selected PO
-            const poDetails = selectedPoDetails;
-            if (stock_item_id && poDetails && Array.isArray(poDetails.items) && poDetails.items.length > 0) {
-                const foundInPo = poDetails.items.find(
-                    item => String(item.material_id) === String(stock_item_id).trim()
-                );
-                if (!foundInPo) {
-                    config["confirmPoItemNotFoundPopUp"].showPopUp();
-                    return;
-                }
             }
 
             await __submitAddTransaction();
@@ -519,14 +375,12 @@ const Grn = () => {
     function handleNewGrn() {
         // Clear all fields
         config['inputGrnID'].setValue("");
-        config['inputRmpoNo'].setValue("");
         config['inputRemarks'].setValue("");
         config['inputWarehouse'].setValue("");
         config['inputStatus'].setValue("");
 
         // Reset transactions
         setGrnTransactions([]);
-        setSelectedPoDetails(null);
 
         // Reset buttons visibility through schema
         config["buttonCreateGrn"].schema.visible = true;
@@ -560,7 +414,8 @@ const Grn = () => {
 
                     data.push({
                         "grn_id_search": value.id,
-                        "rmpo_no_search": value.rmpono,
+                        "warehouse_search": value.warehouse?.name,
+                        "remark_search": value.remark,
                         "status_search": value.status,
                     });
                 });
@@ -584,18 +439,18 @@ const Grn = () => {
             const key = "Grn";
             const distinct = false;
             const select = ["*"];
-            const where = [
+                        const where = [
                 { "active": true },
                 {
                     "field-name": "rmpono",
-                    "operator": "!=",
+                    "operator": "=",
                     "value": null
                 }
             ];
             const orderby = "created_at:desc";
             const limit = 25;
             const relations = [
-
+                "warehouse"
             ];
 
 
@@ -642,11 +497,12 @@ const Grn = () => {
             let data = [];
             if (response.data.data && response.data.data.length > 0) {
                 response.data.data
-                    .filter((value) => value.rmpono != null)
+                    .filter((value) => value.rmpono == null)
                     .forEach((value) => {
                         data.push({
                             "grn_id_search": value.id,
-                            "rmpo_no_search": value.rmpono,
+                            "warehouse_search": value.warehouse?.name,
+                            "remark_search": value.remark,
                             "status_search": value.status
                         });
                     });
@@ -677,7 +533,6 @@ const Grn = () => {
                 console.log("Setting warehouse_id to:", data.warehouse_id); // Debug warehouse
 
                 config['inputGrnID'].setValue(data.id);
-                config['inputRmpoNo'].setValue(data.rmpono || data.rmpo_no || "");
                 config['inputRemarks'].setValue(data.remark || data.remarks || "");
                 config['inputStatus'].setValue(data.status);
 
@@ -690,25 +545,6 @@ const Grn = () => {
 
                 // Load transactions
                 await loadGrnTransactions(grn_id);
-
-                // Populate PO details if available
-                const allPOs = config['inputRmpoNo']._allPOs || [];
-                const foundPO = allPOs.find(p =>
-                    String(p.id) === String(data.purchase_order_id) ||
-                    String(p.id) === String(data.rmpono)
-                );
-
-                if (foundPO?.id) {
-                    try {
-                        const poDetails = await __getPoDetailsById(foundPO.id);
-                        setSelectedPoDetails(poDetails || null);
-                    } catch (error) {
-                        console.log(error);
-                        setSelectedPoDetails(null);
-                    }
-                } else {
-                    setSelectedPoDetails(null);
-                }
 
                 // Set button visibility based on status
                 if (data.status === "open") {
@@ -772,7 +608,7 @@ const Grn = () => {
         }
     }
 
-    return generateGrnDisplay(config, grnTransactions, selectedPoDetails);
+    return generateSupermarketGRNDisplay(config, grnTransactions);
 }
 
-export default Grn;
+export default SupermarketGRN;

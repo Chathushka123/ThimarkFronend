@@ -292,6 +292,51 @@ componentListConfig["inputMainModel"] = {
     event: {}
 }
 
+componentListConfig["inputRouteMaster"] = {
+    objectType: "Multiselect",
+    schema: {
+        name: "inputRouteMaster",
+        id: "inputRouteMaster",
+        placeholder: "Select Route Master",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandatory: false,
+        searchable: true,
+        avoidHighlightFirstOption: true,
+        showCheckbox: true,
+        disable: false,
+        onSearch: "",
+        loading: false,
+        style: "",
+        selectionLimit: 1,
+        endpoint: "",
+        singleSelect: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRouteMaster",
+            type: "text",
+            visible: true,
+            value: "Route Master"
+        },
+        class: ""
+    },
+    options: [],
+    data: {
+        sqlcolumn: "route_master_id",
+        oldValue: "",
+        value: []
+    },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputColor"] = {
     objectType: "TextBox",
     schema: {
@@ -417,6 +462,7 @@ gridCols["active"] = { objectType: "TextBox", colIndex: 5, datatype: "text", nam
 gridCols["created_at"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "created_at", placeholder: "Created At", editable: false, sqlColumn: "created_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 gridCols["updated_at"] = { objectType: "TextBox", colIndex: 7, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 gridCols["main_model_id"] = { objectType: "TextBox", colIndex: 8, datatype: "text", name: "main_model_id", placeholder: "Main Model ID", editable: false, visible: false, sqlColumn: "main_model_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
+gridCols["route_master_id"] = { objectType: "TextBox", colIndex: 9, datatype: "text", name: "route_master_id", placeholder: "Route Master ID", editable: false, visible: false, sqlColumn: "route_master_id", style: { textAlign: "left", minWidth: "150px", width: "150px" } };
 
 componentListConfig["gridModels"] = {
     objectType: "Grid",

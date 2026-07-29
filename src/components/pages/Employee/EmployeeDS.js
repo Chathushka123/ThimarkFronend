@@ -1,7 +1,7 @@
 import React from 'react'
-import {HandsOnTable,PasswordField, TextBox, DropDown, Label, TextArea, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+import {HandsOnTable, TextBox, DropDown, Label, TextArea, Tab, TabPage, Button, Grid, GridBody, GridHeader, LovComboBox, AddRowButton, DualStateSelector, ControlCenter, NewButton, SaveButton, RefreshButton, DeleteButton, PopulateButton, CheckBox, PopUpPage, IntegerField, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
-export function generateReturnableDisplay(componentList, control) {
+export function generateEmployeeDisplay(componentList, control) {
 
     return (
         <>
@@ -12,13 +12,6 @@ export function generateReturnableDisplay(componentList, control) {
                 <div className="title-breadcrumb-wrp">
                     <h1 className="">{componentList["CONTROL_CENTER"].label.schema.value}</h1>
                 </div>
-                <div className="row">
-                    <div className="col-12 d-flex justify-content-end">
-                        <ControlCenter item={componentList["CONTROL_CENTER"]} >
-                            <Button className="btn common-btn common-btn-erp btn-sm mr-2" item={componentList["buttonPrint"]}><i className="fas fa-save fa-md"></i></Button>
-                        </ControlCenter>
-                    </div>
-                </div>
             </div>
 
             <div className="container-fluid custom-container-padding">
@@ -26,35 +19,6 @@ export function generateReturnableDisplay(componentList, control) {
                     <div className="row">
                         <div className="col-12">
                             <div className="form-row">
-                                <div className="form-group col-md-2 col-sm-12">
-                                    <Label item={componentList["inputRequester"].label} />
-                                        <PasswordField item={componentList["inputRequester"]} className="form-control form-control-sm" />
-                                </div>
-                                <div className="form-group col-md-3 col-sm-12">
-                                    <Label item={componentList["inputRequesterName"].label} />
-                                    <TextBox item={componentList["inputRequesterName"]} className="form-control form-control-sm" disabled={true} readOnly={true} />
-                                </div>
-                                <div className="form-group col-md-3 col-sm-12">
-                                    <Label item={componentList["inputRemark"].label} />
-                                    <TextBox item={componentList["inputRemark"]} className="form-control form-control-sm" />
-                                </div>
-                                <div className="form-group col-md-2 col-sm-12">
-                                    <Label item={componentList["inputMaterial"].label} />
-                                    <TextBox item={componentList["inputMaterial"]} className="form-control form-control-sm" />
-                                </div>
-                                <div className="form-group col-md-3 col-sm-12">
-                                    <Label item={componentList["inputMaterialName"].label} />
-                                    <TextBox item={componentList["inputMaterialName"]} className="form-control form-control-sm" />
-                                </div>
-
-                                 <div className="form-group col-md-2 col-sm-12">
-                                    <Label item={componentList["inputQuantity"].label} />
-                                    <IntegerField 
-                                        item={componentList["inputQuantity"]} 
-                                        className="form-control form-control-sm"
-                                    />
-                                </div>
-
                                 {/* <div className="form-group col-md-3">
                                     <Label item={componentList["inputStyleCode"].label} />
                                     <TextBox item={componentList["inputStyleCode"]} className="form-control form-control-sm" />
@@ -83,22 +47,6 @@ export function generateReturnableDisplay(componentList, control) {
 
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div className="col-12 mt-3">
-                    <div className='table-wrp background-white'>
-                        <h5 style={{color: '#3a4a6b', fontWeight: '600'}}>Materials</h5>
-                        <Grid item={componentList["gridReturnableItem"]} customButton={<i className="fa fa-check"></i>}  className="table table-responsive table-striped table-sm w-100 d-block d-md-table">
-                            <div className="row">
-                                <div className="col-12">
-                                    <div className="master-table-wrp">
-                                        <GridHeader typeName="GridHeader" columns={componentList["gridReturnableItem"].columns} />
-                                        <GridBody typeName="GridBody" rows={componentList["gridReturnableItem"].data} />
-                                    </div>
-                                </div>
-                            </div>
-                        </Grid>
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { TextBox, DropDown, Label, Button, Grid, GridBody, GridHeader, ControlCenter, NewButton, SaveButton, PopulateButton, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
+import { TextBox, DropDown, MultiSelectDropDown, Label, Button, Grid, GridBody, GridHeader, ControlCenter, NewButton, SaveButton, PopulateButton, NumberField, AdvanceSearch, AdvanceSearchGrid, AdvanceSearchButton } from '../../../BASE/Components'
 
 export function generateModelDisplay(componentList, control) {
 
@@ -78,6 +78,10 @@ export function generateModelDisplay(componentList, control) {
                                     <div className="form-group col-md-3">
                                         <Label item={componentList["inputMainModel"].label} />
                                         <DropDown item={componentList["inputMainModel"]} className="form-control form-control-sm" />
+                                    </div>
+                                    <div className="form-group col-md-3">
+                                        <Label item={componentList["inputRouteMaster"].label} />
+                                        <MultiSelectDropDown item={componentList["inputRouteMaster"]} className="form-control form-control-sm" />
                                     </div>
                                     <div className="form-group col-md-3">
                                         <Label item={componentList["inputColor"].label} />

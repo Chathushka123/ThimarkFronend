@@ -6,6 +6,7 @@ import API from '../../../api/API';
 const Model = () => {
     let [rendered, setRendered] = useState(true);
     const [mainModels, setMainModels] = useState([]);
+    const [routeMasters, setRouteMasters] = useState([]);
     const [stockMaterials, setStockMaterials] = useState([]);
     const [selectedModelSI, setSelectedModelSI] = useState(0);
 
@@ -42,6 +43,7 @@ const Model = () => {
     // Executes when Page Load
     useEffect(() => {
         getAllMainModels();
+        getAllRouteMasters();
         getAllStockMaterials();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -77,6 +79,7 @@ const Model = () => {
         const id = config["gridModels"].getValueWiltColName(r, 'id');
         const name = config["gridModels"].getValueWiltColName(r, 'name');
         const main_model_id = config["gridModels"].getValueWiltColName(r, 'main_model_id');
+        const route_master_id = config["gridModels"].getValueWiltColName(r, 'route_master_id');
         const color = config["gridModels"].getValueWiltColName(r, 'color');
         const sizes = config["gridModels"].getValueWiltColName(r, 'sizes');
 
@@ -88,6 +91,11 @@ const Model = () => {
         config['inputId'].setValue(id);
         config['inputName'].setValue(name);
         config['inputMainModel'].setValue(main_model_id);
+        if (route_master_id) {
+            config['inputRouteMaster'].setValueByID(route_master_id);
+        } else {
+            config['inputRouteMaster'].setValue([]);
+        }
         config['inputColor'].setValue(color);
         config['inputSizes'].setValue(sizes);
 
@@ -103,6 +111,7 @@ const Model = () => {
         config['inputId'].setValue('');
         config['inputName'].setValue('');
         config['inputMainModel'].setValue(0);
+        config['inputRouteMaster'].setValue([]);
         config['inputColor'].setValue('');
         config['inputSizes'].setValue('');
         // config['gridModelStockItems'].setData([]);
@@ -258,6 +267,20 @@ const Model = () => {
         }
     }
 
+    const getAllRouteMasters = async () => {
+        try {
+            const response = await API.get('/routing/getAllRoutes');
+            const data = response.data && response.data.data ? response.data.data : [];
+            const routes = data.map(item => { return { id: item.id, name: item.route_code } });
+            setRouteMasters(routes);
+            config['inputRouteMaster'].setOptions(routes);
+        }
+        catch (error) {
+            console.log(error);
+            handleError(error);
+        }
+    }
+
     const getAllStockMaterials = async () => {
         try {
             const response = await API.get('/stock-materials');
@@ -368,6 +391,8 @@ const Model = () => {
             // Get form values
             const name = config['inputName'].data.value;
             const main_model_id = config['inputMainModel'].data.value;
+            const selectedRouteMaster = config['inputRouteMaster'].getValue() || [];
+            const route_master_id = selectedRouteMaster.length > 0 ? selectedRouteMaster[0] : null;
             const color = config['inputColor'].data.value;
             const sizes = config['inputSizes'].data.value;
             const id = config['inputId'].data.value;
@@ -450,6 +475,7 @@ const Model = () => {
             const apiRequest = {
                 name: name.trim(),
                 main_model_id: main_model_id,
+                route_master_id: route_master_id && route_master_id !== 0 ? route_master_id : null,
                 color: color.trim(),
                 sizes: sizesArray,
                 model_stock_items: model_stock_items
