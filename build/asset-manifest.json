@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.073441e0.css",
-    "main.js": "/static/js/main.95c1b921.js",
+    "main.js": "/static/js/main.87c33db0.js",
     "static/media/logo.png": "/static/media/logo.4c1a323cd12c4e492919.png",
     "static/media/job-card-blue.svg": "/static/media/job-card-blue.06d7fd9343dadd0fd28f3cff0a4b8751.svg",
     "static/media/job-card-purple.svg": "/static/media/job-card-purple.753b959e85421bbfd46a5dd49945202c.svg",
@@ -18,10 +18,10 @@
     "index.html": "/index.html",
     "static/media/power.svg": "/static/media/power.1de6b3c45ab6e815b52643f0382a506c.svg",
     "main.073441e0.css.map": "/static/css/main.073441e0.css.map",
-    "main.95c1b921.js.map": "/static/js/main.95c1b921.js.map"
+    "main.87c33db0.js.map": "/static/js/main.87c33db0.js.map"
   },
   "entrypoints": [
     "static/css/main.073441e0.css",
-    "static/js/main.95c1b921.js"
+    "static/js/main.87c33db0.js"
   ]
 }

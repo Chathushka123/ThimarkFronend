@@ -85,7 +85,7 @@ const Model = () => {
 
         // Clear Main Model form when editing Model
         resetMainModelForm();
-
+        config["gridModelStockItems"].setData([]);
 
         // Set values to form fields
         config['inputId'].setValue(id);
@@ -451,7 +451,9 @@ const Model = () => {
             }
 
             // Get model stock items from grid
-            const model_stock_items = config['gridModelStockItems'].data.map(row => {
+            const model_stock_items = config['gridModelStockItems'].data
+                .filter(row => Number(row.stock_item_id) > 0)
+                .map(row => {
                 const item = {
                     stock_item_id: row.stock_item_id,
                     consumption: parseFloat(row.consumption) || 0
