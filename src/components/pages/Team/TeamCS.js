@@ -227,6 +227,73 @@ componentListConfig["inputTeamName"] = {
     event: {}
 }
 
+componentListConfig["inputNoOfOperators"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputNoOfOperators",
+        placeholder: "e.g. 5",
+        type: "number",
+        length: 10,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelNoOfOperators",
+            type: "text",
+            visible: true,
+            value: "No. of Operators"
+        },
+        class: ""
+    },
+    data: {
+        sqlcolumn: "no_of_operators",
+        oldValue: "",
+        value: ""
+    },
+    class: "",
+    event: {}
+}
+
+componentListConfig["inputOperation"] = {
+    objectType: "DropDown",
+    schema: {
+        name: "inputOperation",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelOperation",
+            type: "text",
+            visible: true,
+            value: "Operation"
+        },
+        class: ""
+    },
+    options: [],
+    data: {
+        sqlcolumn: "operation_id",
+        oldValue: "",
+        value: ""
+    },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputActive"] = {
     objectType: "CheckBox",
     schema: {
@@ -266,8 +333,10 @@ let gridCols = [];
 gridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "70px", width: "70px" } };
 gridCols["team_code"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "team_code", placeholder: "Team Code", editable: false, filterring: true, sqlColumn: "team_code", style: { textAlign: "left", minWidth: "160px", width: "160px" } };
 gridCols["team_name"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "team_name", placeholder: "Team Name", editable: false, filterring: true, sqlColumn: "team_name", style: { textAlign: "left", minWidth: "220px", width: "220px" } };
-gridCols["active"] = { objectType: "CheckBox", colIndex: 3, datatype: "checkbox", name: "active", placeholder: "Active", editable: false, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "90px", width: "90px" } };
-gridCols["updated_at"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "160px", width: "160px" } };
+gridCols["no_of_operators"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "no_of_operators", placeholder: "No. of Operators", editable: false, filterring: true, sqlColumn: "no_of_operators", style: { textAlign: "center", minWidth: "140px", width: "140px" } };
+gridCols["operation_name"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "operation_name", placeholder: "Operation", editable: false, filterring: true, sqlColumn: "operation_name", style: { textAlign: "left", minWidth: "200px", width: "200px" } };
+gridCols["active"] = { objectType: "CheckBox", colIndex: 5, datatype: "checkbox", name: "active", placeholder: "Active", editable: false, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "90px", width: "90px" } };
+gridCols["updated_at"] = { objectType: "TextBox", colIndex: 6, datatype: "text", name: "updated_at", placeholder: "Updated At", editable: false, sqlColumn: "updated_at", style: { textAlign: "left", minWidth: "160px", width: "160px" } };
 
 componentListConfig["gridTeams"] = {
     objectType: "Grid",
