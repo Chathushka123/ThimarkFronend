@@ -39,8 +39,8 @@ const Theme = ({ sidebar: Sidebar, main: Main, footer: Footer, location }) => {
             <Sidebar />
             <div className="sb-sidenav-footer">
               <div className="sb-sidenav-footer-innerwrap">
-                <a className="nav-link" href={`${process.env.PUBLIC_URL}/changePassword`}><i className="fas fa-custom fa-key"></i></a>
-                <a className="nav-link" href={`${process.env.PUBLIC_URL}/userProfile`}><i className="fas fa-custom fa-user-circle"></i></a>
+                <a className="nav-link" href={`${process.env.PUBLIC_URL}/changePassword`} title="Change Password"><i className="fas fa-custom fa-key"></i></a>
+                <a className="nav-link" href={`${process.env.PUBLIC_URL}/userProfile`} title="My Profile"><i className="fas fa-custom fa-user-circle"></i></a>
 
                 {/* <a className="nav-link" href={`${process.env.PUBLIC_URL}/home`}>
                   <div className="sb-nav-link-icon settings-icon">
@@ -48,9 +48,9 @@ const Theme = ({ sidebar: Sidebar, main: Main, footer: Footer, location }) => {
                   </div>
                   <span>Settings</span>
                 </a> */}
-                <a style={{ cursor: 'pointer' }}>
+                <a style={{ cursor: 'pointer' }} title="Logout" onClick={handleLogout}>
                   <div className="nav-link">
-                    <i className="fas fa-custom fa-sign-out-alt" onClick={handleLogout}></i>
+                    <i className="fas fa-custom fa-sign-out-alt"></i>
                     {/* <img src={LogoutIcon} alt="logout icon" onClick={handleLogout} /> */}
                   </div>
                 </a>
