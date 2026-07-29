@@ -6,6 +6,8 @@ import API from '../../../api/API';
 const WorkOrder = () => {
     let [rendered, setRendered] = useState(true);
     let [workOrder, setWorkOrder] = useState(null);
+    let [showQrScanner, setShowQrScanner] = useState(false);
+    let [qrScanTarget, setQrScanTarget] = useState(null); // "trolley" | "location"
 
     function reRender() {
         setRendered(!rendered);
@@ -24,6 +26,8 @@ const WorkOrder = () => {
     config["buttonCreateWorkOrder"].event.onClick = handleCreateWorkOrder;
     config["buttonNewWorkOrder"].event.onClick = handleNewWorkOrder;
     config["buttonAddBundle"].event.onClick = handleAddBundle;
+    config["buttonScanTrolley"].event.onClick = handleScanTrolleyClick;
+    config["buttonScanLocation"].event.onClick = handleScanLocationClick;
     config["buttonAddPick"].event.onClick = handleAddPick;
     config["buttonFinalize"].event.onClick = handleFinalize;
     config["buttonReopen"].event.onClick = handleReopen;
@@ -157,7 +161,7 @@ const WorkOrder = () => {
 
     async function __loadUnusedTrolleys() {
         try {
-            const response = await API.get(`trolly-master/getUnusedTrolly`);
+            const response = await API.get(`trolly-master/getAll`);
             const list = response.data || [];
             config['inputBundleTrolly'].setOptions(list.map(__trollyOption));
         } catch (err) {
@@ -172,7 +176,7 @@ const WorkOrder = () => {
         config['inputPickWhlItem'].setOptions([]);
         config['inputPickWhlItem'].setValue([]);
         config['inputPickQty'].setValue("");
-        config['inputBundleSize'].setValue("");
+        config['inputBundleSize'].setValue("BasSize");
         config['inputBundleQty'].setValue("");
         config['inputBundleTrolly'].setValue([]);
     }
@@ -269,7 +273,6 @@ const WorkOrder = () => {
         if (!workOrder) return;
 
         try {
-            const size = config['inputBundleSize'].data.value;
             const qty = config['inputBundleQty'].data.value;
             const selectedTrolly = config['inputBundleTrolly'].getValue() || [];
 
@@ -286,7 +289,8 @@ const WorkOrder = () => {
 
             const apiRequest = {
                 work_order_id: workOrder.id,
-                size: size && String(size).trim() !== "" ? String(size).trim() : null,
+                // Size selection was removed from the UI - every bundle is created as "BasSize".
+                size: "BasSize",
                 qty: parseInt(qty),
                 trolly_master_id: selectedTrolly.length > 0 ? parseInt(selectedTrolly[0]) : null
             };
@@ -294,7 +298,7 @@ const WorkOrder = () => {
 
             config["CONTROL_CENTER"].promptBaseMessage("Bundle added successfully", "");
 
-            config['inputBundleSize'].setValue("");
+            config['inputBundleSize'].setValue("BasSize");
             config['inputBundleQty'].setValue("");
             config['inputBundleTrolly'].setValue([]);
 
@@ -308,13 +312,71 @@ const WorkOrder = () => {
         }
     }
 
+    function handleScanTrolleyClick() {
+        setQrScanTarget("trolley");
+        setShowQrScanner(true);
+    }
+
+    function handleScanLocationClick() {
+        setQrScanTarget("location");
+        setShowQrScanner(true);
+    }
+
+    function handleQrScanClose() {
+        setShowQrScanner(false);
+        setQrScanTarget(null);
+    }
+
+    function handleQrScanSuccess(decodedText) {
+        setShowQrScanner(false);
+
+        if (qrScanTarget === "location") {
+            setQrScanTarget(null);
+            handleLocationQrScanned(decodedText);
+            return;
+        }
+
+        setQrScanTarget(null);
+        handleTrolleyQrScanned(decodedText);
+    }
+
+    function handleTrolleyQrScanned(decodedText) {
+        const trollyId = parseInt(String(decodedText).trim(), 10);
+        if (!trollyId || isNaN(trollyId)) {
+            config["CONTROL_CENTER"].promptWarningMessage("Invalid trolley QR code", "");
+            return;
+        }
+
+        const options = config['inputBundleTrolly'].options || [];
+        const match = options.find((o) => Number(o.id) === trollyId);
+        if (!match) {
+            config["CONTROL_CENTER"].promptWarningMessage("Scanned trolley is not available (already assigned or invalid)", "");
+            return;
+        }
+
+        config['inputBundleTrolly'].setValueByID(match.id);
+        config["CONTROL_CENTER"].promptBaseMessage(`Trolley ${match.name} selected`, "");
+        reRender();
+    }
+
+    function handleLocationQrScanned(decodedText) {
+        const locationId = parseInt(String(decodedText).trim(), 10);
+        if (!locationId || isNaN(locationId)) {
+            config["CONTROL_CENTER"].promptWarningMessage("Invalid location QR code", "");
+            return;
+        }
+
+        config['inputPickLocationId'].setValue(String(locationId));
+        handleBlurPickLocationId();
+    }
+
     async function handleEditBundle(bundle) {
         try {
             document.getElementById("spinner").style.display = "";
 
             // Fetch a fresh unused-trolley list so it reflects anything
             // assigned/released elsewhere since the page loaded.
-            const response = await API.get(`trolly-master/getUnusedTrolly`);
+            const response = await API.get(`trolly-master/getAll`);
             const unused = response.data || [];
             const options = unused.map(__trollyOption);
 
@@ -606,7 +668,11 @@ const WorkOrder = () => {
         }
     }
 
-    return generateWorkOrderDisplay(config, workOrder);
+    return generateWorkOrderDisplay(config, workOrder, {
+        showQrScanner,
+        onQrScanSuccess: handleQrScanSuccess,
+        onQrScanClose: handleQrScanClose
+    });
 }
 
 export default WorkOrder;

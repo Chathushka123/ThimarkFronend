@@ -53,6 +53,7 @@ import MrnActivityPerUser from './components/pages/Reports/MrnActivityPerUser/Mr
 import MrnTurnaroundTime from './components/pages/Reports/MrnTurnaroundTime/MrnTurnaroundTimeES';
 import MaterialConsumptionPerModel from './components/pages/Reports/MaterialConsumptionPerModel/MaterialConsumptionPerModelES';
 import PurchaseOrderStatus from './components/pages/Reports/PurchaseOrderStatus/PurchaseOrderStatusES';
+import WorkOrderStatus from './components/pages/Reports/WorkOrderStatus/WorkOrderStatusES';
 import DashboardHome from './components/pages/dashboards/DashboardHome';
 import ProcurementDashboard from './components/pages/dashboards/ProcurementDashboard';
 import InventoryDashboard from './components/pages/dashboards/InventoryDashboard';
@@ -123,6 +124,7 @@ const App = () => {
           {/* <PrivateRoute path="/dailyOutput" screen="dailyOutput" component={DailyOutput} theme={Theme} /> */}
           <PrivateRoute path="/currentStock" screen="currentStock" component={CurrentStock} theme={Theme} />
           <PrivateRoute path="/grnReport" screen="grnReport" component={GrnPendingCompleted} theme={Theme} />
+          <PrivateRoute path="/workOrderStatus" screen="workOrderStatus" component={WorkOrderStatus} theme={Theme} />
 
           {/* <PrivateRoute path="/mrnActivityPerUser" screen="mrnActivityPerUser" component={MrnActivityPerUser} theme={Theme} />
           <PrivateRoute path="/mrnTurnaroundTime" screen="mrnTurnaroundTime" component={MrnTurnaroundTime} theme={Theme} />
