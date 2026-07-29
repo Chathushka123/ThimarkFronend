@@ -30,6 +30,7 @@ const Team = () => {
 
     useEffect(() => {
         __checkIsAuthorized();
+        __loadOperationOptions();
         getAllTeams();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -82,12 +83,29 @@ const Team = () => {
         return { ...row, active: row.active === true || row.active === 1 || row.active === "1" ? "1" : "0" };
     }
 
+    function __normalizeOperation(row) {
+        return { ...row, operation_name: row.operation ? `${row.operation.operation_code} - ${row.operation.description}` : '' };
+    }
+
+    // Populates the Operation dropdown from the same OperationMaster lookup
+    // used on the Create User screen (active operations only).
+    async function __loadOperationOptions() {
+        try {
+            const response = await API.get('operation/list');
+            const list = (response.data && response.data.data) || [];
+            const options = [{ value: "", text: "- Select Operation -" }, ...list.map(op => ({ value: op.id, text: `${op.operation_code} - ${op.description}` }))];
+            config["inputOperation"].setOptions(options);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async function getAllTeams() {
         try {
             document.getElementById("spinner").style.display = "";
-            const data = await __getDetails("Team", false, ["*"], [], [], "team_name:asc", 1000);
+            const data = await __getDetails("Team", false, ["*"], [], ["operation"], "team_name:asc", 1000);
             if (data && data !== "Error" && data[0].Team.length > 0) {
-                config['gridTeams'].setData(data[0].Team.map(__normalizeActive));
+                config['gridTeams'].setData(data[0].Team.map(__normalizeActive).map(__normalizeOperation));
             } else {
                 config['gridTeams'].setData([]);
             }
@@ -107,6 +125,8 @@ const Team = () => {
         return {
             "team_code": "",
             "team_name": "",
+            "no_of_operators": "0",
+            "operation_id": "",
             "active": "1"
         };
     }
@@ -119,6 +139,8 @@ const Team = () => {
             "id": row.id,
             "team_code": row.team_code,
             "team_name": row.team_name,
+            "no_of_operators": row.no_of_operators,
+            "operation_id": row.operation_id ?? "",
             "active": row.active === true || row.active === 1 || row.active === "1" ? "1" : "0",
             "updated_at": row.updated_at
         });
@@ -132,7 +154,9 @@ const Team = () => {
         } else {
             config["inputTeamCode"].setValue("");
             config["inputTeamName"].setValue("");
+            config["inputNoOfOperators"].setValue("0");
             config["inputActive"].setValue("1");
+            config["inputOperation"].setValue("");
         }
     }
 
@@ -203,7 +227,7 @@ const Team = () => {
         return afterSaveArr;
     }
 
-    function __validate(teamCode, teamName) {
+    function __validate(teamCode, teamName, noOfOperators) {
         if (!teamCode || teamCode.trim() === "") {
             config["CONTROL_CENTER"].promptWarningMessage("Please Enter Team Code", "");
             return false;
@@ -220,6 +244,10 @@ const Team = () => {
             config["CONTROL_CENTER"].promptWarningMessage("Team Name cannot exceed 150 characters", "");
             return false;
         }
+        if (noOfOperators !== "" && (isNaN(noOfOperators) || Number(noOfOperators) < 0)) {
+            config["CONTROL_CENTER"].promptWarningMessage("No. of Operators must be a non-negative number", "");
+            return false;
+        }
         return true;
     }
 
@@ -229,13 +257,15 @@ const Team = () => {
         try {
             const teamCode = dataArr.data.team_code.trim();
             const teamName = dataArr.data.team_name.trim();
+            const noOfOperators = String(dataArr.data.no_of_operators ?? "").trim();
+            const operationId = dataArr.data.operation_id;
             const active = dataArr.data.active === "1";
 
-            if (__validate(teamCode, teamName)) {
+            if (__validate(teamCode, teamName, noOfOperators)) {
                 const apiRequest = {
                     "Team": {
                         "CRE": [
-                            { "team_code": teamCode, "team_name": teamName, "active": active }
+                            { "team_code": teamCode, "team_name": teamName, "no_of_operators": noOfOperators === "" ? 0 : Number(noOfOperators), "operation_id": operationId === "" ? null : operationId, "active": active }
                         ]
                     }
                 };
@@ -252,6 +282,7 @@ const Team = () => {
                     if (newTeam) {
                         config["CONTROL_CENTER"].populate({
                             "id": newTeam.id, "team_code": newTeam.team_code, "team_name": newTeam.team_name,
+                            "no_of_operators": newTeam.no_of_operators, "operation_id": newTeam.operation_id ?? "",
                             "active": newTeam.active ? "1" : "0", "updated_at": newTeam.updated_at
                         });
                     }
@@ -278,10 +309,12 @@ const Team = () => {
             const teamId = dataArr.data.id;
             const teamCode = dataArr.data.team_code.trim();
             const teamName = dataArr.data.team_name.trim();
+            const noOfOperators = String(dataArr.data.no_of_operators ?? "").trim();
+            const operationId = dataArr.data.operation_id;
             const active = dataArr.data.active === "1";
             const updatedAt = dataArr.data.updated_at;
 
-            if (__validate(teamCode, teamName)) {
+            if (__validate(teamCode, teamName, noOfOperators)) {
                 const apiRequest = {
                     "Team": {
                         "UPD": [
@@ -289,6 +322,8 @@ const Team = () => {
                                 [teamId]: {
                                     "team_code": teamCode,
                                     "team_name": teamName,
+                                    "no_of_operators": noOfOperators === "" ? 0 : Number(noOfOperators),
+                                    "operation_id": operationId === "" ? null : operationId,
                                     "active": active,
                                     "updated_at": updatedAt
                                 }

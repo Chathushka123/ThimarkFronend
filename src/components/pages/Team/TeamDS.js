@@ -1,5 +1,5 @@
 import React from 'react'
-import { TextBox, Label, CheckBox, Grid, GridBody, GridHeader, ControlCenter, NewButton, SaveButton, Button } from '../../../BASE/Components'
+import { TextBox, DropDown, Label, CheckBox, Grid, GridBody, GridHeader, ControlCenter, NewButton, SaveButton, Button } from '../../../BASE/Components'
 
 export function generateTeamDisplay(componentList) {
 
@@ -31,7 +31,7 @@ export function generateTeamDisplay(componentList) {
                                 <TextBox item={componentList["inputId"]} />
                                 <TextBox item={componentList["inputUpdatedAt"]} />
                                 <div className="form-row">
-                                    <div className="form-group col-md-4">
+                                    <div className="form-group col-md-3">
                                         <Label item={componentList["inputTeamCode"].label} />
                                         <TextBox item={componentList["inputTeamCode"]} className="form-control form-control-sm" />
                                     </div>
@@ -39,11 +39,19 @@ export function generateTeamDisplay(componentList) {
                                         <Label item={componentList["inputTeamName"].label} />
                                         <TextBox item={componentList["inputTeamName"]} className="form-control form-control-sm" />
                                     </div>
-                                    <div className="form-group col-md-3">
+                                    <div className="form-group col-md-2">
+                                        <Label item={componentList["inputNoOfOperators"].label} />
+                                        <TextBox item={componentList["inputNoOfOperators"]} className="form-control form-control-sm" />
+                                    </div>
+                                    <div className="form-group col-md-2">
                                         <Label item={componentList["inputActive"].label} />
                                         <div className="form-check">
                                             <CheckBox item={componentList["inputActive"]} className="form-check-input" />
                                         </div>
+                                    </div>
+                                    <div className="form-group col-md-4">
+                                        <Label item={componentList["inputOperation"].label} />
+                                        <DropDown item={componentList["inputOperation"]} className="form-control form-control-sm" />
                                     </div>
                                 </div>
                             </div>

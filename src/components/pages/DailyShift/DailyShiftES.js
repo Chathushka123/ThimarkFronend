@@ -43,6 +43,7 @@ const DailyShift = () => {
     config["inputShiftDate"].event.onChange = handleShiftDateChange;
 
     config["gridTeamAssignments"].event.onAddRow = handleAddTeamRow;
+    config["gridTeamAssignments"].event.onChangeWithColName = handleTeamAssignmentChange;
 
     config["gridDailyShifts"].event.onRowCustomButton = handleRowEditClick;
     config["gridDailyShifts"].event.onRowDelete = handleRowDelete;
@@ -108,22 +109,44 @@ const DailyShift = () => {
     // render's closure the framework's event handlers currently point to
     // (almost never the original mount render), they'd see an empty cache.
     const teamOptionsCacheRef = useRef([]);
+    // Maps team_id -> that team's default no_of_operators, so a newly
+    // assigned row can be pre-filled without a further API round-trip.
+    const teamNoOfOperatorsCacheRef = useRef({});
 
     async function __loadTeamOptions() {
         const data = await __getDetails("Team", false, ["*"], [{ "field-name": "active", "operator": "=", "value": true }], [], "team_name:asc", 1000);
         if (data && data !== "Error" && data[0].Team.length > 0) {
             teamOptionsCacheRef.current = data[0].Team.map(t => ({ value: t.id, text: `${t.team_code} - ${t.team_name}` }));
+            teamNoOfOperatorsCacheRef.current = data[0].Team.reduce((acc, t) => {
+                acc[t.id] = t.no_of_operators;
+                return acc;
+            }, {});
         }
         config["gridTeamAssignments"].setColumns(__getGridTeamAssignmentColumns());
+    }
+
+    // When the user picks/changes a team for an assignment row, default that
+    // row's no_of_operators to the team's own value. The cell stays editable
+    // afterwards so the user can still override it for this specific shift.
+    function handleTeamAssignmentChange(event, rowId, colName) {
+        if (colName !== "team_id") return;
+        const selectedTeamId = event.target.value;
+        const row = config["gridTeamAssignments"].data[rowId];
+        if (!row) return;
+        row["no_of_operators"] = selectedTeamId && teamNoOfOperatorsCacheRef.current[selectedTeamId] !== undefined
+            ? teamNoOfOperatorsCacheRef.current[selectedTeamId]
+            : "";
+        reRender();
     }
 
     function __getGridTeamAssignmentColumns() {
         let gridCols = [];
         gridCols["id"] = { objectType: "TextBox", colIndex: 0, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "70px", width: "70px" } };
         gridCols["team_id"] = { objectType: "DropDown", colIndex: 1, datatype: "dropdown", name: "team_id", placeholder: "Select Team", editable: true, exclusiveOptions: true, sqlColumn: "team_id", options: [{ value: "", text: "- Select Team -" }, ...teamOptionsCacheRef.current], style: { textAlign: "left", minWidth: "220px", width: "220px" } };
-        gridCols["start_date_time"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "start_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "start_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
-        gridCols["end_date_time"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "end_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "end_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
-        gridCols["active"] = { objectType: "CheckBox", colIndex: 4, datatype: "checkbox", name: "active", placeholder: "Active", editable: true, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "80px", width: "80px" } };
+        gridCols["no_of_operators"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "no_of_operators", placeholder: "No. of Operators", editable: true, sqlColumn: "no_of_operators", style: { textAlign: "center", minWidth: "150px", width: "150px" } };
+        gridCols["start_date_time"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "start_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "start_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
+        gridCols["end_date_time"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "end_date_time", placeholder: "YYYY-MM-DD HH:mm", editable: true, sqlColumn: "end_date_time", style: { textAlign: "left", minWidth: "170px", width: "170px" } };
+        gridCols["active"] = { objectType: "CheckBox", colIndex: 5, datatype: "checkbox", name: "active", placeholder: "Active", editable: true, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "80px", width: "80px" } };
         return gridCols;
     }
 
@@ -141,6 +164,7 @@ const DailyShift = () => {
         config["gridTeamAssignments"].addRow({
             "id": "",
             "team_id": "",
+            "no_of_operators": "",
             "start_date_time": masterStart ? masterStart.replace('T', ' ') : "",
             "end_date_time": masterEnd ? masterEnd.replace('T', ' ') : "",
             "active": "1"
@@ -302,7 +326,7 @@ const DailyShift = () => {
                 if (details && details !== "Error" && details[0].DailyShift.length > 0) {
                     const d = details[0].DailyShift[0];
                     const teamRows = (d.daily_shift_teams || []).map(r => ({
-                        id: r.id, team_id: r.team_id, start_date_time: r.start_date_time, end_date_time: r.end_date_time,
+                        id: r.id, team_id: r.team_id, no_of_operators: r.no_of_operators, start_date_time: r.start_date_time, end_date_time: r.end_date_time,
                         active: r.active ? "1" : "0", updated_at: r.updated_at, _rowstate: "POPULATED"
                     }));
 
@@ -460,7 +484,14 @@ const DailyShift = () => {
             if (row.end_date_time && !DATETIME_PATTERN.test(row.end_date_time)) return;
 
             const active = row.active === "1" || row.active === true;
-            const payload = { "team_id": row.team_id, "start_date_time": row.start_date_time || null, "end_date_time": row.end_date_time || null, "active": active };
+            // Fall back to the team's own default if the row's no_of_operators
+            // was never set (e.g. team picked before this handler existed, or
+            // row assembled programmatically) — the server also defaults this,
+            // but resolving it here keeps the payload explicit.
+            const noOfOperators = (row.no_of_operators === "" || row.no_of_operators === undefined || row.no_of_operators === null)
+                ? (teamNoOfOperatorsCacheRef.current[row.team_id] ?? null)
+                : Number(row.no_of_operators);
+            const payload = { "team_id": row.team_id, "no_of_operators": noOfOperators, "start_date_time": row.start_date_time || null, "end_date_time": row.end_date_time || null, "active": active };
 
             if (forNew || row._rowstate === "NEW") {
                 cre.push({ "daily_shift_id": "!PARENT_KEY!", ...payload });
