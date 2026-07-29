@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Grid, GridBody, GridHeader, ControlCenter } from '../../../BASE/Components'
 
-export function generateOpenGrnDisplay(componentList) {
+export function generateOpenGrnDisplay(componentList, handlers) {
 
     return (
         <>
@@ -15,7 +15,14 @@ export function generateOpenGrnDisplay(componentList) {
                     <div className="row">
                         <div className="col-12 d-flex justify-content-end">
                             <ControlCenter item={componentList["CONTROL_CENTER"]} >
-
+                                <button
+                                    className="btn btn-success btn-sm"
+                                    type="button"
+                                    title="Download as Excel"
+                                    onClick={handlers.onDownloadExcel}
+                                >
+                                    <i className="fas fa-file-excel fa-lg"></i>
+                                </button>
                             </ControlCenter>
                         </div>
                     </div>

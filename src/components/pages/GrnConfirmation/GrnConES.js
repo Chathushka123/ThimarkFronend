@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as XLSX from 'xlsx';
 import { generateOpenGrnDisplay } from './GrnConDS';
 import config from './GrnConCS';
 import API from '../../../api/API';
@@ -192,7 +193,34 @@ const OpenGrn = () => {
     }
 
 
-    return generateOpenGrnDisplay(config)
+    function handleDownloadExcel() {
+        const rows = config["gridOpenGrns"].data || [];
+
+        if (rows.length === 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("No data to export", "");
+            return;
+        }
+
+        const exportRows = rows.map((row) => ({
+            "GRN ID": row.id,
+            "RM PO No": row.rmpono,
+            "Warehouse": row.warehouse,
+            "Location": row.location,
+            "Status": row.status,
+            "Remark": row.remark,
+            "Supplier": row.supplier,
+            "Material": row.material,
+            "Quantity": row.quantity,
+            "Created At": row.created_at
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(exportRows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Open GRNs");
+        XLSX.writeFile(workbook, `grn_confirmation_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    return generateOpenGrnDisplay(config, { onDownloadExcel: handleDownloadExcel })
 }
 
 export default OpenGrn;
