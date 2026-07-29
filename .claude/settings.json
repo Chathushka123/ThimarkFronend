@@ -61,7 +61,23 @@
       "Bash(xargs -I{} echo {})",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/productionWIPScanning)",
       "Bash(php -l app/Http/Controllers/Api/WipDashboardController.php)",
-      "Bash(curl -s http://localhost:3000/static/js/bundle.js -o /dev/null -w \"dev server responding: %{http_code}\\\\n\")"
+      "Bash(curl -s http://localhost:3000/static/js/bundle.js -o /dev/null -w \"dev server responding: %{http_code}\\\\n\")",
+      "Bash(npx --no-install eslint src/components/pages/ProductionWIPScanning/ProductionWIPScanningDS.js)",
+      "Bash(BROWSER=none CI=true timeout 60 npx react-scripts build)",
+      "Bash(grep -n 'Request $request' /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/WipScanController.php)",
+      "Bash(php -l app/Http/Controllers/Api/WipScanController.php)",
+      "Bash(npx --no-install eslint src/components/pages/ProductionWIPScanning/ProductionWIPScanningES.js)",
+      "Bash(grep -v \"Browserslist\\\\|caniuse\\\\|babel-preset\\\\|@babel\\\\|not maintianed\\\\|devDependencies\\\\|already in your\\\\|this bug will\\\\|package without\\\\|declaring it\\\\|is currently working\\\\|already in your\\\\|may break\\\\|go away\\\\|^$\")",
+      "Bash(php -l app/Http/Repositories/UserTeamRepository.php)",
+      "Bash(npx --no-install eslint src/components/pages/CreateUser/CreateUserES.js src/components/pages/CreateUser/CreateUserCS.js src/components/pages/CreateUser/CreateUserDS.js)",
+      "Bash(grep -v \"Browserslist\\\\|caniuse\\\\|babel-preset\\\\|@babel\\\\|not maintianed\\\\|devDependencies\\\\|already in your\\\\|this bug will\\\\|package without\\\\|declaring it\\\\|is currently working\\\\|may break\\\\|go away\\\\|^$\")",
+      "Bash(npx --no-install eslint src/components/pages/DailyShift/DailyShiftDS.js src/components/pages/DailyShift/DailyShiftCS.js src/components/pages/DailyShift/DailyShiftES.js)",
+      "Bash(php -l app/Http/Controllers/Api/BundleTicketAuditController.php)",
+      "Bash(php -l resources/navigator.php)",
+      "Bash(php -r ' *)",
+      "Bash(npx --no-install eslint src/components/pages/BundleTicketAudit/*.js)",
+      "Bash(npx --no-install eslint src/App.js)",
+      "Bash(grep -n 'whereBetween.*created_at.*\\\\[\\\\$from, \\\\$to\\\\]' /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/BundleTicketAuditController.php)"
     ],
     "additionalDirectories": [
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",
@@ -69,7 +85,9 @@
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/routes",
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Repositories",
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api",
-      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Requests"
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Requests",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Models",
+      "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/resources"
     ]
   }
 }

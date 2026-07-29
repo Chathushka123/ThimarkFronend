@@ -157,6 +157,15 @@ const ProductionWIPScanning = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReworkStation]);
 
+    // Recent Scans is scoped per shift team — reload whenever the operator
+    // switches teams so it never shows another team's entries.
+    useEffect(() => {
+        if (selectedTeam) {
+            loadRecentScans(selectedTeam.id);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTeam]);
+
     // While a lookup is awaiting confirmation, focus jumps to the qty field
     // (fast path: adjust or just hit Enter to accept the pre-filled full
     // remaining qty). Otherwise the scan input keeps re-focus for the next tap.
@@ -212,8 +221,6 @@ const ProductionWIPScanning = () => {
                     setShowOperationPicker(true);
                 }
             }
-
-            await loadRecentScans();
         } catch (error) {
             console.log(error);
             config["CONTROL_CENTER"].promptErrorMessage("Error", describeError(error, 'Failed to load your assigned operations'));
@@ -222,9 +229,13 @@ const ProductionWIPScanning = () => {
         }
     }
 
-    async function loadRecentScans() {
+    // Recent Scans is only ever shown once a shift team is selected (see
+    // ProductionWIPScanningDS), so it's always scoped to that team — a
+    // different team's entries would otherwise be confusing on a shared station.
+    async function loadRecentScans(teamId) {
         try {
-            const response = await API.get('wipScan/recentScans');
+            const query = teamId ? `?daily_shift_team_id=${teamId}` : '';
+            const response = await API.get(`wipScan/recentScans${query}`);
             setRecentScans((response.data && response.data.data) || []);
         } catch (error) {
             console.log(error);
@@ -367,6 +378,10 @@ const ProductionWIPScanning = () => {
             playFeedbackTone(false);
             vibrate(false);
             setTicketCode('');
+            // A failed lookup can still mean the ticket's state moved under
+            // the operator (e.g. someone else just scanned it) — refresh so
+            // Recent Scans reflects reality instead of going stale.
+            await loadRecentScans(selectedTeam.id);
         } finally {
             setLookingUp(false);
         }
@@ -510,7 +525,7 @@ const ProductionWIPScanning = () => {
             vibrate(true);
             setScansToday(prev => prev + 1);
             clearPendingScan();
-            await loadRecentScans();
+            await loadRecentScans(selectedTeam.id);
         } catch (error) {
             const message = describeError(error, 'Scan failed — please try again');
             setLastResult({ type: 'error', message });
@@ -544,7 +559,7 @@ const ProductionWIPScanning = () => {
             playFeedbackTone(true);
             config["CONTROL_CENTER"].promptBaseMessage("Last scan deleted", "");
             setLastResult(null);
-            await loadRecentScans();
+            await loadRecentScans(selectedTeam.id);
         } catch (error) {
             const message = describeError(error, 'Failed to delete the last scan');
             config["CONTROL_CENTER"].promptWarningMessage(message, "");
@@ -567,7 +582,7 @@ const ProductionWIPScanning = () => {
             setReworkQtyInput(lastResult.reworkQty ? String(lastResult.reworkQty) : '');
             setReworkReasonId(lastResult.reworkReasonId || '');
             setLastResult(null);
-            await loadRecentScans();
+            await loadRecentScans(selectedTeam.id);
         } catch (error) {
             const message = describeError(error, 'Failed to reopen the last scan for editing');
             config["CONTROL_CENTER"].promptWarningMessage(message, "");
@@ -584,7 +599,7 @@ const ProductionWIPScanning = () => {
             const path = pathByType[entry.type] || `wipScan/secondaryScans/${entry.id}`;
             await API.delete(path);
             config["CONTROL_CENTER"].promptBaseMessage("Scan undone", "");
-            await loadRecentScans();
+            await loadRecentScans(selectedTeam.id);
         } catch (error) {
             const message = describeError(error, 'Failed to undo scan');
             config["CONTROL_CENTER"].promptWarningMessage(message, "");

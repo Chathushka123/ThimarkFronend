@@ -6,11 +6,22 @@ import { fromDateTimeLocal, toDateTimeLocal } from './DailyShiftHelpers';
 
 const DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}(:\d{2})?$/;
 
+function __todayStr() {
+    return new Date().toISOString().split('T')[0];
+}
+
 const DailyShift = () => {
     let [rendered, setRendered] = useState(true);
+    // Filters the "All Daily Shifts" grid to a single shift_date, defaulting
+    // to today — re-fetched whenever it changes (see the [filterDate] effect below).
+    const [filterDate, setFilterDate] = useState(__todayStr());
 
     function reRender() {
         setRendered(!rendered);
+    }
+
+    function handleFilterDateChange(date) {
+        setFilterDate(date);
     }
 
     /*********************************************************/
@@ -43,9 +54,14 @@ const DailyShift = () => {
     useEffect(() => {
         __checkIsAuthorized();
         __loadTeamOptions();
-        getAllDailyShifts();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Fires on mount (with today's default) and again on every date change.
+    useEffect(() => {
+        getAllDailyShifts(filterDate);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterDate]);
 
     window.onbeforeunload = function () {
         if (config["CONTROL_CENTER"].state.modified || config["CONTROL_CENTER"].state.new || config["CONTROL_CENTER"].state.deleted) {
@@ -135,12 +151,13 @@ const DailyShift = () => {
         reRender();
     }
 
-    async function getAllDailyShifts() {
+    async function getAllDailyShifts(date) {
         try {
             document.getElementById("spinner").style.display = "";
-            const data = await __getDetails("DailyShift", false, ["*"], [], ["shift", "daily_shift_teams"], "shift_date:desc", 1000);
+            const where = date ? [{ "field-name": "shift_date", "operator": "=", "value": date }] : [];
+            const data = await __getDetails("DailyShift", false, ["*"], where, ["shift", "daily_shift_teams.team"], "shift_date:desc", 1000);
             if (data && data !== "Error" && data[0].DailyShift.length > 0) {
-                config['gridDailyShifts'].setData(data[0].DailyShift.map(__mapDailyShiftRow));
+                config['gridDailyShifts'].setData(data[0].DailyShift.flatMap(__mapDailyShiftRows));
             } else {
                 config['gridDailyShifts'].setData([]);
             }
@@ -152,26 +169,47 @@ const DailyShift = () => {
         }
     }
 
-    function __mapDailyShiftRow(d) {
-        return {
+    // The grid's Active checkbox column compares against the string
+    // checkedValue "1" (BASE/Components.js's TbCheckBox does a strict
+    // ===), but the API returns a real boolean/number here — coerce
+    // it or the checkbox always renders unchecked regardless of status.
+    function __toCheckboxValue(value) {
+        return value === true || value === 1 || value === "1" ? "1" : "0";
+    }
+
+    // One DailyShift can have several team assignments — flattened into one
+    // grid row per (DailyShift, DailyShiftTeam) pair so every assignment is
+    // visible at once, rather than collapsing them behind a bare count. A
+    // shift with no team assignments yet still gets a single row with the
+    // team columns left blank.
+    function __mapDailyShiftRows(d) {
+        const base = {
             id: d.id,
             shift_id: d.shift_id,
             shift_name: d.shift ? `${d.shift.shift_code} - ${d.shift.shift_name}` : '(unknown shift)',
             shift_date: d.shift_date,
             start_date_time: d.start_date_time,
             end_date_time: d.end_date_time,
-            team_count: (d.daily_shift_teams || []).length,
-            // The grid's Active checkbox column compares against the string
-            // checkedValue "1" (BASE/Components.js's TbCheckBox does a strict
-            // ===), but the API returns a real boolean/number here — coerce
-            // it or the checkbox always renders unchecked regardless of status.
-            active: d.active === true || d.active === 1 || d.active === "1" ? "1" : "0",
+            active: __toCheckboxValue(d.active),
             updated_at: d.updated_at
         };
+
+        const teamAssignments = d.daily_shift_teams || [];
+        if (teamAssignments.length === 0) {
+            return [{ ...base, team_name: '', team_start_date_time: '', team_end_date_time: '', team_active: '0' }];
+        }
+
+        return teamAssignments.map(t => ({
+            ...base,
+            team_name: t.team ? `${t.team.team_code} - ${t.team.team_name}` : '(unknown team)',
+            team_start_date_time: t.start_date_time,
+            team_end_date_time: t.end_date_time,
+            team_active: __toCheckboxValue(t.active)
+        }));
     }
 
     function handleReloadList() {
-        getAllDailyShifts();
+        getAllDailyShifts(filterDate);
     }
 
     /************ Shift LOV ************/
@@ -337,7 +375,7 @@ const DailyShift = () => {
                 if (String(config["inputId"].data.value) === String(row.id) && typeof config["CONTROL_CENTER"].event.__onNew !== 'undefined') {
                     config["CONTROL_CENTER"].event.__onNew();
                 }
-                await getAllDailyShifts();
+                await getAllDailyShifts(filterDate);
             } else {
                 config["CONTROL_CENTER"].promptWarningMessage("Error deleting daily shift", "");
                 row._rowstate = undefined;
@@ -511,12 +549,16 @@ const DailyShift = () => {
                 resultArr = response.data;
                 if (resultArr.status === "success") {
                     config["CONTROL_CENTER"].promptBaseMessage("Daily shift created successfully", "");
-                    await getAllDailyShifts();
                     // Re-select the just-created record so Save afterwards dispatches
                     // "MODIFY" (with a real id) instead of "NEW" again. There's no
                     // unique business key to look it up by, so match on shift + date
                     // (both sides normalized to "YYYY-MM-DD").
                     const shiftDateStr = __formatLocalDate(shiftDate);
+                    // The list is filtered by date — jump the filter to the date just
+                    // saved so the new record is actually visible (and findable below)
+                    // instead of silently vanishing behind whatever date was selected.
+                    setFilterDate(shiftDateStr);
+                    await getAllDailyShifts(shiftDateStr);
                     const created = config["gridDailyShifts"].data.find(r => String(r.shift_id) === String(shiftId) && String(r.shift_date || '').split('T')[0] === shiftDateStr);
                     if (created) await formPopulate(created.id);
                 } else {
@@ -576,7 +618,11 @@ const DailyShift = () => {
                 resultArr = response.data;
                 if (resultArr.status === "success") {
                     config["CONTROL_CENTER"].promptBaseMessage("Daily shift updated successfully", "");
-                    await getAllDailyShifts();
+                    // Same reasoning as onSaveNew — keep the just-saved date visible
+                    // even if its shift_date was edited to a different day.
+                    const shiftDateStr = __formatLocalDate(shiftDate);
+                    setFilterDate(shiftDateStr);
+                    await getAllDailyShifts(shiftDateStr);
                     await formPopulate(dailyShiftId);
                 } else {
                     config["CONTROL_CENTER"].promptWarningMessage("Error updating daily shift", "");
@@ -614,7 +660,10 @@ const DailyShift = () => {
         config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
     }
 
-    return generateDailyShiftDisplay(config);
+    return generateDailyShiftDisplay(config, {
+        filterDate,
+        onFilterDateChange: handleFilterDateChange,
+    });
 }
 
 export default DailyShift;

@@ -127,6 +127,10 @@ export function generateCreateUserDisplay(componentList, handlers) {
                                     <Label item={componentList["inputOperations"].label} />
                                     <MultiSelectDropDown item={componentList["inputOperations"]} className="form-control form-control-sm" />
                                 </div>
+                                <div className="form-group col-md-6">
+                                    <Label item={componentList["inputTeams"].label} />
+                                    <MultiSelectDropDown item={componentList["inputTeams"]} className="form-control form-control-sm" />
+                                </div>
                             </div>
                         </div>
                     </div>
