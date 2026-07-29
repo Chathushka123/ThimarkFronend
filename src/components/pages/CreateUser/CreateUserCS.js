@@ -365,6 +365,51 @@ componentListConfig["inputOperations"] = {
     event: {}
 }
 
+componentListConfig["inputTeams"] = {
+    objectType: "Multiselect",
+    schema: {
+        name: "inputTeams",
+        id: "inputTeams",
+        placeholder: "Teams",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandatory: false,
+        searchable: true,
+        avoidHighlightFirstOption: true,
+        showCheckbox: true,
+        disable: false,
+        onSearch: "",
+        loading: false,
+        style: "",
+        selectionLimit: -1,
+        endpoint: "",
+        singleSelect: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelTeams",
+            type: "text",
+            visible: true,
+            value: "Teams"
+        },
+        class: ""
+    },
+    options: [],
+    data: {
+        sqlcolumn: "teams",
+        oldValue: "",
+        value: []
+    },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputEmailSearch"] = {
     objectType: "TextBox",
     schema: {

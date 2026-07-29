@@ -7,6 +7,7 @@ import { getUser } from '../../../utils/Common';
 const CreateUser = () => {
     let [rendered, setRendered] = useState(true);
     const existingUserOperationIdsRef = useRef([]);
+    const existingUserTeamIdsRef = useRef([]);
 
     function reRender() {
         setRendered(!rendered);
@@ -97,6 +98,9 @@ const CreateUser = () => {
         // Set Operations Multiselect Options
         __getOperationDropdownOptions();
 
+        // Set Teams Multiselect Options
+        __getTeamDropdownOptions();
+
         // Load Users grid
         getAllUsersForGrid();
 
@@ -121,6 +125,9 @@ const CreateUser = () => {
             config["buttonChangePassword"].setVisible(false);
             if (typeof config["inputOperations"].setDesabled === "function") {
                 config["inputOperations"].setDesabled(true);
+            }
+            if (typeof config["inputTeams"].setDesabled === "function") {
+                config["inputTeams"].setDesabled(true);
             }
         }
     }
@@ -247,6 +254,91 @@ const CreateUser = () => {
             console.log("***********SaveUserOperations Error**********");
             console.log(error.response);
             config["CONTROL_CENTER"].promptWarningMessage("User saved, but failed to update assigned operations", "");
+        }
+    }
+
+    // Set Teams Multiselect Options (no dedicated list endpoint like
+    // operation/list, so this goes through the generic searchByParameters
+    // route the same way the Role dropdown does via __getDetails)
+    async function __getTeamDropdownOptions() {
+        try {
+            const where = [{ "field-name": "active", "operator": "=", "value": true }];
+            const getDetails = await __getDetails("Team", false, ["*"], where, [], "team_code:asc", 1000);
+            const list = (getDetails && getDetails !== "Error" && getDetails[0].Team) || [];
+            const options = list.map(team => ({ "id": team.id, "name": `${team.team_code} - ${team.team_name}` }));
+
+            config["inputTeams"].setOptions(options);
+
+        } catch (error) {
+            console.log("***********GetTeamDropdownOptions Error**********");
+            console.log(error.response);
+        }
+    }
+
+    // Load the teams already assigned to a user (for edit/populate)
+    async function __loadUserTeams(userId) {
+        try {
+            const apiRequest = {
+                "UserTeam": {
+                    "distinct": false,
+                    "select": ["*"],
+                    "where": [
+                        { "field-name": "user_id", "operator": "=", "value": userId },
+                        { "field-name": "active", "operator": "=", "value": true }
+                    ],
+                    "relations": ["team"],
+                    "orderby": "id:asc",
+                    "limit": 100
+                }
+            };
+
+            const response = await API.post('searchByParameters', apiRequest);
+            const rows = (response.data && response.data[0] && response.data[0].UserTeam) || [];
+
+            existingUserTeamIdsRef.current = rows.map(row => row.id);
+
+            const selected = rows
+                .filter(row => row.team)
+                .map(row => ({ "id": row.team.id, "name": `${row.team.team_code} - ${row.team.team_name}` }));
+
+            config["inputTeams"].setValue(selected);
+
+        } catch (error) {
+            console.log("***********GetUserTeams Error**********");
+            console.log(error.response);
+            existingUserTeamIdsRef.current = [];
+            config["inputTeams"].setValue([]);
+        }
+    }
+
+    // Replace a user's assigned teams with whatever is currently selected in the multiselect
+    async function __saveUserTeams(userId) {
+        try {
+            const rawValue = config["inputTeams"].data.value;
+            const selectedIds = (Array.isArray(rawValue) ? rawValue : [])
+                .map(item => item.id)
+                .filter(id => id !== "select_all");
+            const existingRowIds = existingUserTeamIdsRef.current;
+
+            if (existingRowIds && existingRowIds.length > 0) {
+                await API.post('masterDetails', { "UserTeam": { "DEL": existingRowIds } });
+            }
+
+            if (selectedIds.length > 0) {
+                await API.post('masterDetails', {
+                    "UserTeam": {
+                        "CRE": selectedIds.map(teamId => ({
+                            "user_id": userId,
+                            "team_id": teamId,
+                            "active": true
+                        }))
+                    }
+                });
+            }
+        } catch (error) {
+            console.log("***********SaveUserTeams Error**********");
+            console.log(error.response);
+            config["CONTROL_CENTER"].promptWarningMessage("User saved, but failed to update assigned teams", "");
         }
     }
 
@@ -598,6 +690,7 @@ const CreateUser = () => {
 
                     config["CONTROL_CENTER"].populate(dataArray);
                     await __loadUserOperations(userData.id);
+                    await __loadUserTeams(userData.id);
 
                 } else {
                     config["CONTROL_CENTER"].promptErrorMessage("Please Enter valid Email", "");
@@ -614,6 +707,8 @@ const CreateUser = () => {
             //config["CONTROL_CENTER"].promptWarningMessage("Please Enter Email", "");
             existingUserOperationIdsRef.current = [];
             config["inputOperations"].setValue([]);
+            existingUserTeamIdsRef.current = [];
+            config["inputTeams"].setValue([]);
             config["CONTROL_CENTER"].populate(dataArray);
         }
     }
@@ -699,12 +794,13 @@ const CreateUser = () => {
     }
 
     function onNew() {
-        // "operations" is included (rather than left out like the other
-        // blank fields) because the framework's own resetData/readAndApplyData
-        // cycle blanks any field missing from this dataArray to "" — fine for
-        // TextBox fields, but inputOperations is a Multiselect whose value
-        // must stay an array or the MultiSelectDropDown component breaks.
-        let dataArray = { "operations": [] };
+        // "operations"/"teams" are included (rather than left out like the
+        // other blank fields) because the framework's own
+        // resetData/readAndApplyData cycle blanks any field missing from
+        // this dataArray to "" — fine for TextBox fields, but inputOperations
+        // and inputTeams are Multiselects whose value must stay an array or
+        // the MultiSelectDropDown component breaks.
+        let dataArray = { "operations": [], "teams": [] };
         //Action handling when NEW buttion clicked...
 
         config["inputName"].setDisabled(false);
@@ -715,6 +811,7 @@ const CreateUser = () => {
         config["buttonChangePassword"].setDisabled(true);
 
         existingUserOperationIdsRef.current = [];
+        existingUserTeamIdsRef.current = [];
 
         return dataArray;
     }
@@ -780,6 +877,7 @@ const CreateUser = () => {
                         // Get User Id from Email
                         const userId = await __getUserIdByEmail(email);
                         await __saveUserOperations(userId);
+                        await __saveUserTeams(userId);
                         resetFormAfterSave();
                         await getAllUsersForGrid();
                     } else {
@@ -871,6 +969,7 @@ const CreateUser = () => {
                     if (resultArr.status === "success") {
                         config["CONTROL_CENTER"].promptBaseMessage("Updated Successfully", "");
                         await __saveUserOperations(userId);
+                        await __saveUserTeams(userId);
                         resetFormAfterSave();
                         await getAllUsersForGrid();
                     } else {

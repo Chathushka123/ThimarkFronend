@@ -2088,3 +2088,30 @@ td {
   z-index: 10000 !important;
 }
 
+/* WIP Scanning: operation/team picker choice buttons — accent color is
+   passed in per-button via the --picker-accent custom property so one rule
+   set covers both the blue "station" picker and the purple "team" picker. */
+.wip-picker-choice {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+.wip-picker-choice:hover {
+  background-color: var(--picker-accent) !important;
+  border-color: var(--picker-accent) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+}
+.wip-picker-choice:hover strong,
+.wip-picker-choice:hover div {
+  color: #fff !important;
+}
+.wip-picker-choice.selected {
+  background-color: var(--picker-accent) !important;
+  border-color: var(--picker-accent) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.wip-picker-choice.selected strong,
+.wip-picker-choice.selected div {
+  color: #fff !important;
+}
+
