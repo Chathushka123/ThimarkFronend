@@ -313,10 +313,15 @@ export function
 
     // Function to set options
     function setOptions(list) {
-        // Prevent duplicate "Select All" entry
+        // Prevent duplicate "Select All" entry - and skip it entirely for
+        // single-select fields, where "select all" doesn't make sense.
         setFilteredOptions(list);
-        const hasSelectAll = list.some(opt => opt.id === "select_all");
-        props.item.options = hasSelectAll ? list : [{ id: "select_all", name: "Select All" }, ...list];
+        if (props.item.schema.singleSelect) {
+            props.item.options = list.filter(opt => opt.id !== "select_all");
+        } else {
+            const hasSelectAll = list.some(opt => opt.id === "select_all");
+            props.item.options = hasSelectAll ? list : [{ id: "select_all", name: "Select All" }, ...list];
+        }
         reRender();
     }
 

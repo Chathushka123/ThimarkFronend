@@ -2,37 +2,52 @@ import React, { useState } from 'react'
 import { ControlCenter, DropDown, Button } from '../../../../BASE/Components'
 import { REPORT_STYLES as S, REPORT_CARD_CLASS, reportRowStyle } from '../ReportsCommon'
 
-// Columns whose values should be formatted as local date-time strings
-const DATE_COLS = ['last_movement', 'last_updated', 'received_date', 'created_at', 'updated_at', 'date', 'movement_date']
+// A two-row grouped header (operation code spanning IN/OUT/WIP) doesn't play
+// well with S.th's sticky positioning (both rows would stick at the same
+// offset and overlap), so this report's header cells opt out of sticky.
+const TH = { ...S.th, position: 'static', top: 'auto' }
+const TH_CENTER = { ...TH, textAlign: 'center' }
+const TH_SUB = { ...TH_CENTER, fontSize: '10px', borderLeft: '1px solid rgba(255,255,255,0.25)' }
 
-function formatCellValue(col, value) {
-    if (value === null || value === undefined || value === '') return ''
-    if (DATE_COLS.includes(col.toLowerCase())) {
-        const d = new Date(value)
-        if (!isNaN(d.getTime())) {
-            return d.toLocaleDateString('en-CA') // YYYY-MM-DD
-        }
-    }
-    return String(value)
+const NA_STYLE = {
+    color: '#94a3b8',
+    fontStyle: 'italic',
+    background: '#f8fafc',
 }
 
-function humanHeader(col) {
-    return col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+function wipStyle(wip) {
+    if (wip > 0) return { color: '#92400e', fontWeight: 700 }
+    if (wip < 0) return { color: '#b91c1c', fontWeight: 700 }
+    return { color: '#065f46', fontWeight: 700 }
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
-function FilterableResultTable({ columns, rows }) {
+function rowMatches(row, operations, term) {
+    const fixedValues = [row.main_model, row.model, row.batch, row.job_id, row.bundle_id, row.trolley]
+    if (fixedValues.some(v => v !== null && v !== undefined && String(v).toLowerCase().includes(term))) {
+        return true
+    }
+
+    return operations.some(op => {
+        const inVal = row[`${op.key}_IN`]
+        const outVal = row[`${op.key}_OUT`]
+        const wipVal = row[`${op.key}_WIP`]
+        return [inVal, outVal, wipVal].some(v => {
+            const text = v === null ? 'na' : String(v).toLowerCase()
+            return text.includes(term)
+        })
+    })
+}
+
+function FilterableWorkOrderStatusTable({ rows, operations }) {
     const [globalFilter, setGlobalFilter] = useState('')
     const [pageSize, setPageSize] = useState(25)
     const [page, setPage] = useState(1)
 
     const filtered = rows.filter(row => {
         if (globalFilter.trim() === '') return true
-        const term = globalFilter.toLowerCase()
-        return columns.some(col =>
-            formatCellValue(col, row[col]).toLowerCase().includes(term)
-        )
+        return rowMatches(row, operations, globalFilter.trim().toLowerCase())
     })
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
@@ -61,13 +76,17 @@ function FilterableResultTable({ columns, rows }) {
 
     return (
         <>
+            <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '10px' }}>
+                <span style={{ ...NA_STYLE, padding: '1px 6px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>NA</span>
+                {' '}= this operation isn't part of that bundle's route. One row per bundle.
+            </div>
+
             {/* Toolbar */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', marginBottom: '12px', gap: '8px' }}>
-                {/* Search */}
                 <i className="fas fa-search" style={{ color: '#64748b', fontSize: '13px' }}></i>
                 <input
                     type="text"
-                    placeholder="Search all columns..."
+                    placeholder="Filter loaded rows..."
                     value={globalFilter}
                     onChange={e => handleFilterChange(e.target.value)}
                     style={{
@@ -89,7 +108,6 @@ function FilterableResultTable({ columns, rows }) {
                     </button>
                 )}
 
-                {/* Page size selector */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '8px' }}>
                     <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Rows per page:</span>
                     <select
@@ -115,31 +133,77 @@ function FilterableResultTable({ columns, rows }) {
                 </span>
             </div>
 
-            {/* Table */}
             <div style={S.tableWrapper}>
-                <table style={S.table}>
+                <table style={{ ...S.table, minWidth: `${760 + operations.length * 210}px` }}>
                     <thead>
                         <tr>
-                            {columns.map(col => (
-                                <th key={col} style={S.th}>{humanHeader(col)}</th>
+                            <th style={TH} rowSpan={2}>Main Model</th>
+                            <th style={TH} rowSpan={2}>Model</th>
+                            <th style={TH} rowSpan={2}>Batch</th>
+                            <th style={TH_CENTER} rowSpan={2}>Job ID</th>
+                            <th style={TH_CENTER} rowSpan={2}>Bundle ID</th>
+                            <th style={TH} rowSpan={2}>Trolley</th>
+                            {operations.map(op => (
+                                <th
+                                    key={op.key}
+                                    style={{ ...TH_CENTER, borderLeft: '2px solid rgba(255,255,255,0.4)' }}
+                                    colSpan={3}
+                                    title={op.description}
+                                >
+                                    {op.code}
+                                </th>
+                            ))}
+                            <th style={TH_CENTER} rowSpan={2}>Total Reject</th>
+                            <th style={TH_CENTER} rowSpan={2}>Total Rework</th>
+                            <th style={TH_CENTER} rowSpan={2}>Total Return</th>
+                        </tr>
+                        <tr>
+                            {operations.map(op => (
+                                <React.Fragment key={op.key}>
+                                    <th style={{ ...TH_SUB, borderLeft: '2px solid rgba(255,255,255,0.4)' }}>IN</th>
+                                    <th style={TH_SUB}>OUT</th>
+                                    <th style={TH_SUB}>WIP</th>
+                                </React.Fragment>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {pageRows.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length} style={{ ...S.td, textAlign: 'center', color: '#64748b' }}>
+                                <td colSpan={9 + operations.length * 3} style={{ ...S.td, textAlign: 'center', color: '#64748b' }}>
                                     No matching records found.
                                 </td>
                             </tr>
                         ) : (
                             pageRows.map((row, idx) => (
-                                <tr key={idx} style={reportRowStyle(idx)}>
-                                    {columns.map(col => (
-                                        <td key={`${idx}-${col}`} style={S.td}>
-                                            {formatCellValue(col, row[col])}
-                                        </td>
-                                    ))}
+                                <tr key={row.bundle_id ?? idx} style={reportRowStyle(idx)}>
+                                    <td style={S.td}>{row.main_model || ''}</td>
+                                    <td style={S.td}>{row.model || ''}</td>
+                                    <td style={S.td}>{row.batch || ''}</td>
+                                    <td style={{ ...S.td, textAlign: 'center' }}>{row.job_id ?? ''}</td>
+                                    <td style={{ ...S.td, textAlign: 'center' }}>{row.bundle_id ?? ''}</td>
+                                    <td style={S.td}>{row.trolley || '-'}</td>
+                                    {operations.map(op => {
+                                        const inVal = row[`${op.key}_IN`]
+                                        const outVal = row[`${op.key}_OUT`]
+                                        const wipVal = row[`${op.key}_WIP`]
+                                        return (
+                                            <React.Fragment key={op.key}>
+                                                <td style={{ ...S.td, textAlign: 'center', borderLeft: '2px solid #e2e8f0', ...(inVal === null ? NA_STYLE : {}) }}>
+                                                    {inVal === null ? 'NA' : inVal}
+                                                </td>
+                                                <td style={{ ...S.td, textAlign: 'center', ...(outVal === null ? NA_STYLE : {}) }}>
+                                                    {outVal === null ? 'NA' : outVal}
+                                                </td>
+                                                <td style={{ ...S.td, textAlign: 'center', ...(wipVal === null ? NA_STYLE : wipStyle(wipVal)) }}>
+                                                    {wipVal === null ? 'NA' : wipVal}
+                                                </td>
+                                            </React.Fragment>
+                                        )
+                                    })}
+                                    <td style={{ ...S.td, textAlign: 'center' }}>{row.total_reject_qty ?? 0}</td>
+                                    <td style={{ ...S.td, textAlign: 'center' }}>{row.total_rework_qty ?? 0}</td>
+                                    <td style={{ ...S.td, textAlign: 'center' }}>{row.total_return_qty ?? 0}</td>
                                 </tr>
                             ))
                         )}
@@ -154,16 +218,12 @@ function FilterableResultTable({ columns, rows }) {
                         onClick={() => setPage(1)}
                         disabled={safePage === 1}
                         style={{ ...btnBase, background: safePage === 1 ? '#f1f5f9' : '#fff', color: safePage === 1 ? '#a0aec0' : '#2d3748' }}
-                    >
-                        «
-                    </button>
+                    >«</button>
                     <button
                         onClick={() => setPage(p => Math.max(1, p - 1))}
                         disabled={safePage === 1}
                         style={{ ...btnBase, background: safePage === 1 ? '#f1f5f9' : '#fff', color: safePage === 1 ? '#a0aec0' : '#2d3748' }}
-                    >
-                        ‹ Prev
-                    </button>
+                    >‹ Prev</button>
 
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                         .filter(p => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
@@ -186,9 +246,7 @@ function FilterableResultTable({ columns, rows }) {
                                         borderColor: item === safePage ? '#1a1a2e' : '#cbd5e0',
                                         minWidth: '32px',
                                     }}
-                                >
-                                    {item}
-                                </button>
+                                >{item}</button>
                             )
                         )
                     }
@@ -197,24 +255,20 @@ function FilterableResultTable({ columns, rows }) {
                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         disabled={safePage === totalPages}
                         style={{ ...btnBase, background: safePage === totalPages ? '#f1f5f9' : '#fff', color: safePage === totalPages ? '#a0aec0' : '#2d3748' }}
-                    >
-                        Next ›
-                    </button>
+                    >Next ›</button>
                     <button
                         onClick={() => setPage(totalPages)}
                         disabled={safePage === totalPages}
                         style={{ ...btnBase, background: safePage === totalPages ? '#f1f5f9' : '#fff', color: safePage === totalPages ? '#a0aec0' : '#2d3748' }}
-                    >
-                        »
-                    </button>
+                    >»</button>
                 </div>
             )}
         </>
     )
 }
 
-export function generateCurrentStockDisplay(componentList, state) {
-    const { rows, columns, loading, error, count } = state
+export function generateWorkOrderStatusDisplay(componentList, state) {
+    const { rows, operations, count, loading, error, fromDate, toDate, setFromDate, setToDate } = state
 
     return (
         <>
@@ -239,13 +293,30 @@ export function generateCurrentStockDisplay(componentList, state) {
                     <div className={REPORT_CARD_CLASS} style={S.card}>
                         <div style={S.cardBody}>
                             <div className="form-row align-items-end">
-                                <div className="form-group col-lg-5 col-md-7 col-12">
-                                    <span style={S.label}>Query Selector</span>
-                                    <DropDown
-                                        item={componentList["inputQueryType"]}
+                                <div className="form-group col-lg-3 col-md-4 col-12">
+                                    <span style={S.label}>{componentList["inputStatus"].label.schema.value}</span>
+                                    <DropDown item={componentList["inputStatus"]} className="form-control form-control-sm" />
+                                </div>
+
+                                <div className="form-group col-lg-3 col-md-4 col-12">
+                                    <span style={S.label}>From Date</span>
+                                    <input
+                                        type="date"
                                         className="form-control form-control-sm"
+                                        value={fromDate}
+                                        onChange={e => setFromDate(e.target.value)}
                                     />
                                 </div>
+                                <div className="form-group col-lg-3 col-md-4 col-12">
+                                    <span style={S.label}>To Date</span>
+                                    <input
+                                        type="date"
+                                        className="form-control form-control-sm"
+                                        value={toDate}
+                                        onChange={e => setToDate(e.target.value)}
+                                    />
+                                </div>
+
                             </div>
 
                             <div style={S.resultBar}>
@@ -262,11 +333,11 @@ export function generateCurrentStockDisplay(componentList, state) {
                             )}
 
                             {!error && !loading && rows.length === 0 && (
-                                <div style={S.stateMessage}>No data found. Select a query type and click Run Report.</div>
+                                <div style={S.stateMessage}>No data found. Select a status/date range and click Run Report.</div>
                             )}
 
                             {!error && !loading && rows.length > 0 && (
-                                <FilterableResultTable columns={columns} rows={rows} />
+                                <FilterableWorkOrderStatusTable rows={rows} operations={operations} />
                             )}
                         </div>
                     </div>

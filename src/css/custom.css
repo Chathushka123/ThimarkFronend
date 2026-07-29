@@ -2131,6 +2131,22 @@ td {
   z-index: 5 !important;
 }
 
+/* Every .multiSelectContainer shares the same z-index (5 above), so when two
+   sit in separate stacked cards, the LOWER card's own (closed) multiselect
+   box ties with - and by DOM order can render on top of - an OPEN dropdown
+   list from the card above it, making the option list look like it's
+   punched through / merged with an unrelated field. Wrapping each card that
+   hosts a MultiSelectDropDown in its own stacking context (raised only while
+   one of its fields is actually focused/open) keeps that card's dropdown
+   cleanly above sibling cards instead of tying with them. */
+.dropdown-host-card {
+  position: relative;
+  z-index: 1;
+}
+.dropdown-host-card:focus-within {
+  z-index: 20;
+}
+
 .search-wrapper .searchBox   {
   margin-top : 0 !important;
   width: 100% !important;

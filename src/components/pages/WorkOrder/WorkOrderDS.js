@@ -1,5 +1,6 @@
 import React from 'react'
 import { TextBox, MultiSelectDropDown, Button, ControlCenter, IntegerField, PopUpPage } from '../../../BASE/Components'
+import { QrScannerOverlay, decodeQrFromFile } from '../../../BASE/QrScanner'
 
 function InfoTile({ icon, label, value, color = '#4c5fd5' }) {
     return (
@@ -204,10 +205,11 @@ function BundleCard({ bundle, isOpen }) {
     )
 }
 
-export function generateWorkOrderDisplay(componentList, workOrder) {
+export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
     const isOpen = !!workOrder && workOrder.status === 'OPEN';
     const isFinalized = !!workOrder && workOrder.status === 'FINALIZED';
     const bundles = (workOrder && Array.isArray(workOrder.bundles)) ? workOrder.bundles : [];
+    const { showQrScanner, onQrScanSuccess, onQrScanClose } = qrState || {};
 
     // NOTE: every BASE component (TextBox/DropDown/IntegerField/...) binds its
     // setValue/setOptions/reRender functions onto `item` the first time it
@@ -220,6 +222,29 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
     return (
         <>
             <div className="loading" id="spinner" style={{ display: "none" }}>Loading&#8230;</div>
+
+            {/* Live QR scanner overlay - scans a trolley sticker's QR (its id) to auto-select inputBundleTrolly */}
+            {showQrScanner && (
+                <QrScannerOverlay onScan={onQrScanSuccess} onClose={onQrScanClose} />
+            )}
+
+            {/* Hidden file input - fallback when a live camera stream isn't available.
+                capture="environment" opens the rear camera without extra browser permission. */}
+            <input
+                type="file"
+                id="__qr_file_input__"
+                accept="image/*"
+                capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        if (onQrScanClose) onQrScanClose();
+                        decodeQrFromFile(file, onQrScanSuccess);
+                    }
+                    e.target.value = "";
+                }}
+            />
 
             {/* Finalize Confirmation Popup */}
             <PopUpPage item={componentList["finalizeWorkOrderPopUp"]} headerText="Confirm Finalize" className="">
@@ -330,7 +355,7 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                 <div className="container-fluid custom-container-padding">
 
                     {/* Work Order Selector - always visible */}
-                    <div className="form-wrp background-white mb-4 p-3 p-md-4" style={{
+                    <div className="form-wrp background-white mb-4 p-3 p-md-4 dropdown-host-card" style={{
                         borderRadius: '16px',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                         border: '2px solid #e2e8f0'
@@ -354,7 +379,7 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
 
                     {/* Create New Work Order - always mounted, CSS-hidden once a work order is loaded */}
                     <div style={{ display: !workOrder ? 'block' : 'none' }}>
-                        <div className="form-wrp background-white mb-4 p-3 p-md-4" style={{
+                        <div className="form-wrp background-white mb-4 p-3 p-md-4 dropdown-host-card" style={{
                             borderRadius: '16px',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             border: '2px solid #e2e8f0'
@@ -446,7 +471,7 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                         <RoutingOperationsPanel workOrder={workOrder} />
 
                         {/* Bundles */}
-                        <div className="form-wrp background-white mb-4 p-3 p-md-4" style={{
+                        <div className="form-wrp background-white mb-4 p-3 p-md-4 dropdown-host-card" style={{
                             borderRadius: '16px',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             border: '2px solid #e2e8f0'
@@ -468,15 +493,12 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                             </div>
 
                             <div className="row align-items-end mb-4" style={{ display: isOpen ? 'flex' : 'none' }}>
-                                <div className="col-md-3 col-12">
-                                    <div className="form-group mb-2">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputBundleSize"].label.schema.value}
-                                        </label>
-                                        <TextBox item={componentList["inputBundleSize"]} className="form-control" />
-                                    </div>
+                                {/* Size is hard-coded to "BasSize" for every bundle - kept mounted
+                                    (invisible) so the framework can still bind setValue to it. */}
+                                <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+                                    <TextBox item={componentList["inputBundleSize"]} />
                                 </div>
-                                <div className="col-md-3 col-12">
+                                <div className="col-md-4 col-12">
                                     <div className="form-group mb-2">
                                         <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
                                             {componentList["inputBundleQty"].label.schema.value}
@@ -484,15 +506,26 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                                         <IntegerField item={componentList["inputBundleQty"]} className="form-control" />
                                     </div>
                                 </div>
-                                <div className="col-md-3 col-12">
+                                <div className="col-md-4 col-12">
                                     <div className="form-group mb-2">
                                         <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
                                             {componentList["inputBundleTrolly"].label.schema.value} <span style={{ color: '#e53e3e' }}>*</span>
                                         </label>
-                                        <MultiSelectDropDown item={componentList["inputBundleTrolly"]} className="form-control" />
+                                        <div className="d-flex" style={{ gap: '8px' }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <MultiSelectDropDown item={componentList["inputBundleTrolly"]} className="form-control" />
+                                            </div>
+                                            <Button
+                                                item={componentList["buttonScanTrolley"]}
+                                                className="btn btn-outline-primary"
+                                                style={{ flexShrink: 0, padding: '0 14px' }}
+                                            >
+                                                <i className="fas fa-camera"></i>
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="col-md-3 col-12 mb-2">
+                                <div className="col-md-4 col-12 mb-2">
                                     <Button item={componentList["buttonAddBundle"]} className="btn btn-primary w-100">
                                         <i className="fas fa-plus mr-2"></i>{componentList["buttonAddBundle"].schema.label}
                                     </Button>
@@ -514,7 +547,7 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                         </div>
 
                         {/* Pick Material - always mounted, CSS-hidden unless open with at least one bundle */}
-                        <div className="form-wrp background-white mb-4 p-3 p-md-4" style={{
+                        <div className="form-wrp background-white mb-4 p-3 p-md-4 dropdown-host-card" style={{
                             borderRadius: '16px',
                             boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                             border: '2px solid #e2e8f0',
@@ -537,7 +570,18 @@ export function generateWorkOrderDisplay(componentList, workOrder) {
                                         <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
                                             {componentList["inputPickLocationId"].label.schema.value}
                                         </label>
-                                        <TextBox item={componentList["inputPickLocationId"]} className="form-control" />
+                                        <div className="d-flex" style={{ gap: '8px' }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <TextBox item={componentList["inputPickLocationId"]} className="form-control" />
+                                            </div>
+                                            <Button
+                                                item={componentList["buttonScanLocation"]}
+                                                className="btn btn-outline-primary"
+                                                style={{ flexShrink: 0, padding: '0 14px' }}
+                                            >
+                                                <i className="fas fa-camera"></i>
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="col-md-6 col-12">

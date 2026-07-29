@@ -18,6 +18,14 @@ export function generateDailyOutputDisplay(componentList, state, handlers) {
                     <div className="title-breadcrumb-wrp">
                         <h1>{componentList["CONTROL_CENTER"].label.schema.value}</h1>
                     </div>
+                    <div className="d-flex justify-content-end align-items-center flex-wrap">
+                        <Button item={componentList["buttonRunReport"]} style={S.runBtn} className="mr-2">
+                            <i className="fas fa-play mr-1"></i> Run Report
+                        </Button>
+                        <Button item={componentList["buttonDownloadCsv"]} style={S.downloadBtn}>
+                            <i className="fas fa-file-csv mr-1"></i> Download CSV
+                        </Button>
+                    </div>
                 </div>
 
 
@@ -46,14 +54,6 @@ export function generateDailyOutputDisplay(componentList, state, handlers) {
                                     </>
                                 )}
 
-                                <div className="form-group ml-auto mb-0 d-flex justify-content-end align-items-end flex-wrap">
-                                    <Button item={componentList["buttonRunReport"]} style={S.runBtn} className="mr-2 mb-2">
-                                        <i className="fas fa-play mr-1"></i> Run Report
-                                    </Button>
-                                    <Button item={componentList["buttonDownloadCsv"]} style={S.downloadBtn} className="mb-2">
-                                        <i className="fas fa-file-csv mr-1"></i> Download CSV
-                                    </Button>
-                                </div>
                             </div>
 
                             <div style={S.resultBar}>

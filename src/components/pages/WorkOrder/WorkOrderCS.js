@@ -197,7 +197,8 @@ componentListConfig["inputStatus"] = {
     event: {}
 }
 
-// Bundle Size
+// Bundle Size - hard-coded to "BasSize" for every bundle; field is kept
+// mounted (so the framework can bind setValue) but hidden from the user.
 componentListConfig["inputBundleSize"] = {
     objectType: "TextBox",
     schema: {
@@ -224,8 +225,8 @@ componentListConfig["inputBundleSize"] = {
     },
     data: {
         sqlcolumn: "size",
-        oldValue: "",
-        value: ""
+        oldValue: "BasSize",
+        value: "BasSize"
     },
     event: {}
 }
@@ -307,6 +308,21 @@ componentListConfig["inputBundleTrolly"] = {
     event: {}
 }
 
+// Scan a trolley's QR sticker to auto-select it in inputBundleTrolly
+componentListConfig["buttonScanTrolley"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonScanTrolley",
+        name: "buttonScanTrolley",
+        type: "button",
+        label: "Scan Trolley QR",
+        disabled: false,
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    event: {}
+}
+
 componentListConfig["buttonAddBundle"] = {
     objectType: "Button",
     schema: {
@@ -361,6 +377,21 @@ componentListConfig["inputPickBundle"] = {
         sqlcolumn: "bundle_id",
         oldValue: "",
         value: []
+    },
+    event: {}
+}
+
+// Pick Material - scan a warehouse location's QR to auto-fill inputPickLocationId
+componentListConfig["buttonScanLocation"] = {
+    objectType: "Button",
+    schema: {
+        id: "buttonScanLocation",
+        name: "buttonScanLocation",
+        type: "button",
+        label: "Scan Location QR",
+        disabled: false,
+        visible: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     event: {}
 }
@@ -915,7 +946,7 @@ componentListConfig["inputEditBundleTrolly"] = {
         style: "",
         selectionLimit: 1,
         endpoint: "",
-        singleSelect: false,
+        singleSelect: true,
         dataSourceController: componentListConfig["CONTROL_CENTER"]
     },
     label: {
