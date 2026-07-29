@@ -73,6 +73,40 @@ componentListConfig["inputRequester"] = {
     class:"",
     event:{}
 }
+componentListConfig["inputRequesterName"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputRequesterName",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: true,
+        updateAllowed: true,
+        mandetory: false,
+        searchable: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelRequesterName",
+            type: "text",
+            visible: true,
+            value: "Requester Name"
+        },
+        class: ""
+    },
+    data: {
+        sqlcolumn: "requester_name",
+        oldValue: "",
+        value: ""
+    },
+    class: "",
+    event: {}
+}
+
 componentListConfig["inputRemark"] = {
     objectType: "TextBox",
     schema: {

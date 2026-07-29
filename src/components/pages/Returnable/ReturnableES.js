@@ -16,8 +16,8 @@ const Returnable = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config["buttonPrint"].event.onClick = handleSaveReturnable;
-    config["inputRequester"].event.onEnterKey = handleGetReturnableDetails;
-     config["inputRequester"].event.onBlur = handleGetReturnableDetails;
+    config["inputRequester"].event.onEnterKey = handleRequesterBlur;
+    config["inputRequester"].event.onBlur = handleRequesterBlur;
     //config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
 
     config["inputMaterial"].event.onEnterKey = handleGetMaterialDeleDetails;
@@ -230,6 +230,39 @@ const Returnable = () => {
             }
 
             config["CONTROL_CENTER"].promptErrorMessage("Error", "Please Contact System Administrator");
+        }
+        finally {
+            document.getElementById("spinner").style.display = "none";
+        }
+    }
+
+    async function handleRequesterBlur(){
+        await handleGetRequesterDetails();
+        await handleGetReturnableDetails();
+    }
+
+    async function handleGetRequesterDetails(){
+        document.getElementById("spinner").style.display = "";
+        config["inputRequesterName"].setValue("");
+        try {
+            if(config["inputRequester"].data.value == "" ){
+                return;
+            }
+
+            const id = config["inputRequester"].data.value;
+
+            // Call API to get the requester's (user) name/email
+            let response = await API.get(`user/get/${id}`);
+            if (response.data && response.data.data) {
+                const user = response.data.data;
+                config["inputRequesterName"].setValue(`${user.name || ''} | ${user.email || ''}`);
+            }
+        }
+        catch (error) {
+            console.log(error);
+            config["inputRequester"].setValue("");
+            config["inputRequesterName"].setValue("");
+            config["CONTROL_CENTER"].promptWarningMessage("Requester not found", "");
         }
         finally {
             document.getElementById("spinner").style.display = "none";

@@ -66,6 +66,10 @@ import ActivePODashboard from './components/pages/dashboards/ActivePODashboard';
 
 import Operation from './components/pages/Operations/OperationES';
 import Routing from './components/pages/Routing/RoutingES';
+import WorkOrder from './components/pages/WorkOrder/WorkOrderES';
+import SupermarketGRN from './components/pages/Supermarket/SupermarketGRNES';
+import Trolley from './components/pages/Trolley/TrolleyES';
+import Employee from './components/pages/Employee/EmployeeES';
 
 const getBaseName = path => path.substr(0, path.lastIndexOf('/'));
 
@@ -134,10 +138,14 @@ const App = () => {
 
             <PrivateRoute path="/operation" screen="operation" component={Operation} theme={Theme} />
             <PrivateRoute path="/routing" screen="routing" component={Routing} theme={Theme} />
+            <PrivateRoute path="/workOrderCreation" screen="workOrder" component={WorkOrder} theme={Theme} />
+            <PrivateRoute path="/supermarketGrn" screen="supermarketGrn" component={SupermarketGRN} theme={Theme} />
+            <PrivateRoute path="/trolley" screen="trolley" component={Trolley} theme={Theme} />
 
           <PrivateRoute path="/createUser" screen="createUser" component={CreateUser} theme={Theme} />
           <PrivateRoute path="/userRoles" screen="userRoles" component={UserRoles} theme={Theme} />
           <PrivateRoute path="/permissions" screen="permissions" component={Permissions} theme={Theme} />
+          <PrivateRoute path="/employeeList" screen="employeeList" component={Employee} theme={Theme} />
 
         </Switch>
       </Router>
