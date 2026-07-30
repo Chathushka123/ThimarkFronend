@@ -161,7 +161,8 @@
       "Bash(find /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/database/migrations -iname *operation*)",
       "Bash(find /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app -iname *Team*.php -o -iname *Operation*.php)",
       "Bash(mysql -h localhost -P 3306 -u app_user -pDoomdoom1@ thimark -e \"SELECT id, operation_code, description, is_final_operation FROM operation_masters WHERE is_final_operation = 1;\")",
-      "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"%{http_code}\\\\n\")"
+      "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(grep -n 'team_scoreboard.*teamScoreboardRange\\\\|'\\\\''team_daily_trend'\\\\'' => $teamDailyTrend' /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/WipDashboardController.php)"
     ],
     "additionalDirectories": [
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",

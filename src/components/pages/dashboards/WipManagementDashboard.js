@@ -6,7 +6,7 @@ import API from '../../../api/API';
 import {
   C, ACCENT, card, sectionCard, styleSheet,
   IconLayers, IconAlertTriangle, IconRotateCcw, IconRefreshCw, IconDownload, IconChevronRight, IconBarChart, IconActivity, IconGrid, IconCalendar,
-  efficiencyColor, StatCard, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle,
+  efficiencyColor, darken, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle,
 } from './wipDashboardUI';
 import {
   ExcelJS, XLS_ACCENT, addTableSheet, addOverviewSheet, downloadWorkbook,
@@ -234,6 +234,8 @@ const WipManagementDashboard = () => {
   const stationTeamBreakdown = (data && data.station_team_breakdown) || [];
   const teamDailyTrend = (data && data.team_daily_trend) || { days: [], teams: [] };
   const heatmapTeams = teamDailyTrend.teams.map((t) => ({ ...t, id: t.team_id }));
+  const floorTotals = (data && data.floor_totals) || { wip_qty: 0, efficiency_pct: 0 };
+  const floorEff = efficiencyColor(floorTotals.efficiency_pct);
 
   const teamCount = teamScoreboard.length;
   const teamCols = teamCount > 4 ? Math.ceil(teamCount / 2) : teamCount;
@@ -351,7 +353,12 @@ const WipManagementDashboard = () => {
     <div className="container-fluid custom-container-padding" style={{ background: C.page, minHeight: '100%', paddingBottom: '32px' }}>
       <style>{styleSheet}</style>
 
-      <div className="d-flex justify-content-between align-items-start mb-4 pt-2 flex-wrap" style={{ gap: '12px' }}>
+      <div
+        className="mb-4 pt-2"
+        style={{
+          display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px',
+        }}
+      >
         <div className="d-flex align-items-center" style={{ gap: '14px' }}>
           <div style={{
             width: '46px', height: '46px', borderRadius: '13px', flexShrink: 0, color: '#fff',
@@ -366,7 +373,39 @@ const WipManagementDashboard = () => {
             <div style={{ fontSize: '13px', color: C.muted, marginTop: '4px' }}>Team WIP, output, and throughput across a selected date range</div>
           </div>
         </div>
-        <div className="d-flex align-items-center" style={{ gap: '12px' }}>
+
+        <div className="d-flex align-items-center justify-content-center" style={{ gap: '12px' }}>
+          {summary && (
+            <>
+              <div
+                className="d-flex align-items-center"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(ACCENT.teams, 0.15)}, ${darken(ACCENT.teams, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${ACCENT.teams}66, 0 0 16px ${ACCENT.teams}88`,
+                }}
+                title="Sum of every team's net WIP for this range"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor WIP</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{floorTotals.wip_qty}</span>
+              </div>
+              <div
+                className="d-flex align-items-center"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(floorEff.color, 0.15)}, ${darken(floorEff.color, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${floorEff.color}66, 0 0 16px ${floorEff.color}88`,
+                }}
+                title="Earned minutes (good OUT scans x SMV) over available operator-minutes for this range"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor Efficiency</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{floorTotals.efficiency_pct}%</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="d-flex align-items-center justify-content-end" style={{ gap: '12px' }}>
           <button
             type="button"
             className="d-flex align-items-center"
@@ -467,14 +506,6 @@ const WipManagementDashboard = () => {
 
       {summary && (
         <>
-          {/* <div className="mb-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '14px' }}>
-            <StatCard label="Total Scanned" value={summary.total_scanned} tone="success" icon={<IconLayers size={19} />} />
-            <StatCard label="Total Rejected" value={summary.total_rejected} tone="danger" icon={<IconAlertTriangle size={19} />} />
-            <StatCard label="Sent to Rework" value={summary.total_rework_sent} tone="amber" icon={<IconRotateCcw size={19} />} />
-            <StatCard label="Reject Rate" value={`${summary.overall_reject_rate_pct}%`} tone="danger" icon={<IconAlertTriangle size={19} />} />
-            <StatCard label="Rework Rate" value={`${summary.overall_rework_rate_pct}%`} tone="amber" icon={<IconRotateCcw size={19} />} />
-          </div> */}
-
           <div className="mb-4" style={sectionCard(ACCENT.teams)}>
             <SectionHeader eyebrow="Teams" title="Team Totals" subtitle="Click a team to see its output by main model / model / batch, for this range" icon={<IconLayers size={17} />} accent={ACCENT.teams} />
             {teamScoreboard.length === 0 ? (

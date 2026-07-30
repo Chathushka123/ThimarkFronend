@@ -131,6 +131,15 @@ export const styleSheet = `
   @keyframes wfd-spin { to { transform: rotate(360deg); } }
   .wfd-spin { animation: wfd-spin 0.9s linear infinite; }
 
+  /* A visible breathing glow for small highlighted "live number" chips
+     (e.g. the floor dashboard's total WIP / efficiency badges) — meant to
+     actually draw the eye on a shop-floor TV, not just tint the chip. */
+  @keyframes wfd-glow-pulse {
+    0%, 100% { filter: brightness(1) saturate(1); transform: scale(1); }
+    50% { filter: brightness(1.45) saturate(1.3); transform: scale(1.035); }
+  }
+  .wfd-glow-chip { animation: wfd-glow-pulse 1.6s ease-in-out infinite; }
+
   /* Kiosk/TV mode: hide the app chrome around the dashboard so a fullscreen
      browser view on a shop-floor TV shows nothing but the dashboard itself. */
   body.wfd-kiosk-mode #layoutSidenav_nav { display: none !important; }
@@ -140,6 +149,15 @@ export const styleSheet = `
 export function hexToRgb(hex) {
   const n = parseInt(hex.replace('#', ''), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+// Shades a hex color toward black by `amount` (0-1) — used to give
+// highlighted "live number" chips a deeper-toned gradient than the raw
+// accent color, so a glow (or just plain white text) has contrast to sit on.
+export function darken(hex, amount) {
+  const { r, g, b } = hexToRgb(hex);
+  const shade = (c) => Math.max(0, Math.round(c * (1 - amount)));
+  return `rgb(${shade(r)}, ${shade(g)}, ${shade(b)})`;
 }
 
 export function Icon({ children, size = 18, color = 'currentColor', strokeWidth = 2, className }) {

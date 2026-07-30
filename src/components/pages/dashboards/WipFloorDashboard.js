@@ -6,7 +6,7 @@ import API from '../../../api/API';
 import {
   C, ACCENT, card, sectionCard, styleSheet,
   IconLayers, IconAlertTriangle, IconRotateCcw, IconBell, IconRefreshCw, IconDownload, IconMaximize, IconMinimize, IconChevronRight, IconBarChart, IconActivity, IconGrid,
-  formatTime, efficiencyColor, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle, useAutoScrollX,
+  formatTime, efficiencyColor, darken, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle, useAutoScrollX,
 } from './wipDashboardUI';
 import {
   ExcelJS, XLS_ACCENT, addTableSheet, addOverviewSheet, downloadWorkbook,
@@ -406,6 +406,8 @@ const WipFloorDashboard = () => {
   const stationTeamBreakdown = (data && data.station_team_breakdown) || [];
   const teamHourlyTrend = (data && data.team_hourly_trend) || { hours: [], teams: [] };
   const heatmapTeams = teamHourlyTrend.teams.map((t) => ({ ...t, id: t.daily_shift_team_id }));
+  const floorTotals = (data && data.floor_totals) || { wip_qty: 0, efficiency_pct: 0 };
+  const floorEff = efficiencyColor(floorTotals.efficiency_pct);
 
   const barData = stationTeamBreakdown.map((r) => ({
     name: `${r.operation_code || '—'} · ${r.team_name || 'Unassigned'}`,
@@ -535,7 +537,12 @@ const WipFloorDashboard = () => {
     >
       <style>{styleSheet}{tvGridCss}</style>
 
-      <div className="d-flex justify-content-between align-items-start mb-2" style={{ gap: '12px', flexWrap: 'wrap', flexShrink: 0 }}>
+      <div
+        className="mb-2"
+        style={{
+          display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px', flexShrink: 0,
+        }}
+      >
         <div className="d-flex align-items-center" style={{ gap: '12px' }}>
           <div style={{
             width: '38px', height: '38px', borderRadius: '11px', flexShrink: 0, color: '#fff',
@@ -550,9 +557,41 @@ const WipFloorDashboard = () => {
             <div style={{ fontSize: '11.5px', color: C.muted, marginTop: '1px' }}>Live view of today&rsquo;s shop-floor throughput, WIP, and quality</div>
           </div>
         </div>
-        <div className="d-flex align-items-center" style={{ gap: '10px' }}>
+
+        <div className="d-flex align-items-center justify-content-center" style={{ gap: '12px' }}>
           {data && (
-            <span style={{ fontSize: '12px', color: C.muted }}>Updated {formatTime(data.generated_at)}</span>
+            <>
+              <div
+                className="d-flex align-items-center wfd-glow-chip"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(ACCENT.teams, 0.15)}, ${darken(ACCENT.teams, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${ACCENT.teams}66, 0 0 24px ${ACCENT.teams}cc, 0 0 48px ${ACCENT.teams}77`,
+                }}
+                title="Sum of every team's net WIP right now"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor WIP</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1, textShadow: `0 0 12px #fff, 0 0 22px ${ACCENT.teams}` }}>{floorTotals.wip_qty}</span>
+              </div>
+              <div
+                className="d-flex align-items-center wfd-glow-chip"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(floorEff.color, 0.15)}, ${darken(floorEff.color, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${floorEff.color}66, 0 0 24px ${floorEff.color}cc, 0 0 48px ${floorEff.color}77`,
+                }}
+                title="Earned minutes (good OUT scans x SMV) over available operator-minutes since shift start"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor Efficiency</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1, textShadow: `0 0 12px #fff, 0 0 22px ${floorEff.color}` }}>{floorTotals.efficiency_pct}%</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="d-flex align-items-center justify-content-end" style={{ gap: '10px' }}>
+          {data && (
+            <span style={{ fontSize: '12px', color: C.muted, whiteSpace: 'nowrap' }}>Updated {formatTime(data.generated_at)}</span>
           )}
           <button
             type="button"
