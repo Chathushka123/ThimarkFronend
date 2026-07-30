@@ -146,15 +146,62 @@ const WipManagementDashboard = () => {
   const [data, setData] = useState(null);
   const [modalTeam, setModalTeam] = useState(null);
 
+  const [operations, setOperations] = useState([]);
+  const [selectedOperationId, setSelectedOperationId] = useState(null);
+  const [throughputDaily, setThroughputDaily] = useState(null);
+  const [throughputGranularity, setThroughputGranularity] = useState('day');
+  const [throughputLoading, setThroughputLoading] = useState(true);
+  const [throughputError, setThroughputError] = useState('');
+
+  useEffect(() => {
+    API.get('operation/list')
+      .then((response) => {
+        const list = (response.data && response.data.data) || [];
+        setOperations(list);
+        const finalOp = list.find((o) => o.is_final_operation);
+        setSelectedOperationId((finalOp || list[0] || {}).id || null);
+      })
+      .catch(() => {
+        setThroughputError("Couldn't load the operation list.");
+      });
+  }, []);
+
+  const loadThroughput = useCallback((from, to, operationId) => {
+    if (!operationId) return;
+    setThroughputLoading(true);
+    setThroughputError('');
+    API.get(`wipDashboard/dailyThroughputByOperation?from=${from}&to=${to}&operation_id=${operationId}`)
+      .then((response) => {
+        const payload = (response.data && response.data.data) || {};
+        setThroughputDaily(payload.daily || []);
+        setThroughputGranularity(payload.granularity || 'day');
+      })
+      .catch((err) => {
+        setThroughputError(
+          err?.response?.data?.message ||
+          "Couldn't load this operation's daily throughput."
+        );
+      })
+      .finally(() => setThroughputLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (selectedOperationId) loadThroughput(range.from, range.to, selectedOperationId);
+  }, [loadThroughput, range, selectedOperationId]);
+
   const load = useCallback((from, to) => {
     setLoading(true);
     setError('');
+    setData([]);
     API.get(`wipDashboard/management?from=${from}&to=${to}`)
       .then((response) => {
         setData((response.data && response.data.data) || null);
       })
-      .catch(() => {
-        setError("Couldn't load the management dashboard — check your connection and try again.");
+      .catch((err) => {
+        setError(
+          err?.response?.data?.message ||
+          "Couldn't load the management dashboard — check your connection and try again."
+        );
       })
       .finally(() => setLoading(false));
   }, []);
@@ -191,7 +238,9 @@ const WipManagementDashboard = () => {
   const teamCount = teamScoreboard.length;
   const teamCols = teamCount > 4 ? Math.ceil(teamCount / 2) : teamCount;
 
-  const dailyChartData = ((data && data.daily) || []).map((d) => ({
+  const selectedOperation = operations.find((o) => o.id === selectedOperationId) || null;
+
+  const dailyChartData = (throughputDaily || []).map((d) => ({
     date: formatDateLabel(d.date),
     Scanned: d.scanned_qty,
     'Reject %': d.reject_rate_pct,
@@ -214,6 +263,10 @@ const WipManagementDashboard = () => {
     const wb = new ExcelJS.Workbook();
     const stamp = new Date().toLocaleString('en-LK');
     const daily = (data && data.daily) || [];
+    const throughputRows = throughputDaily || [];
+    const throughputIsHourly = throughputGranularity === 'hour';
+    const throughputColLabel = throughputIsHourly ? 'Hour' : 'Date';
+    const operationLabel = selectedOperation ? `${selectedOperation.operation_code} — ${selectedOperation.description}` : '—';
 
     // Sheet 1 — Overview
     addOverviewSheet(wb, {
@@ -221,6 +274,7 @@ const WipManagementDashboard = () => {
       subtitleLines: [
         `Generated: ${stamp}`,
         `Date Range: ${data.from} to ${data.to} (${daily.length} day${daily.length === 1 ? '' : 's'})`,
+        `Throughput & Quality Sheet Scope: ${operationLabel} · OUT scans only · ${throughputIsHourly ? 'hourly' : 'daily'} breakdown`,
       ],
       metrics: [
         { label: 'Total Scanned', value: summary.total_scanned, color: XLS_ACCENT.success },
@@ -233,12 +287,15 @@ const WipManagementDashboard = () => {
       ],
     });
 
-    // Sheet 2 — Daily Trend
+    // Sheet 2 — Throughput & Quality (mirrors the on-screen chart: one
+    // operation, OUT scans only, hourly instead of daily for a single-day
+    // range) — same source (throughputDaily) as dailyChartData above, so
+    // the workbook can't disagree with what's rendered on screen.
     addTableSheet(wb, {
-      name: 'Daily Trend',
-      headers: ['Date', 'Scanned', 'Rejected', 'Sent to Rework', 'Reject %', 'Rework %'],
-      rows: daily.map((d) => [d.date, d.scanned_qty, d.rejected_qty, d.rework_qty, d.reject_rate_pct, d.rework_rate_pct]),
-      widths: [14, 12, 12, 16, 10, 10],
+      name: throughputIsHourly ? 'Hourly Throughput' : 'Daily Throughput',
+      headers: [throughputColLabel, 'Scanned (OUT)', 'Rejected', 'Sent to Rework', 'Reject %', 'Rework %'],
+      rows: throughputRows.map((d) => [d.date, d.scanned_qty, d.rejected_qty, d.rework_qty, d.reject_rate_pct, d.rework_rate_pct]),
+      widths: [14, 14, 12, 16, 10, 10],
     });
 
     // Sheet 3 — Team Totals
@@ -260,17 +317,20 @@ const WipManagementDashboard = () => {
       widths: [14, 30, 22, 12, 12, 12],
     });
 
-    // Sheets 5 & 6 — Daily IN / OUT by team (mirrors the two heatmaps)
-    const days = teamDailyTrend.days || [];
-    if (days.length > 0) {
-      const buildDayRows = (field) => heatmapTeams.map((t) => {
+    // Sheets 5 & 6 — IN / OUT by team (mirrors the two heatmaps; hourly
+    // instead of daily columns for a single-day range)
+    const trendIsHourly = teamDailyTrend.granularity === 'hour';
+    const trendCols = teamDailyTrend.days || [];
+    if (trendCols.length > 0) {
+      const buildColRows = (field) => heatmapTeams.map((t) => {
         const values = t[field] || [];
         const total = values.reduce((s, v) => s + v, 0);
         return [t.team_name || 'Unassigned', ...values, total];
       });
-      const dayWidths = [22, ...days.map(() => 9), 10];
-      addTableSheet(wb, { name: 'Daily IN by Team', headers: ['Team', ...days, 'Total'], rows: buildDayRows('in'), widths: dayWidths });
-      addTableSheet(wb, { name: 'Daily OUT by Team', headers: ['Team', ...days, 'Total'], rows: buildDayRows('out'), widths: dayWidths });
+      const colWidths = [22, ...trendCols.map(() => 9), 10];
+      const namePrefix = trendIsHourly ? 'Hourly' : 'Daily';
+      addTableSheet(wb, { name: `${namePrefix} IN by Team`, headers: ['Team', ...trendCols, 'Total'], rows: buildColRows('in'), widths: colWidths });
+      addTableSheet(wb, { name: `${namePrefix} OUT by Team`, headers: ['Team', ...trendCols, 'Total'], rows: buildColRows('out'), widths: colWidths });
     }
 
     // Sheet 7 — Production by Main Model / Model / Batch
@@ -455,7 +515,13 @@ const WipManagementDashboard = () => {
           </div>
 
           <div className="mb-4" style={sectionCard(ACCENT.throughput)}>
-            <SectionHeader eyebrow="Throughput" title="In / Out by Team, Over the Range" subtitle="Scroll to see the full date range" icon={<IconActivity size={17} />} accent={ACCENT.throughput} />
+            <SectionHeader
+              eyebrow="Throughput"
+              title="In / Out by Team, Over the Range"
+              subtitle={teamDailyTrend.granularity === 'hour' ? 'By hour — single-day range' : 'Scroll to see the full date range'}
+              icon={<IconActivity size={17} />}
+              accent={ACCENT.throughput}
+            />
             {heatmapTeams.length === 0 ? (
               <EmptyState>No activity recorded in this range.</EmptyState>
             ) : (
@@ -467,9 +533,46 @@ const WipManagementDashboard = () => {
           </div>
 
           <div className="mb-4" style={sectionCard(ACCENT.floor)}>
-            <SectionHeader eyebrow="Trend" title="Daily Throughput & Quality" subtitle={`${dailyChartData.length} day${dailyChartData.length === 1 ? '' : 's'} in range`} icon={<IconGrid size={17} />} accent={ACCENT.floor} />
-            {dailyChartData.length === 0 ? (
-              <EmptyState>No production recorded in this window.</EmptyState>
+            <SectionHeader
+              eyebrow="Trend"
+              title={throughputGranularity === 'hour' ? 'Hourly Throughput & Quality' : 'Daily Throughput & Quality'}
+              subtitle={`OUT scans at ${selectedOperation ? (selectedOperation.description || selectedOperation.operation_code) : '—'} · ${dailyChartData.length} ${throughputGranularity === 'hour' ? 'hour' : 'day'}${dailyChartData.length === 1 ? '' : 's'} in range`}
+              icon={<IconGrid size={17} />}
+              accent={ACCENT.floor}
+              right={(
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: C.muted, letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    Operation
+                  </label>
+                  <select
+                    value={selectedOperationId || ''}
+                    onChange={(e) => setSelectedOperationId(Number(e.target.value))}
+                    disabled={operations.length === 0}
+                    className="form-select form-select-sm"
+                    style={{ borderColor: C.border, fontSize: '12.5px', minWidth: '200px' }}
+                  >
+                    {operations.map((op) => (
+                      <option key={op.id} value={op.id}>
+                        {op.operation_code} — {op.description}{op.is_final_operation ? ' (Final)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            />
+            {throughputError && (
+              <div className="p-3 mb-3 d-flex align-items-center" style={{ background: C.dangerBg, border: `1px solid ${C.dangerBorder}`, borderRadius: '12px', color: C.ink, gap: '10px' }}>
+                <IconAlertTriangle size={17} color={C.danger} />
+                {throughputError}
+              </div>
+            )}
+            {throughputLoading ? (
+              <div className="d-flex align-items-center py-4" style={{ color: C.muted, gap: '10px' }}>
+                <IconRefreshCw size={18} color={C.faint} className="wfd-spin" />
+                Loading throughput&#8230;
+              </div>
+            ) : dailyChartData.length === 0 ? (
+              <EmptyState>No OUT scans recorded for this operation in this window.</EmptyState>
             ) : (
               <div style={{ width: '100%', height: '340px' }}>
                 <ResponsiveContainer>

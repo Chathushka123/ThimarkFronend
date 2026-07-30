@@ -6,7 +6,7 @@ import API from '../../../api/API';
 import {
   C, ACCENT, card, sectionCard, styleSheet,
   IconLayers, IconAlertTriangle, IconRotateCcw, IconBell, IconRefreshCw, IconDownload, IconMaximize, IconMinimize, IconChevronRight, IconBarChart, IconActivity, IconGrid,
-  formatTime, efficiencyColor, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle,
+  formatTime, efficiencyColor, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle, useAutoScrollX,
 } from './wipDashboardUI';
 import {
   ExcelJS, XLS_ACCENT, addTableSheet, addOverviewSheet, downloadWorkbook,
@@ -275,7 +275,10 @@ function BundleDetailModal({ batch, onClose }) {
 // body that scrolls internally — the building block the TV/kiosk layout
 // below is made of, so no single panel's content can force the whole page
 // to scroll (only the panel itself scrolls, same idea as the heatmap grid).
-function Panel({ area, accent, title, icon, right, children }) {
+function Panel({
+  area, accent, title, icon, right, children, autoScrollX = false, autoScrollY = false,
+}) {
+  const scrollRef = useAutoScrollX(autoScrollX || autoScrollY, { axis: autoScrollY ? 'y' : 'x' });
   return (
     <div style={{
       ...sectionCard(accent), gridArea: area, padding: '10px 14px',
@@ -283,7 +286,7 @@ function Panel({ area, accent, title, icon, right, children }) {
     }}
     >
       <SectionHeader title={title} icon={icon} accent={accent} right={right} compact />
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {children}
       </div>
     </div>
@@ -349,6 +352,7 @@ const WipFloorDashboard = () => {
   const load = useCallback(() => {
     setLoading(true);
     setError('');
+    setData([]);
     API.get('wipDashboard/floor')
       .then((response) => {
         setData((response.data && response.data.data) || null);
@@ -392,7 +396,7 @@ const WipFloorDashboard = () => {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
     }
   };
 
@@ -622,7 +626,7 @@ const WipFloorDashboard = () => {
             )}
           </Panel>
 
-          <Panel area="output" accent={ACCENT.output} title="Output by Operation & Team" icon={<IconBarChart size={16} />}>
+          <Panel area="output" accent={ACCENT.output} title="Output by Operation & Team" icon={<IconBarChart size={16} />} autoScrollX>
             {barData.length === 0 ? (
               <EmptyState>No scans recorded yet today.</EmptyState>
             ) : (
@@ -647,7 +651,7 @@ const WipFloorDashboard = () => {
             {heatmapTeams.length === 0 ? (
               <EmptyState>No shift activity recorded yet today.</EmptyState>
             ) : (
-              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="in" color={C.blue} />
+              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="in" color={C.blue} autoScrollX />
             )}
           </Panel>
 
@@ -655,11 +659,11 @@ const WipFloorDashboard = () => {
             {heatmapTeams.length === 0 ? (
               <EmptyState>No shift activity recorded yet today.</EmptyState>
             ) : (
-              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="out" color={C.orange} />
+              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="out" color={C.orange} autoScrollX />
             )}
           </Panel>
 
-          <Panel area="batch" accent={ACCENT.floor} title="WIP by Main Model / Model / Batch" icon={<IconGrid size={16} />}>
+          <Panel area="batch" accent={ACCENT.floor} title="WIP by Main Model / Model / Batch" icon={<IconGrid size={16} />} autoScrollY>
             {batchBreakdown.length === 0 ? (
               <EmptyState>Nothing currently on the floor.</EmptyState>
             ) : (
@@ -703,6 +707,7 @@ const WipFloorDashboard = () => {
             accent={ACCENT.alerts}
             title="Problem Alerts"
             icon={<IconBell size={16} />}
+            autoScrollY
             right={
               <span style={{
                 fontSize: '12px', fontWeight: 700, color: alerts.length > 0 ? C.amber : C.faint,

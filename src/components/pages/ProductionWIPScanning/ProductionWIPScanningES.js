@@ -58,7 +58,10 @@ const ERROR_GUIDANCE = {
     UNKNOWN_SCAN: 'That entry wasn’t found — it may have already been undone. Refresh and check Recent Scans.',
     UNKNOWN_REJECT: 'That entry wasn’t found — it may have already been undone. Refresh and check Recent Scans.',
     UNKNOWN_REWORK: 'That entry wasn’t found — it may have already been undone. Refresh and check Recent Scans.',
-    UNKNOWN_REWORK_RETURN: 'That entry wasn’t found — it may have already been undone. Refresh and check Recent Scans.'
+    UNKNOWN_REWORK_RETURN: 'That entry wasn’t found — it may have already been undone. Refresh and check Recent Scans.',
+    UNKNOWN_TROLLY: 'No trolly found with that ID — check the number and try again.',
+    NO_BUNDLE_FOR_TROLLY: 'This trolly has no bundle loaded on it yet.',
+    BUNDLE_NOT_ACTIVE: 'The bundle loaded on this trolly is no longer active.'
 };
 
 // Turns any API failure — our own error codes, a FormRequest validation
@@ -97,6 +100,8 @@ const ProductionWIPScanning = () => {
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [showTeamPicker, setShowTeamPicker] = useState(false);
     const [ticketCode, setTicketCode] = useState('');
+    const [trollyCode, setTrollyCode] = useState('');
+    const [resolvingTrolly, setResolvingTrolly] = useState(false);
     const [lookingUp, setLookingUp] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [pendingScan, setPendingScan] = useState(null);
@@ -121,8 +126,10 @@ const ProductionWIPScanning = () => {
     const [submittingReturnId, setSubmittingReturnId] = useState(null);
 
     const scanInputRef = useRef(null);
+    const bundleInputRef = useRef(null);
     const qtyInputRef = useRef(null);
     const lastScanRef = useRef({ code: null, at: 0 });
+    const lastTrollyScanRef = useRef({ code: null, at: 0 });
 
     function reRender() {
         setRendered(!rendered);
@@ -165,6 +172,41 @@ const ProductionWIPScanning = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTeam]);
+
+    // Teams can now carry a default Operation (Team.operation_id, joined in
+    // via wipScan/myTeams' `operation_id`) — picking a team resolves and
+    // auto-selects its mapped station so the operator doesn't have to pick
+    // both. Guarded so it only fires once, and skips teams with no mapping.
+    useEffect(() => {
+        if (!selectedTeam || !selectedTeam.operation_id || operations.length === 0) {
+            return;
+        }
+        if (selectedOperation && selectedOperation.id === selectedTeam.operation_id) {
+            return;
+        }
+        const matchingOperation = operations.find(op => op.id === selectedTeam.operation_id);
+        if (matchingOperation) {
+            selectOperation(matchingOperation);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTeam, operations]);
+
+    // Reverse direction: the mapping above is stored one-way on Team, so it's
+    // resolved here client-side — picking a station auto-selects the first
+    // team mapped to it, if any.
+    useEffect(() => {
+        if (!selectedOperation || teams.length === 0) {
+            return;
+        }
+        if (selectedTeam && selectedTeam.operation_id === selectedOperation.id) {
+            return;
+        }
+        const matchingTeam = teams.find(t => t.operation_id === selectedOperation.id);
+        if (matchingTeam) {
+            selectTeam(matchingTeam);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedOperation, teams]);
 
     // While a lookup is awaiting confirmation, focus jumps to the qty field
     // (fast path: adjust or just hit Enter to accept the pre-filled full
@@ -316,7 +358,71 @@ const ProductionWIPScanning = () => {
     function handleTicketCodeKeyDown(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
+            // Entering the Bundle ID directly (instead of via Trolly ID) is a
+            // supported fallback — still fill in the matching trolly for
+            // display, but don't let that lookup block or fail the scan.
+            resolveTrollyForBundle(ticketCode);
             lookupScan(ticketCode);
+        }
+    }
+
+    function handleTrollyCodeChange(value) {
+        setTrollyCode(value);
+    }
+
+    function handleTrollyCodeKeyDown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            lookupFromTrolly(trollyCode);
+        }
+    }
+
+    // Best-effort only: shows the operator which trolly the bundle they
+    // typed/scanned is on, if any. A miss here (no trolly assigned) isn't an
+    // error worth interrupting the scan for.
+    async function resolveTrollyForBundle(code) {
+        const trimmed = (code || '').trim();
+        if (trimmed === '') {
+            return;
+        }
+        try {
+            const response = await API.get(`wipScan/resolveTrolley?bundle_code=${encodeURIComponent(trimmed)}`);
+            setTrollyCode(String(response.data.data.trolly_id));
+        } catch (error) {
+            setTrollyCode('');
+        }
+    }
+
+    // Default entry point on this screen: resolve the trolly's currently
+    // loaded bundle, then feed that bundle id straight into the same
+    // lookup pipeline a directly-typed/scanned bundle code goes through.
+    async function lookupFromTrolly(rawCode) {
+        const code = (rawCode || '').trim();
+        if (code === '' || !selectedOperation || !selectedTeam || readOnly || pendingScan) {
+            return;
+        }
+
+        const now = Date.now();
+        if (lastTrollyScanRef.current.code === code && (now - lastTrollyScanRef.current.at) < DUPLICATE_SCAN_WINDOW_MS) {
+            setTrollyCode('');
+            return;
+        }
+        lastTrollyScanRef.current = { code, at: now };
+
+        setResolvingTrolly(true);
+        try {
+            const response = await API.get(`wipScan/resolveTrolley?trolly_code=${encodeURIComponent(code)}`);
+            const data = response.data.data;
+            setTrollyCode('');
+            await lookupScan(String(data.bundle_id));
+        } catch (error) {
+            const message = describeError(error, 'Could not find an active bundle for that trolly');
+            setLastResult({ type: 'error', message });
+            playFeedbackTone(false);
+            vibrate(false);
+            setTrollyCode('');
+        } finally {
+            setResolvingTrolly(false);
         }
     }
 
@@ -331,6 +437,7 @@ const ProductionWIPScanning = () => {
     function handleQrScanSuccess(decodedText) {
         setShowQrScanner(false);
         setTicketCode(decodedText);
+        resolveTrollyForBundle(decodedText);
         setTimeout(() => lookupScan(decodedText), 100);
     }
 
@@ -418,6 +525,7 @@ const ProductionWIPScanning = () => {
     function clearPendingScan() {
         setPendingScan(null);
         setTicketCode('');
+        setTrollyCode('');
         setScanQtyInput('');
         setRejectQtyInput('');
         setRejectReasonId('');
@@ -679,6 +787,8 @@ const ProductionWIPScanning = () => {
             selectedTeam,
             showTeamPicker,
             ticketCode,
+            trollyCode,
+            resolvingTrolly,
             lookingUp,
             scanning,
             pendingScan,
@@ -701,9 +811,12 @@ const ProductionWIPScanning = () => {
         },
         {
             scanInputRef,
+            bundleInputRef,
             qtyInputRef,
             onTicketCodeChange: handleTicketCodeChange,
             onTicketCodeKeyDown: handleTicketCodeKeyDown,
+            onTrollyCodeChange: handleTrollyCodeChange,
+            onTrollyCodeKeyDown: handleTrollyCodeKeyDown,
             onOpenCamera: handleOpenCamera,
             onQrScanSuccess: handleQrScanSuccess,
             onQrScanClose: handleQrScanClose,
