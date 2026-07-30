@@ -17,8 +17,9 @@ const Batch = () => {
 
     config["CONTROL_CENTER"].renderFunction = reRender;
     config['inputMainModel'].event.onSelect = handleSelectModel;
-    config["buttonAddToGrid"].event.onClick = handleAddToGrid;
+    config['inputQty'].event.onEnterKey = handleBulkQtyEnter;
 
+    config["CONTROL_CENTER"].event.onNew = handleNew;
     config["CONTROL_CENTER"].event.onSave = handleSave;
 
     config["buttonAdvanceSearch"].event.onClick = handleAdvanceSearchPopup;
@@ -80,12 +81,70 @@ const Batch = () => {
     function resetInputForm() {
         config['inputBatchID'].setValue("");
         config['inputBatchNo'].setValue("");
-        config['inputModel'].setValue([{}]);
+        config['inputMainModel'].setValue([]);
+        config['inputQty'].setValue("");
         config['gridSize'].setData([]);
+        updateMainModelDisabledState();
         config["CONTROL_CENTER"].state.modified = false;
         config["CONTROL_CENTER"].state.new = false;
         config["CONTROL_CENTER"].state.deleted = true;
         reRender();
+    }
+
+    // The main model can only be chosen once per batch - once its models
+    // have been added to the grid, changing it would leave rows from the
+    // old main model sitting alongside a new selection, so it's locked
+    // until the grid is cleared (Delete or New).
+    function updateMainModelDisabledState() {
+        const gridLength = (config['gridSize'].data || []).length;
+        if (typeof config['inputMainModel'].setDesabled === 'function') {
+            config['inputMainModel'].setDesabled(gridLength > 0);
+        }
+    }
+
+    function handleNew() {
+        config['gridSize'].setData([]);
+        config['inputQty'].setValue("");
+        updateMainModelDisabledState();
+        return {};
+    }
+
+    // Bulk-fills every row's quantity in gridSize with whatever's in
+    // inputQty - fires on Enter so the user doesn't need a separate button.
+    function handleBulkQtyEnter(event) {
+        if (event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+        }
+
+        const qtyValue = config['inputQty'].data.value;
+        if (qtyValue === "" || qtyValue === null || typeof qtyValue === 'undefined') {
+            config["CONTROL_CENTER"].promptWarningMessage("Please enter a quantity", "");
+            return;
+        }
+
+        const rows = config['gridSize'].data || [];
+        if (rows.length === 0) {
+            config["CONTROL_CENTER"].promptWarningMessage("Select a Main Model first to add rows to the grid", "");
+            return;
+        }
+
+        rows.forEach((row) => {
+            if (row._rowstate === 'DELETED') {
+                return;
+            }
+            row.quantity = qtyValue;
+            if (row._rowstate !== 'NEW') {
+                row._rowstate = 'MODIFIED';
+            }
+        });
+
+        config["CONTROL_CENTER"].state.modified = true;
+        if (typeof config["CONTROL_CENTER"].renderControlButtons !== 'undefined') {
+            config["CONTROL_CENTER"].renderControlButtons();
+        }
+
+        config['gridSize'].reRender();
+        config['inputQty'].setValue("");
     }
 
     async function handleSave() {
@@ -238,24 +297,30 @@ const Batch = () => {
         }
     }
 
-    async function handleSelectModel(selectedList, selectedItem) {
+    function handleSelectModel(selectedList, selectedItem) {
 
         let model_id = selectedItem.id;
 
         try {
 
-            const filteredModels = models.filter(model => model.main_model_id === model_id);
-            if (filteredModels.length > 0) {
-                let filterModelArray = [];
+            const currentGridData = config['gridSize'].data || [];
+
+            // Only auto-populate on a fresh batch - once the grid already
+            // has rows (existing batch, or already populated for this
+            // batch), the main model is locked (see
+            // updateMainModelDisabledState()) so this branch shouldn't run.
+            if (currentGridData.length === 0) {
+                const filteredModels = models.filter(model => model.main_model_id === model_id);
                 filteredModels.forEach((value) => {
-                    filterModelArray.push({
-                        "id": value.id,
-                        "name": value.name
+                    config['gridSize'].addRow({
+                        model_id: value.id,
+                        model_name: value.name,
+                        quantity: 0
                     });
                 });
-                config['inputModel'].setOptions(filterModelArray);
             }
 
+            updateMainModelDisabledState();
 
         } catch (err) {
             console.log(err);
@@ -469,8 +534,6 @@ const Batch = () => {
                 config['inputBatchNo'].setValue(batchData.batch_no);
                 config['inputMainModel'].setValueByID(batchData.main_model_id);
 
-                handleSelectModel({ id: batchData.main_model_id }, { id: batchData.main_model_id });
-
                 const size_data = batchData.batch_details || [];
                 let gridRows = [];
 
@@ -489,6 +552,7 @@ const Batch = () => {
                 }
 
                 config['gridSize'].setData(gridRows);
+                updateMainModelDisabledState();
                 config["CONTROL_CENTER"].state.populate = true;
 
             } else {
@@ -502,42 +566,6 @@ const Batch = () => {
         finally {
             document.getElementById("spinner").style.display = "none";
         }
-    }
-
-    function handleAddToGrid() {
-        // Get values from multiselects
-
-        const selectedModel = config["inputModel"].getSelectedArray() || [];
-        const quantity = config["inputQuantity"].data.value;
-
-        if (selectedModel.length === 0) {
-            config["CONTROL_CENTER"].promptWarningMessage("Please select  model", "");
-            return;
-        }
-
-        if (!quantity || quantity === "") {
-            config["CONTROL_CENTER"].promptWarningMessage("Please enter quantity", "");
-            return;
-        }
-
-        if (quantity === 0) {
-            config["CONTROL_CENTER"].promptWarningMessage("Quantity cannot be zero", "");
-            return;
-        }
-
-        let newRows = {
-
-            model_id: selectedModel[0].id,
-            model_name: selectedModel[0].name,
-            quantity: quantity
-        }
-
-        config["gridSize"].addRow(newRows);
-
-        // Clear selection fields
-
-        config["inputModel"].setValue([]);
-        config["inputQuantity"].setValue("");
     }
 
 
