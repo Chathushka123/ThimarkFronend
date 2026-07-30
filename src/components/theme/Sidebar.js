@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { getUser } from "../../utils/Common";
 import Logo from "../../images/logo.png";
 import SettingsIcon from "../../images/settings-icon.svg";
@@ -8,9 +9,12 @@ import API, { logoutUser } from '../../api/API';
 
 const Sidebar = () => {
   const user = getUser();
+  const location = useLocation();
   const [toggle, setToggle] = useState(false);
   const [navigator, setNavigator] = useState();
   const [navigationData, setNavigationData] = useState([]);
+
+  const isActive = (path) => location.pathname === `${process.env.PUBLIC_URL}${path}`;
 
   // handle click event of logout button
   const handleLogout = () => {
@@ -46,11 +50,13 @@ const Sidebar = () => {
 
   const generateNavFolder = params => {
     const nodes = params.nodes;
+    const hasActiveChild = nodes.some(node => isActive(node.path));
     let navItems = <></>;
     if (nodes.length > 0) {
       navItems = nodes.map(node => {
+        const active = isActive(node.path);
         return (
-          <a key={node.path} className="nav-link" href={`${process.env.PUBLIC_URL + node.path}`}>
+          <a key={node.path} className={`nav-link${active ? ' active' : ''}`} href={`${process.env.PUBLIC_URL + node.path}`} title={node.caption}>
             <div className="sb-nav-link-icon" data-tip={node.caption}><i className={node.icon}></i></div>{node.caption}
           </a>
         )
@@ -59,12 +65,12 @@ const Sidebar = () => {
     }
     return (
       <div key={params.id}>
-        <a className="nav-link collapsed" href="#!" data-toggle="collapse" data-target={"#" + params.id} aria-expanded="false" aria-controls={params.id}>
+        <a className={`nav-link${hasActiveChild ? '' : ' collapsed'}`} href="#!" data-toggle="collapse" data-target={"#" + params.id} aria-expanded={hasActiveChild} aria-controls={params.id} title={params.caption}>
           <div className="sb-nav-link-icon" data-tip={params.caption}><i className={params.icon}></i></div>
           {params.caption}
           <div className="sb-sidenav-collapse-arrow"><i className="fas fa-angle-down"></i></div>
         </a>
-        <div className="collapse" id={params.id} aria-labelledby="headingOne" data-parent="#sidenavAccordion">
+        <div className={`collapse${hasActiveChild ? ' show' : ''}`} id={params.id} aria-labelledby="headingOne" data-parent="#sidenavAccordion">
           <nav className="sb-sidenav-menu-nested nav">
             {navItems}
           </nav>
@@ -74,8 +80,9 @@ const Sidebar = () => {
   }
 
   const generateNavItem = item => {
+    const active = isActive(item.path);
     return (
-      <a key={item.path} className="nav-link" href={`${process.env.PUBLIC_URL + item.path}`}>
+      <a key={item.path} className={`nav-link${active ? ' active' : ''}`} href={`${process.env.PUBLIC_URL + item.path}`} title={item.caption}>
         <div className="sb-nav-link-icon" data-tip={item.caption}><i className={item.icon}></i></div>{item.caption}
       </a>
     )
@@ -207,6 +214,9 @@ const Sidebar = () => {
                   </a>
                   <a className="nav-link" href={`${process.env.PUBLIC_URL}/productionWIPScanning`}>
                     <div className="sb-nav-link-icon" data-tip="Production WIP Scanning"><i className="fas fa-barcode"></i></div>Production WIP Scanning
+                  </a>
+                  <a className="nav-link" href={`${process.env.PUBLIC_URL}/reasonsMaster`}>
+                    <div className="sb-nav-link-icon" data-tip="Reject / Rework Reasons"><i className="fas fa-exclamation-triangle"></i></div>Reject / Rework Reasons
                   </a>
                 </nav>
               </div>

@@ -4,6 +4,76 @@ import React from 'react';
 // place for the palette, icons, and small presentational pieces so both
 // screens stay visually identical instead of drifting apart.
 
+// Slowly auto-scrolls an overflowing container back and forth (ping-pong)
+// along one axis so wide/tall tables and charts stay readable without
+// anyone touching them — used on the floor TV screen where no one is at
+// the mouse. Reads scroll/client size live every frame instead of caching
+// it, so it keeps working through data reloads/resizes without needing to
+// restart. Pauses on hover/touch so it never fights a manual scroll.
+export function useAutoScrollX(enabled, { axis = 'x', speed = 30, pauseMs = 900 } = {}) {
+  const ref = React.useRef(null);
+  const sizeProp = axis === 'y' ? 'scrollHeight' : 'scrollWidth';
+  const clientProp = axis === 'y' ? 'clientHeight' : 'clientWidth';
+  const positionProp = axis === 'y' ? 'scrollTop' : 'scrollLeft';
+
+  React.useEffect(() => {
+    if (!enabled) return undefined;
+    const el = ref.current;
+    if (!el) return undefined;
+
+    let frame;
+    let direction = 1;
+    let paused = false;
+    let pauseTimer;
+    let lastTs = null;
+    let hovering = false;
+
+    const step = (ts) => {
+      if (lastTs == null) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
+      const maxScroll = el[sizeProp] - el[clientProp];
+      if (maxScroll > 0 && !hovering && !paused) {
+        let next = el[positionProp] + direction * speed * dt;
+        if (next >= maxScroll) {
+          next = maxScroll;
+          direction = -1;
+          paused = true;
+          pauseTimer = setTimeout(() => { paused = false; }, pauseMs);
+        } else if (next <= 0) {
+          next = 0;
+          direction = 1;
+          paused = true;
+          pauseTimer = setTimeout(() => { paused = false; }, pauseMs);
+        }
+        el[positionProp] = next;
+      }
+      frame = requestAnimationFrame(step);
+    };
+
+    const onEnter = () => { hovering = true; };
+    const onLeave = () => { hovering = false; };
+    el.addEventListener('mouseenter', onEnter);
+    el.addEventListener('mouseleave', onLeave);
+    el.addEventListener('touchstart', onEnter, { passive: true });
+    el.addEventListener('touchend', onLeave, { passive: true });
+
+    frame = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(pauseTimer);
+      el.removeEventListener('mouseenter', onEnter);
+      el.removeEventListener('mouseleave', onLeave);
+      el.removeEventListener('touchstart', onEnter);
+      el.removeEventListener('touchend', onLeave);
+    };
+  }, [enabled, axis, sizeProp, clientProp, positionProp, speed, pauseMs]);
+
+  return ref;
+}
+
 export const C = {
   page: '#e7eaef',
   surface: '#ffffff',
@@ -61,6 +131,15 @@ export const styleSheet = `
   @keyframes wfd-spin { to { transform: rotate(360deg); } }
   .wfd-spin { animation: wfd-spin 0.9s linear infinite; }
 
+  /* A visible breathing glow for small highlighted "live number" chips
+     (e.g. the floor dashboard's total WIP / efficiency badges) — meant to
+     actually draw the eye on a shop-floor TV, not just tint the chip. */
+  @keyframes wfd-glow-pulse {
+    0%, 100% { filter: brightness(1) saturate(1); transform: scale(1); }
+    50% { filter: brightness(1.45) saturate(1.3); transform: scale(1.035); }
+  }
+  .wfd-glow-chip { animation: wfd-glow-pulse 1.6s ease-in-out infinite; }
+
   /* Kiosk/TV mode: hide the app chrome around the dashboard so a fullscreen
      browser view on a shop-floor TV shows nothing but the dashboard itself. */
   body.wfd-kiosk-mode #layoutSidenav_nav { display: none !important; }
@@ -70,6 +149,15 @@ export const styleSheet = `
 export function hexToRgb(hex) {
   const n = parseInt(hex.replace('#', ''), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+// Shades a hex color toward black by `amount` (0-1) — used to give
+// highlighted "live number" chips a deeper-toned gradient than the raw
+// accent color, so a glow (or just plain white text) has contrast to sit on.
+export function darken(hex, amount) {
+  const { r, g, b } = hexToRgb(hex);
+  const shade = (c) => Math.max(0, Math.round(c * (1 - amount)));
+  return `rgb(${shade(r)}, ${shade(g)}, ${shade(b)})`;
 }
 
 export function Icon({ children, size = 18, color = 'currentColor', strokeWidth = 2, className }) {
@@ -196,7 +284,7 @@ export const IconDownload = (props) => (
 // Filled pill button for the Excel export action — green (success), separate
 // from the outlined "Refresh" pill so the two don't compete visually.
 export const exportButtonStyle = (disabled) => ({
-  gap: '7px', padding: '8px 14px', borderRadius: '999px', border: 'none',
+  gap: '7px', padding: '8px 14px', borderRadius: '10px', border: 'none',
   background: C.success, color: '#fff', fontSize: '13px', fontWeight: 700,
   cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
   boxShadow: `0 4px 10px ${C.success}44`,
@@ -328,14 +416,17 @@ export function Modal({ title, subtitle, onClose, children, maxWidth = '640px' }
 // generic label list (hours for the floor screen, calendar days for the
 // management screen); `teams` items need `id`, `team_name`, and a `field`
 // array aligned to `columns`.
-export function TeamMetricHeatmap({ title, columns, teams, field, color }) {
+export function TeamMetricHeatmap({
+  title, columns, teams, field, color, autoScrollX = false,
+}) {
   const rgb = hexToRgb(color);
   const max = teams.reduce((m, t) => Math.max(m, ...t[field]), 0);
+  const scrollRef = useAutoScrollX(autoScrollX);
 
   return (
     <div>
       {title && <div style={{ fontSize: '12.5px', fontWeight: 700, color: C.ink, marginBottom: '8px' }}>{title}</div>}
-      <div style={{ overflow: 'auto', maxHeight: '320px', border: `1px solid ${C.border}`, borderRadius: '10px' }}>
+      <div ref={scrollRef} style={{ overflow: 'auto', maxHeight: '320px', border: `1px solid ${C.border}`, borderRadius: '10px' }}>
         <table style={{ borderCollapse: 'collapse', fontSize: '11px', minWidth: '100%' }}>
           <thead>
             <tr>
