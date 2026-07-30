@@ -284,7 +284,7 @@ export const IconDownload = (props) => (
 // Filled pill button for the Excel export action — green (success), separate
 // from the outlined "Refresh" pill so the two don't compete visually.
 export const exportButtonStyle = (disabled) => ({
-  gap: '7px', padding: '8px 14px', borderRadius: '999px', border: 'none',
+  gap: '7px', padding: '8px 14px', borderRadius: '10px', border: 'none',
   background: C.success, color: '#fff', fontSize: '13px', fontWeight: 700,
   cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1,
   boxShadow: `0 4px 10px ${C.success}44`,

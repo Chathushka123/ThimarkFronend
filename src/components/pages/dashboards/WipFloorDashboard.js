@@ -598,7 +598,7 @@ const WipFloorDashboard = () => {
             className="d-flex align-items-center"
             onClick={toggleFullscreen}
             style={{
-              gap: '7px', padding: '8px 14px', borderRadius: '999px', border: `1px solid ${C.border}`,
+              gap: '7px', padding: '8px 14px', borderRadius: '10px', border: `1px solid ${C.border}`,
               background: C.surface, color: C.ink, fontSize: '13px', fontWeight: 600,
               cursor: 'pointer', boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
             }}
@@ -624,7 +624,7 @@ const WipFloorDashboard = () => {
             onClick={load}
             disabled={loading}
             style={{
-              gap: '7px', padding: '8px 14px', borderRadius: '999px', border: `1px solid ${C.border}`,
+              gap: '7px', padding: '8px 14px', borderRadius: '10px', border: `1px solid ${C.border}`,
               background: C.surface, color: C.ink, fontSize: '13px', fontWeight: 600,
               cursor: loading ? 'default' : 'pointer', boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
             }}
