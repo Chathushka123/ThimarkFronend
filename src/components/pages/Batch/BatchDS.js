@@ -42,7 +42,7 @@ export function generateBatchDisplay(componentList, control) {
                                     <Label item={componentList["inputBatchNo"].label} />
                                     <TextBox item={componentList["inputBatchNo"]} className="form-control form-control-sm" />
                                 </div>
-                                <div className="col-md-6 col-sm-4">
+                                <div className="col-md-4 col-sm-4">
                                     <Label item={componentList["inputMainModel"].label} />
 
                                     <MultiSelectDropDown
@@ -50,33 +50,13 @@ export function generateBatchDisplay(componentList, control) {
                                         className="form-control form-control-sm"
                                     />
                                 </div>
-                                <div className="col-md-6 col-sm-4">
-                                    <Label item={componentList["inputModel"].label} />
-
-                                    <MultiSelectDropDown
-                                        item={componentList["inputModel"]}
-                                        className="form-control form-control-sm"
-                                    />
-                                </div>
                                 <div className="col-md-2 col-12">
                                     <div className="form-group">
-                                        <Label item={componentList["inputQuantity"].label} />
-                                        <IntegerField 
-                                            item={componentList["inputQuantity"]} 
+                                        <Label item={componentList["inputQty"].label} />
+                                        <IntegerField
+                                            item={componentList["inputQty"]}
                                             className="form-control form-control-sm"
-                                            
                                         />
-                                    </div>
-                                </div>
-                                <div className="col-md-2 col-12 d-flex align-items-end">
-                                    <div className="form-group w-100">
-                                        <Button 
-                                            className="btn common-btn common-btn-lg btn-sm w-100" 
-                                            item={componentList["buttonAddToGrid"]}
-                                            style={{backgroundColor: '#007bff', borderColor: '#007bff',padding:'8px'}}
-                                        >
-                                            <i className="fas fa-plus mr-1"></i> Add
-                                        </Button>
                                     </div>
                                 </div>
 
