@@ -127,7 +127,18 @@ export const styleSheet = `
   .wfd-row:hover { background: ${C.subtleBg}; }
   .wfd-refresh:hover:not(:disabled) { background: ${C.subtleBg}; }
   .wfd-close:hover { background: ${C.subtleBg}; }
-  .wfd-range-btn:hover { background: ${C.subtleBg}; }
+  .wfd-range-btn {
+    background: ${C.surface}; color: ${C.ink}; border: 1px solid ${C.border};
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .wfd-range-btn:hover:not(:disabled):not(.wfd-range-btn-active) {
+    background: ${C.subtleBg}; border-color: ${ACCENT.teams}; color: ${ACCENT.teams};
+  }
+  .wfd-range-btn:disabled { cursor: default; opacity: 0.6; }
+  .wfd-range-btn-active {
+    background: ${ACCENT.teams}; border-color: ${ACCENT.teams}; color: #fff; font-weight: 700;
+  }
+  .wfd-range-btn-active:hover:not(:disabled) { background: ${ACCENT.teams}; }
   @keyframes wfd-spin { to { transform: rotate(360deg); } }
   .wfd-spin { animation: wfd-spin 0.9s linear infinite; }
 

@@ -27,6 +27,13 @@ const QUICK_RANGES = [
   { label: '90 days', days: 89 },
 ];
 
+function quickRangeDates(days) {
+  const to = todayDate();
+  const from = new Date(to);
+  from.setDate(from.getDate() - days);
+  return { from: toDateInput(from), to: toDateInput(to) };
+}
+
 function formatDateLabel(dateStr) {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
@@ -134,13 +141,11 @@ function TeamBatchRangeModal({ team, from, to, onClose }) {
 }
 
 const WipManagementDashboard = () => {
-  const initialTo = todayDate();
-  const initialFrom = new Date(initialTo);
-  initialFrom.setDate(initialFrom.getDate() - 29);
+  const initialRange = quickRangeDates(0);
 
-  const [fromInput, setFromInput] = useState(toDateInput(initialFrom));
-  const [toInput, setToInput] = useState(toDateInput(initialTo));
-  const [range, setRange] = useState({ from: toDateInput(initialFrom), to: toDateInput(initialTo) });
+  const [fromInput, setFromInput] = useState(initialRange.from);
+  const [toInput, setToInput] = useState(initialRange.to);
+  const [range, setRange] = useState(initialRange);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
@@ -211,14 +216,10 @@ const WipManagementDashboard = () => {
   }, [load, range]);
 
   const applyQuickRange = (days) => {
-    const to = todayDate();
-    const from = new Date(to);
-    from.setDate(from.getDate() - days);
-    const fromStr = toDateInput(from);
-    const toStr = toDateInput(to);
-    setFromInput(fromStr);
-    setToInput(toStr);
-    setRange({ from: fromStr, to: toStr });
+    const { from, to } = quickRangeDates(days);
+    setFromInput(from);
+    setToInput(to);
+    setRange({ from, to });
   };
 
   const applyCustomRange = () => {
@@ -471,21 +472,23 @@ const WipManagementDashboard = () => {
             Apply
           </button>
           <div className="d-flex" style={{ gap: '6px', marginLeft: 'auto', flexWrap: 'wrap' }}>
-            {QUICK_RANGES.map((opt) => (
+            {QUICK_RANGES.map((opt) => {
+              const isActive = range.from === quickRangeDates(opt.days).from && range.to === quickRangeDates(opt.days).to;
+              return (
               <button
                 key={opt.label}
                 type="button"
-                className="wfd-range-btn"
+                className={`wfd-range-btn${isActive ? ' wfd-range-btn-active' : ''}`}
                 onClick={() => applyQuickRange(opt.days)}
                 disabled={loading}
                 style={{
-                  border: `1px solid ${C.border}`, borderRadius: '999px', padding: '6px 14px', fontSize: '12.5px', fontWeight: 600,
-                  background: C.surface, color: C.ink, cursor: 'pointer',
+                  borderRadius: '10px', padding: '6px 14px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
                 }}
               >
                 {opt.label}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
