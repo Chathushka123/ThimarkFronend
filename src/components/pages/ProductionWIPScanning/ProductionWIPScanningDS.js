@@ -394,6 +394,8 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
         selectedTeam,
         showTeamPicker,
         ticketCode,
+        trollyCode,
+        resolvingTrolly,
         lookingUp,
         scanning,
         pendingScan,
@@ -413,9 +415,12 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
 
     const {
         scanInputRef,
+        bundleInputRef,
         qtyInputRef,
         onTicketCodeChange,
         onTicketCodeKeyDown,
+        onTrollyCodeChange,
+        onTrollyCodeKeyDown,
         onOpenCamera,
         onQrScanSuccess,
         onQrScanClose,
@@ -563,20 +568,40 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                         {!pendingScan && (
                                             <>
                                                 <label className="mb-2" style={{ fontWeight: 700, color: C.ink, fontSize: '15px' }}>
-                                                    📷 Scan Bundle
+                                                    📷 Scan Trolly / Bundle
                                                 </label>
-                                                <input
-                                                    ref={scanInputRef}
-                                                    type="text"
-                                                    className="form-control"
-                                                    style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 700, borderRadius: '8px', borderWidth: '1.5px', borderColor: C.accentBorder }}
-                                                    placeholder="Scan or type bundle code, then press Enter"
-                                                    value={ticketCode}
-                                                    onChange={(e) => onTicketCodeChange(e.target.value)}
-                                                    onKeyDown={onTicketCodeKeyDown}
-                                                    disabled={lookingUp}
-                                                    autoComplete="off"
-                                                />
+                                                <div className="form-row">
+                                                    <div className="form-group col-6 mb-2">
+                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.accent }}>🧺 Trolly ID</label>
+                                                        <input
+                                                            ref={scanInputRef}
+                                                            type="text"
+                                                            className="form-control"
+                                                            style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 700, borderRadius: '8px', borderWidth: '1.5px', borderColor: C.accentBorder }}
+                                                            placeholder="Trolly ID"
+                                                            value={trollyCode}
+                                                            onChange={(e) => onTrollyCodeChange(e.target.value)}
+                                                            onKeyDown={onTrollyCodeKeyDown}
+                                                            disabled={lookingUp || resolvingTrolly}
+                                                            autoComplete="off"
+                                                        />
+                                                    </div>
+                                                    <div className="form-group col-6 mb-2">
+                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.purple }}>📦 Bundle ID</label>
+                                                        <input
+                                                            ref={bundleInputRef}
+                                                            type="text"
+                                                            className="form-control"
+                                                            style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 700, borderRadius: '8px', borderWidth: '1.5px', borderColor: C.purpleBorder }}
+                                                            placeholder="Bundle ID"
+                                                            value={ticketCode}
+                                                            onChange={(e) => onTicketCodeChange(e.target.value)}
+                                                            onKeyDown={onTicketCodeKeyDown}
+                                                            disabled={lookingUp || resolvingTrolly}
+                                                            autoComplete="off"
+                                                        />
+                                                    </div>
+                                                </div>
                                                 <button
                                                     type="button"
                                                     className="btn btn-block mt-2"
@@ -590,12 +615,17 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                                         boxShadow: `0 2px 8px ${C.accent}44`
                                                     }}
                                                     onClick={onOpenCamera}
-                                                    disabled={lookingUp}
+                                                    disabled={lookingUp || resolvingTrolly}
                                                 >
                                                     📸 Scan with Camera
                                                 </button>
 
-                                                {lookingUp && (
+                                                {resolvingTrolly && (
+                                                    <div className="text-center mt-2" style={{ color: C.muted, fontSize: '13px' }}>
+                                                        <i className="fas fa-spinner fa-spin mr-1"></i>Looking up trolly&#8230;
+                                                    </div>
+                                                )}
+                                                {!resolvingTrolly && lookingUp && (
                                                     <div className="text-center mt-2" style={{ color: C.muted, fontSize: '13px' }}>
                                                         <i className="fas fa-spinner fa-spin mr-1"></i>Looking up bundle&#8230;
                                                     </div>

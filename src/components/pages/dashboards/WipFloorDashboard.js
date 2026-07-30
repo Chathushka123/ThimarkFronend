@@ -6,7 +6,7 @@ import API from '../../../api/API';
 import {
   C, ACCENT, card, sectionCard, styleSheet,
   IconLayers, IconAlertTriangle, IconRotateCcw, IconBell, IconRefreshCw, IconDownload, IconMaximize, IconMinimize, IconChevronRight, IconBarChart, IconActivity, IconGrid,
-  formatTime, efficiencyColor, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle,
+  formatTime, efficiencyColor, darken, SectionHeader, EmptyState, Modal, TeamMetricHeatmap, exportButtonStyle, useAutoScrollX,
 } from './wipDashboardUI';
 import {
   ExcelJS, XLS_ACCENT, addTableSheet, addOverviewSheet, downloadWorkbook,
@@ -275,7 +275,10 @@ function BundleDetailModal({ batch, onClose }) {
 // body that scrolls internally — the building block the TV/kiosk layout
 // below is made of, so no single panel's content can force the whole page
 // to scroll (only the panel itself scrolls, same idea as the heatmap grid).
-function Panel({ area, accent, title, icon, right, children }) {
+function Panel({
+  area, accent, title, icon, right, children, autoScrollX = false, autoScrollY = false,
+}) {
+  const scrollRef = useAutoScrollX(autoScrollX || autoScrollY, { axis: autoScrollY ? 'y' : 'x' });
   return (
     <div style={{
       ...sectionCard(accent), gridArea: area, padding: '10px 14px',
@@ -283,7 +286,7 @@ function Panel({ area, accent, title, icon, right, children }) {
     }}
     >
       <SectionHeader title={title} icon={icon} accent={accent} right={right} compact />
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {children}
       </div>
     </div>
@@ -349,6 +352,7 @@ const WipFloorDashboard = () => {
   const load = useCallback(() => {
     setLoading(true);
     setError('');
+    setData([]);
     API.get('wipDashboard/floor')
       .then((response) => {
         setData((response.data && response.data.data) || null);
@@ -392,7 +396,7 @@ const WipFloorDashboard = () => {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
     }
   };
 
@@ -402,6 +406,8 @@ const WipFloorDashboard = () => {
   const stationTeamBreakdown = (data && data.station_team_breakdown) || [];
   const teamHourlyTrend = (data && data.team_hourly_trend) || { hours: [], teams: [] };
   const heatmapTeams = teamHourlyTrend.teams.map((t) => ({ ...t, id: t.daily_shift_team_id }));
+  const floorTotals = (data && data.floor_totals) || { wip_qty: 0, efficiency_pct: 0 };
+  const floorEff = efficiencyColor(floorTotals.efficiency_pct);
 
   const barData = stationTeamBreakdown.map((r) => ({
     name: `${r.operation_code || '—'} · ${r.team_name || 'Unassigned'}`,
@@ -531,7 +537,12 @@ const WipFloorDashboard = () => {
     >
       <style>{styleSheet}{tvGridCss}</style>
 
-      <div className="d-flex justify-content-between align-items-start mb-2" style={{ gap: '12px', flexWrap: 'wrap', flexShrink: 0 }}>
+      <div
+        className="mb-2"
+        style={{
+          display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '12px', flexShrink: 0,
+        }}
+      >
         <div className="d-flex align-items-center" style={{ gap: '12px' }}>
           <div style={{
             width: '38px', height: '38px', borderRadius: '11px', flexShrink: 0, color: '#fff',
@@ -546,16 +557,48 @@ const WipFloorDashboard = () => {
             <div style={{ fontSize: '11.5px', color: C.muted, marginTop: '1px' }}>Live view of today&rsquo;s shop-floor throughput, WIP, and quality</div>
           </div>
         </div>
-        <div className="d-flex align-items-center" style={{ gap: '10px' }}>
+
+        <div className="d-flex align-items-center justify-content-center" style={{ gap: '12px' }}>
           {data && (
-            <span style={{ fontSize: '12px', color: C.muted }}>Updated {formatTime(data.generated_at)}</span>
+            <>
+              <div
+                className="d-flex align-items-center wfd-glow-chip"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(ACCENT.teams, 0.15)}, ${darken(ACCENT.teams, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${ACCENT.teams}66, 0 0 24px ${ACCENT.teams}cc, 0 0 48px ${ACCENT.teams}77`,
+                }}
+                title="Sum of every team's net WIP right now"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor WIP</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1, textShadow: `0 0 12px #fff, 0 0 22px ${ACCENT.teams}` }}>{floorTotals.wip_qty}</span>
+              </div>
+              <div
+                className="d-flex align-items-center wfd-glow-chip"
+                style={{
+                  gap: '9px', padding: '8px 18px', borderRadius: '14px',
+                  background: `linear-gradient(135deg, ${darken(floorEff.color, 0.15)}, ${darken(floorEff.color, 0.5)})`,
+                  boxShadow: `0 0 0 1px ${floorEff.color}66, 0 0 24px ${floorEff.color}cc, 0 0 48px ${floorEff.color}77`,
+                }}
+                title="Earned minutes (good OUT scans x SMV) over available operator-minutes since shift start"
+              >
+                <span style={{ fontSize: '11.5px', color: '#fff', opacity: 0.9, fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>Floor Efficiency</span>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff', lineHeight: 1, textShadow: `0 0 12px #fff, 0 0 22px ${floorEff.color}` }}>{floorTotals.efficiency_pct}%</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="d-flex align-items-center justify-content-end" style={{ gap: '10px' }}>
+          {data && (
+            <span style={{ fontSize: '12px', color: C.muted, whiteSpace: 'nowrap' }}>Updated {formatTime(data.generated_at)}</span>
           )}
           <button
             type="button"
             className="d-flex align-items-center"
             onClick={toggleFullscreen}
             style={{
-              gap: '7px', padding: '8px 14px', borderRadius: '999px', border: `1px solid ${C.border}`,
+              gap: '7px', padding: '8px 14px', borderRadius: '10px', border: `1px solid ${C.border}`,
               background: C.surface, color: C.ink, fontSize: '13px', fontWeight: 600,
               cursor: 'pointer', boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
             }}
@@ -581,7 +624,7 @@ const WipFloorDashboard = () => {
             onClick={load}
             disabled={loading}
             style={{
-              gap: '7px', padding: '8px 14px', borderRadius: '999px', border: `1px solid ${C.border}`,
+              gap: '7px', padding: '8px 14px', borderRadius: '10px', border: `1px solid ${C.border}`,
               background: C.surface, color: C.ink, fontSize: '13px', fontWeight: 600,
               cursor: loading ? 'default' : 'pointer', boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
             }}
@@ -622,7 +665,7 @@ const WipFloorDashboard = () => {
             )}
           </Panel>
 
-          <Panel area="output" accent={ACCENT.output} title="Output by Operation & Team" icon={<IconBarChart size={16} />}>
+          <Panel area="output" accent={ACCENT.output} title="Output by Operation & Team" icon={<IconBarChart size={16} />} autoScrollX>
             {barData.length === 0 ? (
               <EmptyState>No scans recorded yet today.</EmptyState>
             ) : (
@@ -647,7 +690,7 @@ const WipFloorDashboard = () => {
             {heatmapTeams.length === 0 ? (
               <EmptyState>No shift activity recorded yet today.</EmptyState>
             ) : (
-              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="in" color={C.blue} />
+              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="in" color={C.blue} autoScrollX />
             )}
           </Panel>
 
@@ -655,11 +698,11 @@ const WipFloorDashboard = () => {
             {heatmapTeams.length === 0 ? (
               <EmptyState>No shift activity recorded yet today.</EmptyState>
             ) : (
-              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="out" color={C.orange} />
+              <TeamMetricHeatmap columns={teamHourlyTrend.hours} teams={heatmapTeams} field="out" color={C.orange} autoScrollX />
             )}
           </Panel>
 
-          <Panel area="batch" accent={ACCENT.floor} title="WIP by Main Model / Model / Batch" icon={<IconGrid size={16} />}>
+          <Panel area="batch" accent={ACCENT.floor} title="WIP by Main Model / Model / Batch" icon={<IconGrid size={16} />} autoScrollY>
             {batchBreakdown.length === 0 ? (
               <EmptyState>Nothing currently on the floor.</EmptyState>
             ) : (
@@ -703,6 +746,7 @@ const WipFloorDashboard = () => {
             accent={ACCENT.alerts}
             title="Problem Alerts"
             icon={<IconBell size={16} />}
+            autoScrollY
             right={
               <span style={{
                 fontSize: '12px', fontWeight: 700, color: alerts.length > 0 ? C.amber : C.faint,
