@@ -211,6 +211,21 @@ export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
     const bundles = (workOrder && Array.isArray(workOrder.bundles)) ? workOrder.bundles : [];
     const { showQrScanner, onQrScanSuccess, onQrScanClose } = qrState || {};
 
+    // How much of the batch detail's qty is still free to commit to a new
+    // bundle - shown as a hint next to the qty inputs below, and enforced
+    // (server-side, and pre-checked client-side) as their max.
+    const availableQty = (workOrder && workOrder.batch_detail) ? Number(workOrder.batch_detail.available_qty) : null;
+
+    // Same limit for the Edit Bundle popup, but with the bundle currently
+    // being edited's own qty added back - it already counts toward
+    // availableQty as "committed", so leaving it out here would understate
+    // how much that one bundle can actually be edited up to.
+    const editingBundleId = componentList["inputEditBundleId"].data.value;
+    const editingBundle = bundles.find((b) => String(b.id) === String(editingBundleId));
+    const editMaxQty = availableQty !== null
+        ? availableQty + (editingBundle ? Number(editingBundle.qty) : 0)
+        : null;
+
     // NOTE: every BASE component (TextBox/DropDown/IntegerField/...) binds its
     // setValue/setOptions/reRender functions onto `item` the first time it
     // mounts. If a section is hidden with `{condition && (<Comp/>)}` React
@@ -325,6 +340,7 @@ export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
                     <div className="form-group">
                         <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
                             {componentList["inputEditBundleQty"].label.schema.value}
+                            {editMaxQty !== null && <span style={{ color: '#94a3b8', textTransform: 'none', fontWeight: 600 }}> (Max: {editMaxQty})</span>}
                         </label>
                         <IntegerField item={componentList["inputEditBundleQty"]} className="form-control" />
                     </div>
@@ -502,6 +518,7 @@ export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
                                     <div className="form-group mb-2">
                                         <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
                                             {componentList["inputBundleQty"].label.schema.value}
+                                            {availableQty !== null && <span style={{ color: '#94a3b8', textTransform: 'none', fontWeight: 600 }}> (Max: {availableQty})</span>}
                                         </label>
                                         <IntegerField item={componentList["inputBundleQty"]} className="form-control" />
                                     </div>

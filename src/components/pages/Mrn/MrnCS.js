@@ -23,7 +23,7 @@ componentListConfig["CONTROL_CENTER"] = {
             name: "labelMrn",
             type: "text",
             visible: true,
-            value: "MRN - Material Request Note"
+            value: "Pick List"
         },
     },
     state: {

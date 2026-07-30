@@ -117,7 +117,7 @@ const WorkOrder = () => {
                 const modelName = bd.model && bd.model.name ? bd.model.name : `Model #${bd.model_id}`;
                 return {
                     "id": bd.id,
-                    "name": `${batchNo} - ${modelName} (Qty: ${bd.quantity})`
+                    "name": `${batchNo} - ${modelName} (Qty: ${bd.available_qty})`
                 };
             });
             config['inputBatchDetail'].setOptions(options);
@@ -280,6 +280,11 @@ const WorkOrder = () => {
                 config["CONTROL_CENTER"].promptWarningMessage("Bundle qty must be greater than 0", "");
                 return;
             }
+            const availableQty = workOrder.batch_detail ? Number(workOrder.batch_detail.available_qty) : null;
+            if (availableQty !== null && parseInt(qty) > availableQty) {
+                config["CONTROL_CENTER"].promptWarningMessage(`Bundle qty cannot exceed the available qty (${availableQty})`, "");
+                return;
+            }
             if (selectedTrolly.length === 0) {
                 config["CONTROL_CENTER"].promptWarningMessage("Please select a Trolley", "");
                 return;
@@ -412,6 +417,7 @@ const WorkOrder = () => {
             const id = config["inputEditBundleId"].data.value;
             const size = config['inputEditBundleSize'].data.value;
             const qty = config['inputEditBundleQty'].data.value;
+            const originalQty = parseInt(config['inputEditBundleQty'].data.oldValue, 10) || 0;
             const selectedTrolly = config['inputEditBundleTrolly'].getValue() || [];
 
             if (!id) return;
@@ -419,6 +425,17 @@ const WorkOrder = () => {
             if (!qty || parseInt(qty) <= 0) {
                 config["CONTROL_CENTER"].promptWarningMessage("Bundle qty must be greater than 0", "");
                 return;
+            }
+            // This bundle's own current qty already counts toward
+            // batch_detail.available_qty as "committed", so it's added back
+            // here - editing (including increasing) up to what's truly
+            // available shouldn't be blocked by the bundle's own allocation.
+            if (workOrder && workOrder.batch_detail) {
+                const maxQty = Number(workOrder.batch_detail.available_qty) + originalQty;
+                if (parseInt(qty) > maxQty) {
+                    config["CONTROL_CENTER"].promptWarningMessage(`Bundle qty cannot exceed the available qty (${maxQty})`, "");
+                    return;
+                }
             }
             if (selectedTrolly.length === 0) {
                 config["CONTROL_CENTER"].promptWarningMessage("Please select a Trolley", "");
