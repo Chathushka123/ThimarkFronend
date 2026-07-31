@@ -158,6 +158,10 @@ const WipManagementDashboard = () => {
   const [throughputLoading, setThroughputLoading] = useState(true);
   const [throughputError, setThroughputError] = useState('');
 
+  const [batchBreakdown, setBatchBreakdown] = useState([]);
+  const [batchBreakdownLoading, setBatchBreakdownLoading] = useState(true);
+  const [batchBreakdownError, setBatchBreakdownError] = useState('');
+
   useEffect(() => {
     API.get('operation/list')
       .then((response) => {
@@ -193,6 +197,28 @@ const WipManagementDashboard = () => {
   useEffect(() => {
     if (selectedOperationId) loadThroughput(range.from, range.to, selectedOperationId);
   }, [loadThroughput, range, selectedOperationId]);
+
+  const loadBatchBreakdown = useCallback((from, to, operationId) => {
+    if (!operationId) return;
+    setBatchBreakdownLoading(true);
+    setBatchBreakdownError('');
+    API.get(`wipDashboard/batchBreakdownByOperation?from=${from}&to=${to}&operation_id=${operationId}`)
+      .then((response) => {
+        const payload = (response.data && response.data.data) || {};
+        setBatchBreakdown(payload.batch_breakdown || []);
+      })
+      .catch((err) => {
+        setBatchBreakdownError(
+          err?.response?.data?.message ||
+          "Couldn't load this operation's production breakdown."
+        );
+      })
+      .finally(() => setBatchBreakdownLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (selectedOperationId) loadBatchBreakdown(range.from, range.to, selectedOperationId);
+  }, [loadBatchBreakdown, range, selectedOperationId]);
 
   const load = useCallback((from, to) => {
     setLoading(true);
@@ -230,7 +256,6 @@ const WipManagementDashboard = () => {
   };
 
   const summary = (data && data.summary) || null;
-  const batchBreakdown = (data && data.batch_breakdown) || [];
   const teamScoreboard = (data && data.team_scoreboard) || [];
   const stationTeamBreakdown = (data && data.station_team_breakdown) || [];
   const teamDailyTrend = (data && data.team_daily_trend) || { days: [], teams: [] };
@@ -277,7 +302,7 @@ const WipManagementDashboard = () => {
       subtitleLines: [
         `Generated: ${stamp}`,
         `Date Range: ${data.from} to ${data.to} (${daily.length} day${daily.length === 1 ? '' : 's'})`,
-        `Throughput & Quality Sheet Scope: ${operationLabel} · OUT scans only · ${throughputIsHourly ? 'hourly' : 'daily'} breakdown`,
+        `Throughput & Quality / Batch Breakdown Sheets Scope: ${operationLabel} · OUT scans only · ${throughputIsHourly ? 'hourly' : 'daily'} breakdown`,
       ],
       metrics: [
         { label: 'Total Scanned', value: summary.total_scanned, color: XLS_ACCENT.success },
@@ -336,10 +361,11 @@ const WipManagementDashboard = () => {
       addTableSheet(wb, { name: `${namePrefix} OUT by Team`, headers: ['Team', ...trendCols, 'Total'], rows: buildColRows('out'), widths: colWidths });
     }
 
-    // Sheet 7 — Production by Main Model / Model / Batch
+    // Sheet 7 — Production by Main Model / Model / Batch (same operation
+    // scope as the Throughput & Quality sheet — see operationLabel above)
     addTableSheet(wb, {
       name: 'Batch Breakdown',
-      headers: ['Main Model', 'Model', 'Batch No', 'Scanned', 'Rejected', 'Rework', 'Reject %', 'Rework %'],
+      headers: ['Main Model', 'Model', 'Batch No', 'Scanned (OUT)', 'Rejected', 'Rework', 'Reject %', 'Rework %'],
       rows: batchBreakdown.map((b) => [
         b.main_model_name || '—', b.model_name || '—', b.batch_no || '—',
         b.scanned_qty, b.rejected_qty, b.rework_qty, b.reject_rate_pct, b.rework_rate_pct,
@@ -627,9 +653,26 @@ const WipManagementDashboard = () => {
           </div>
 
           <div style={sectionCard(ACCENT.output)}>
-            <SectionHeader eyebrow="Whole Floor" title="Production by Main Model / Model / Batch" subtitle="For this range" icon={<IconGrid size={17} />} accent={ACCENT.output} />
-            {batchBreakdown.length === 0 ? (
-              <EmptyState>No production recorded in this window.</EmptyState>
+            <SectionHeader
+              eyebrow="By Operation"
+              title="Production by Main Model / Model / Batch"
+              subtitle={`OUT scans at ${selectedOperation ? (selectedOperation.description || selectedOperation.operation_code) : '—'} · For this range`}
+              icon={<IconGrid size={17} />}
+              accent={ACCENT.output}
+            />
+            {batchBreakdownError && (
+              <div className="p-3 mb-3 d-flex align-items-center" style={{ background: C.dangerBg, border: `1px solid ${C.dangerBorder}`, borderRadius: '12px', color: C.ink, gap: '10px' }}>
+                <IconAlertTriangle size={17} color={C.danger} />
+                {batchBreakdownError}
+              </div>
+            )}
+            {batchBreakdownLoading ? (
+              <div className="d-flex align-items-center py-4" style={{ color: C.muted, gap: '10px' }}>
+                <IconRefreshCw size={18} color={C.faint} className="wfd-spin" />
+                Loading production breakdown&#8230;
+              </div>
+            ) : batchBreakdown.length === 0 ? (
+              <EmptyState>No production recorded for this operation in this window.</EmptyState>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="w-100" style={{ fontSize: '13px', borderCollapse: 'collapse' }}>
