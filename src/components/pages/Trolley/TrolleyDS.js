@@ -5,6 +5,8 @@ export function generateTrolleyDisplay(componentList, handlers) {
 
     const rows = componentList["gridTrolley"].data || []
     const totalCount = rows.length
+    const bundleId = componentList["inputBundleId"].data.value
+    const hasBundle = bundleId !== "" && bundleId !== null && typeof bundleId !== 'undefined'
 
     return (
         <>
@@ -62,6 +64,19 @@ export function generateTrolleyDisplay(componentList, handlers) {
                                         <div className="custom-control custom-switch">
                                             <CheckBox item={componentList["inputActive"]} className="custom-control-input" />
                                             <label className="custom-control-label" htmlFor="inputActive">Active</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Bundle assignment - always mounted, CSS-hidden unless the loaded trolley is held by a bundle */}
+                                <div className="form-row" style={{ display: hasBundle ? 'flex' : 'none' }}>
+                                    <div className="form-group col-md-3">
+                                        <Label item={componentList["inputBundleId"].label} />
+                                        <TextBox item={componentList["inputBundleId"]} className="form-control form-control-sm" />
+                                    </div>
+                                    <div className="form-group col-md-5 d-flex align-items-end pb-2">
+                                        <div className="custom-control custom-switch">
+                                            <CheckBox item={componentList["inputClearBundle"]} className="custom-control-input" />
+                                            <label className="custom-control-label" htmlFor="inputClearBundle">Clear bundle (set to none) on save</label>
                                         </div>
                                     </div>
                                 </div>

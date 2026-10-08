@@ -7,7 +7,6 @@ const WorkOrder = () => {
     let [rendered, setRendered] = useState(true);
     let [workOrder, setWorkOrder] = useState(null);
     let [showQrScanner, setShowQrScanner] = useState(false);
-    let [qrScanTarget, setQrScanTarget] = useState(null); // "trolley" | "location"
 
     function reRender() {
         setRendered(!rendered);
@@ -21,28 +20,16 @@ const WorkOrder = () => {
 
     config['inputSelectWorkOrder'].event.onSelect = handleSelectWorkOrderChange;
     config['inputSelectWorkOrder'].event.onRemove = handleSelectWorkOrderChange;
-    config['inputPickLocationId'].event.onBlur = handleBlurPickLocationId;
 
     config["buttonCreateWorkOrder"].event.onClick = handleCreateWorkOrder;
     config["buttonNewWorkOrder"].event.onClick = handleNewWorkOrder;
     config["buttonAddBundle"].event.onClick = handleAddBundle;
     config["buttonScanTrolley"].event.onClick = handleScanTrolleyClick;
-    config["buttonScanLocation"].event.onClick = handleScanLocationClick;
-    config["buttonAddPick"].event.onClick = handleAddPick;
-    config["buttonFinalize"].event.onClick = handleFinalize;
-    config["buttonReopen"].event.onClick = handleReopen;
 
-    config["buttonFinalizeYes"].event.onClick = handleFinalizeYes;
-    config["buttonFinalizeNo"].event.onClick = handleFinalizeNo;
-    config["buttonReopenYes"].event.onClick = handleReopenYes;
-    config["buttonReopenNo"].event.onClick = handleReopenNo;
-    config["buttonDeletePickYes"].event.onClick = handleDeletePickYes;
-    config["buttonDeletePickNo"].event.onClick = handleDeletePickNo;
     config["buttonEditBundleSave"].event.onClick = handleEditBundleSave;
     config["buttonEditBundleCancel"].event.onClick = handleEditBundleCancel;
 
-    // Expose delete/edit functions globally for card buttons (bundle/bundle detail rows are map()-rendered outside the schema tree)
-    window.handleDeletePick = handleDeletePick;
+    // Expose edit function globally for card buttons (bundle rows are map()-rendered outside the schema tree)
     window.handleEditBundle = handleEditBundle;
 
     /*********************************************************/
@@ -89,9 +76,6 @@ const WorkOrder = () => {
         if (status === "r") {
             config["buttonCreateWorkOrder"].schema.visible = false;
             config["buttonAddBundle"].schema.visible = false;
-            config["buttonAddPick"].schema.visible = false;
-            config["buttonFinalize"].schema.visible = false;
-            config["buttonReopen"].schema.visible = false;
         }
     }
 
@@ -147,14 +131,6 @@ const WorkOrder = () => {
         }
     }
 
-    function __populateBundleDropdown(bundles) {
-        const options = (bundles || []).map((bundle) => ({
-            "id": bundle.id,
-            "name": `#${bundle.id} - ${bundle.size ? 'Size ' + bundle.size : 'No Size'} (Qty ${bundle.qty})`
-        }));
-        config['inputPickBundle'].setOptions(options);
-    }
-
     function __trollyOption(trolly) {
         return { "id": trolly.id, "name": `${trolly.code} - ${trolly.name}` };
     }
@@ -169,13 +145,7 @@ const WorkOrder = () => {
         }
     }
 
-    function resetPickForm() {
-        config['inputPickBundle'].setValue([]);
-        config['inputPickLocationId'].setValue("");
-        config['inputPickStockMaterial'].setValue("");
-        config['inputPickWhlItem'].setOptions([]);
-        config['inputPickWhlItem'].setValue([]);
-        config['inputPickQty'].setValue("");
+    function resetBundleForm() {
         config['inputBundleSize'].setValue("BasSize");
         config['inputBundleQty'].setValue("");
         config['inputBundleTrolly'].setValue([]);
@@ -185,9 +155,7 @@ const WorkOrder = () => {
         setWorkOrder(null);
         config['inputWorkOrderId'].setValue("");
         config['inputStatus'].setValue("");
-        resetPickForm();
-        config["buttonFinalize"].schema.visible = false;
-        config["buttonReopen"].schema.visible = false;
+        resetBundleForm();
 
         config["CONTROL_CENTER"].state.populated = false;
         config["CONTROL_CENTER"].state.new = true;
@@ -223,10 +191,7 @@ const WorkOrder = () => {
             config['inputWorkOrderId'].setValue(data.id);
             config['inputStatus'].setValue(data.status);
             config['inputSelectWorkOrder'].setValueByID(data.id);
-            __populateBundleDropdown(data.bundles || []);
 
-            config["buttonFinalize"].schema.visible = data.status === 'OPEN';
-            config["buttonReopen"].schema.visible = data.status === 'FINALIZED';
 
             config["CONTROL_CENTER"].state.populated = true;
             config["CONTROL_CENTER"].state.new = false;
@@ -318,30 +283,15 @@ const WorkOrder = () => {
     }
 
     function handleScanTrolleyClick() {
-        setQrScanTarget("trolley");
-        setShowQrScanner(true);
-    }
-
-    function handleScanLocationClick() {
-        setQrScanTarget("location");
         setShowQrScanner(true);
     }
 
     function handleQrScanClose() {
         setShowQrScanner(false);
-        setQrScanTarget(null);
     }
 
     function handleQrScanSuccess(decodedText) {
         setShowQrScanner(false);
-
-        if (qrScanTarget === "location") {
-            setQrScanTarget(null);
-            handleLocationQrScanned(decodedText);
-            return;
-        }
-
-        setQrScanTarget(null);
         handleTrolleyQrScanned(decodedText);
     }
 
@@ -362,17 +312,6 @@ const WorkOrder = () => {
         config['inputBundleTrolly'].setValueByID(match.id);
         config["CONTROL_CENTER"].promptBaseMessage(`Trolley ${match.name} selected`, "");
         reRender();
-    }
-
-    function handleLocationQrScanned(decodedText) {
-        const locationId = parseInt(String(decodedText).trim(), 10);
-        if (!locationId || isNaN(locationId)) {
-            config["CONTROL_CENTER"].promptWarningMessage("Invalid location QR code", "");
-            return;
-        }
-
-        config['inputPickLocationId'].setValue(String(locationId));
-        handleBlurPickLocationId();
     }
 
     async function handleEditBundle(bundle) {
@@ -470,183 +409,6 @@ const WorkOrder = () => {
     function handleEditBundleCancel() {
         config["editBundlePopUp"].closePopUp();
         config["inputEditBundleId"].data.value = "";
-    }
-
-    async function handleBlurPickLocationId() {
-        const locationId = config['inputPickLocationId'].data.value;
-        config['inputPickStockMaterial'].setValue("");
-        config['inputPickWhlItem'].setOptions([]);
-        config['inputPickWhlItem'].setValue([]);
-
-        if (!locationId || String(locationId).trim() === "") return;
-
-        try {
-            const id = String(locationId).trim();
-            const response = await API.get(`warehouse-locations/${id}`);
-            const location = response.data;
-
-            if (location.stock_material) {
-                config['inputPickStockMaterial'].setValue(`${location.stock_material.code || ''} - ${location.stock_material.name || ''}`);
-            } else {
-                config['inputPickStockMaterial'].setValue("No stock material assigned to this location");
-            }
-
-            const whlItems = Array.isArray(location.whl_items) ? location.whl_items.filter((w) => Number(w.qty) > 0) : [];
-            if (whlItems.length === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("No available stock at this location", "");
-            }
-
-            config['inputPickWhlItem'].setOptions(whlItems.map((w) => ({
-                "id": w.id,
-                "name": `Row #${w.id} - Available: ${w.qty}`
-            })));
-
-            reRender();
-        } catch (error) {
-            console.log(error);
-            handleError(error);
-        }
-    }
-
-    async function handleAddPick() {
-        if (!workOrder) return;
-
-        try {
-            const selectedBundle = config['inputPickBundle'].getValue() || [];
-            const selectedWhlItem = config['inputPickWhlItem'].getValue() || [];
-            const qty = config['inputPickQty'].data.value;
-
-            if (selectedBundle.length === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please select a Bundle", "");
-                return;
-            }
-            if (selectedWhlItem.length === 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Please select a stock row to pick from", "");
-                return;
-            }
-            if (!qty || parseInt(qty) <= 0) {
-                config["CONTROL_CENTER"].promptWarningMessage("Qty to pick must be greater than 0", "");
-                return;
-            }
-
-            document.getElementById("spinner").style.display = "";
-
-            const apiRequest = {
-                bundle_id: parseInt(selectedBundle[0]),
-                whl_item_id: parseInt(selectedWhlItem[0]),
-                qty: parseInt(qty)
-            };
-            await API.post(`work-order/bundle-detail/create`, apiRequest);
-
-            config["CONTROL_CENTER"].promptBaseMessage("Material picked successfully", "");
-
-            config['inputPickQty'].setValue("");
-
-            await formPopulate(workOrder.id);
-            await handleBlurPickLocationId();
-        } catch (error) {
-            console.log(error);
-            handleError(error);
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
-
-    function handleDeletePick(bundleDetailId) {
-        config["inputDeletePickId"].data.value = bundleDetailId;
-        config["deletePickPopUp"].showPopUp();
-    }
-
-    async function handleDeletePickYes() {
-        try {
-            const id = config["inputDeletePickId"].data.value;
-            if (!id) return;
-
-            document.getElementById("spinner").style.display = "";
-            config["deletePickPopUp"].closePopUp();
-
-            await API.post(`work-order/bundle-detail/delete`, { id: parseInt(id) });
-
-            config["CONTROL_CENTER"].promptBaseMessage("Pick removed successfully", "");
-            config["inputDeletePickId"].data.value = "";
-
-            if (workOrder) {
-                await formPopulate(workOrder.id);
-            }
-            if (config['inputPickLocationId'].data.value) {
-                await handleBlurPickLocationId();
-            }
-        } catch (error) {
-            console.log(error);
-            handleError(error);
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
-
-    function handleDeletePickNo() {
-        config["deletePickPopUp"].closePopUp();
-        config["inputDeletePickId"].data.value = "";
-    }
-
-    function handleFinalize() {
-        if (!workOrder) return;
-        if (!workOrder.bundles || workOrder.bundles.length === 0) {
-            config["CONTROL_CENTER"].promptWarningMessage("Add at least one bundle before finalizing", "");
-            return;
-        }
-        config["finalizeWorkOrderPopUp"].showPopUp();
-    }
-
-    async function handleFinalizeYes() {
-        try {
-            config["finalizeWorkOrderPopUp"].closePopUp();
-            document.getElementById("spinner").style.display = "";
-
-            await API.post(`work-order/finalize/${workOrder.id}`);
-
-            config["CONTROL_CENTER"].promptBaseMessage("Work order finalized successfully", "");
-
-            await formPopulate(workOrder.id);
-            await __loadWorkOrders();
-        } catch (error) {
-            console.log(error);
-            handleError(error);
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
-
-    function handleFinalizeNo() {
-        config["finalizeWorkOrderPopUp"].closePopUp();
-    }
-
-    function handleReopen() {
-        if (!workOrder) return;
-        config["reopenWorkOrderPopUp"].showPopUp();
-    }
-
-    async function handleReopenYes() {
-        try {
-            config["reopenWorkOrderPopUp"].closePopUp();
-            document.getElementById("spinner").style.display = "";
-
-            await API.post(`work-order/reopen/${workOrder.id}`);
-
-            config["CONTROL_CENTER"].promptBaseMessage("Work order reopened successfully", "");
-
-            await formPopulate(workOrder.id);
-            await __loadWorkOrders();
-        } catch (error) {
-            console.log(error);
-            handleError(error);
-        } finally {
-            document.getElementById("spinner").style.display = "none";
-        }
-    }
-
-    function handleReopenNo() {
-        config["reopenWorkOrderPopUp"].closePopUp();
     }
 
     function handleError(error) {

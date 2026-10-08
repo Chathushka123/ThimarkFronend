@@ -229,6 +229,76 @@ componentListConfig["inputActive"] = {
     event: {}
 }
 
+// Bundle currently holding this trolley (read-only, shown on edit)
+componentListConfig["inputBundleId"] = {
+    objectType: "TextBox",
+    schema: {
+        name: "inputBundleId",
+        placeholder: "",
+        type: "text",
+        length: 100,
+        showLabel: true,
+        visible: true,
+        insertable: false,
+        updateAllowed: false,
+        mandetory: false,
+        disabled: true,
+        readOnly: true,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelBundleId",
+            type: "text",
+            visible: true,
+            value: "Assigned Bundle"
+        },
+    },
+    data: {
+        sqlcolumn: "bundle_id",
+        oldValue: "",
+        value: ""
+    },
+    class: "",
+    event: {}
+}
+
+// Tick to set trolly_master.bundle_id to null on save
+componentListConfig["inputClearBundle"] = {
+    objectType: "CheckBox",
+    schema: {
+        name: "inputClearBundle",
+        placeholder: "",
+        type: "checkbox",
+        label: "Clear Bundle",
+        checkedValue: "1",
+        uncheckedValue: "0",
+        showLabel: false,
+        visible: true,
+        insertable: false,
+        updateAllowed: true,
+        mandetory: false,
+        dataSourceController: componentListConfig["CONTROL_CENTER"]
+    },
+    label: {
+        objectType: "Label",
+        schema: {
+            name: "labelClearBundle",
+            type: "text",
+            visible: true,
+            value: "Clear Bundle"
+        },
+    },
+    data: {
+        sqlcolumn: "clear_bundle",
+        oldValue: "0",
+        value: "0"
+    },
+    class: "",
+    event: {}
+}
+
 let gridCols = [];
 
 // Row-select checkbox, used to choose which trolleys to print stickers for
@@ -248,7 +318,8 @@ gridCols["_select"] = {
 gridCols["id"] = { objectType: "TextBox", colIndex: 1, datatype: "text", name: "id", placeholder: "ID", visible: false, editable: false, sqlColumn: "id", style: { textAlign: "left", minWidth: "70px", width: "70px" } };
 gridCols["code"] = { objectType: "TextBox", colIndex: 2, datatype: "text", name: "code", placeholder: "Trolley Code", editable: false, filterring: true, sqlColumn: "code", style: { textAlign: "left", minWidth: "160px", width: "160px" } };
 gridCols["name"] = { objectType: "TextBox", colIndex: 3, datatype: "text", name: "name", placeholder: "Trolley Name", editable: false, filterring: true, sqlColumn: "name", style: { textAlign: "left", minWidth: "260px", width: "260px" } };
-gridCols["active"] = { objectType: "CheckBox", colIndex: 4, datatype: "checkbox", name: "active", placeholder: "Active", editable: false, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "90px", width: "90px" } };
+gridCols["bundle_id"] = { objectType: "TextBox", colIndex: 4, datatype: "text", name: "bundle_id", placeholder: "Bundle", editable: false, filterring: true, sqlColumn: "bundle_id", style: { textAlign: "left", minWidth: "100px", width: "100px" } };
+gridCols["active"] = { objectType: "CheckBox", colIndex: 5, datatype: "checkbox", name: "active", placeholder: "Active", editable: false, checkedValue: "1", uncheckedValue: "0", sqlColumn: "active", style: { textAlign: "center", minWidth: "90px", width: "90px" } };
 
 componentListConfig["gridTrolley"] = {
     objectType: "Grid",

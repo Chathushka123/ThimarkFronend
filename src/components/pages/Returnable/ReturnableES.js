@@ -18,7 +18,7 @@ const Returnable = () => {
     config["buttonPrint"].event.onClick = handleSaveReturnable;
     config["inputRequester"].event.onEnterKey = handleRequesterBlur;
     config["inputRequester"].event.onBlur = handleRequesterBlur;
-    //config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
+    config["gridReturnableItem"].event.onRowCustomButton = handleRowEditClick;
 
     config["inputMaterial"].event.onEnterKey = handleGetMaterialDeleDetails;
     config["inputMaterial"].event.onBlur = handleGetMaterialDeleDetails;

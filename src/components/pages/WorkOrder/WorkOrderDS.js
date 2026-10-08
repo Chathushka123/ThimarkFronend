@@ -23,7 +23,7 @@ function InfoTile({ icon, label, value, color = '#4c5fd5' }) {
     )
 }
 
-function WorkOrderSummaryPanel({ workOrder }) {
+export function WorkOrderSummaryPanel({ workOrder }) {
     if (!workOrder) return null;
     const batchDetail = workOrder.batch_detail || {};
     const batch = batchDetail.batch || {};
@@ -179,23 +179,6 @@ function BundleCard({ bundle, isOpen }) {
                                         Qty {detail.qty}{location.rack || location.bin ? ` @ ${location.rack || ''} ${location.bin || ''}`.trim() : ''}
                                     </small>
                                 </div>
-                                {isOpen && (
-                                    <button
-                                        className="btn btn-sm"
-                                        onClick={() => { if (window.handleDeletePick) window.handleDeletePick(detail.id); }}
-                                        style={{
-                                            padding: '4px 10px',
-                                            fontSize: '12px',
-                                            borderRadius: '8px',
-                                            backgroundColor: '#fff5f5',
-                                            color: '#e53e3e',
-                                            border: '1px solid #feb2b2',
-                                            flexShrink: 0
-                                        }}
-                                    >
-                                        <i className="fas fa-trash"></i>
-                                    </button>
-                                )}
                             </div>
                         )
                     })}
@@ -207,7 +190,6 @@ function BundleCard({ bundle, isOpen }) {
 
 export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
     const isOpen = !!workOrder && workOrder.status === 'OPEN';
-    const isFinalized = !!workOrder && workOrder.status === 'FINALIZED';
     const bundles = (workOrder && Array.isArray(workOrder.bundles)) ? workOrder.bundles : [];
     const { showQrScanner, onQrScanSuccess, onQrScanClose } = qrState || {};
 
@@ -260,72 +242,6 @@ export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
                     e.target.value = "";
                 }}
             />
-
-            {/* Finalize Confirmation Popup */}
-            <PopUpPage item={componentList["finalizeWorkOrderPopUp"]} headerText="Confirm Finalize" className="">
-                <div className="p-4">
-                    <div className="text-center mb-3">
-                        <i className="fas fa-check-circle" style={{ fontSize: '48px', color: '#28a745' }}></i>
-                    </div>
-                    <h5 className="text-center mb-3" style={{ color: '#3a4a6b' }}>Finalize Work Order</h5>
-                    <p className="text-center mb-4" style={{ color: '#7b8eb5' }}>
-                        This will generate production bundle tickets for every bundle and routing operation.<br />
-                        You won't be able to add or remove bundles/picks after this.
-                    </p>
-                    <div className="d-flex justify-content-center gap-2">
-                        <Button className="btn btn-success mr-2" item={componentList["buttonFinalizeYes"]}>
-                            <i className="fas fa-check mr-1"></i> Yes, Finalize
-                        </Button>
-                        <Button className="btn btn-secondary" item={componentList["buttonFinalizeNo"]}>
-                            <i className="fas fa-times mr-1"></i> Cancel
-                        </Button>
-                    </div>
-                </div>
-            </PopUpPage>
-
-            {/* Reopen Confirmation Popup */}
-            <PopUpPage item={componentList["reopenWorkOrderPopUp"]} headerText="Confirm Reopen" className="">
-                <div className="p-4">
-                    <div className="text-center mb-3">
-                        <i className="fas fa-undo" style={{ fontSize: '48px', color: '#f59e0b' }}></i>
-                    </div>
-                    <h5 className="text-center mb-3" style={{ color: '#3a4a6b' }}>Reopen Work Order</h5>
-                    <p className="text-center mb-4" style={{ color: '#7b8eb5' }}>
-                        This will remove the production bundle tickets so bundles/picks can be edited again.<br />
-                        This isn't allowed once production scanning has started.
-                    </p>
-                    <div className="d-flex justify-content-center gap-2">
-                        <Button className="btn btn-warning mr-2" item={componentList["buttonReopenYes"]}>
-                            <i className="fas fa-check mr-1"></i> Yes, Reopen
-                        </Button>
-                        <Button className="btn btn-secondary" item={componentList["buttonReopenNo"]}>
-                            <i className="fas fa-times mr-1"></i> Cancel
-                        </Button>
-                    </div>
-                </div>
-            </PopUpPage>
-
-            {/* Delete Pick Confirmation Popup */}
-            <PopUpPage item={componentList["deletePickPopUp"]} headerText="Confirm Remove" className="">
-                <div className="p-4">
-                    <TextBox item={componentList["inputDeletePickId"]} />
-                    <div className="text-center mb-3">
-                        <i className="fas fa-exclamation-triangle" style={{ fontSize: '48px', color: '#dc3545' }}></i>
-                    </div>
-                    <h5 className="text-center mb-3" style={{ color: '#3a4a6b' }}>Remove Picked Material</h5>
-                    <p className="text-center mb-4" style={{ color: '#7b8eb5' }}>
-                        This will return the picked quantity back to warehouse stock.
-                    </p>
-                    <div className="d-flex justify-content-center gap-2">
-                        <Button className="btn btn-danger mr-2" item={componentList["buttonDeletePickYes"]}>
-                            <i className="fas fa-trash mr-1"></i> Yes, Remove
-                        </Button>
-                        <Button className="btn btn-secondary" item={componentList["buttonDeletePickNo"]}>
-                            <i className="fas fa-times mr-1"></i> Cancel
-                        </Button>
-                    </div>
-                </div>
-            </PopUpPage>
 
             {/* Edit Bundle Popup */}
             <PopUpPage item={componentList["editBundlePopUp"]} headerText="Edit Bundle" className="">
@@ -563,89 +479,6 @@ export function generateWorkOrderDisplay(componentList, workOrder, qrState) {
                             </div>
                         </div>
 
-                        {/* Pick Material - always mounted, CSS-hidden unless open with at least one bundle */}
-                        <div className="form-wrp background-white mb-4 p-3 p-md-4 dropdown-host-card" style={{
-                            borderRadius: '16px',
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                            border: '2px solid #e2e8f0',
-                            display: (isOpen && bundles.length > 0) ? 'block' : 'none'
-                        }}>
-                            <h5 className="mb-3" style={{ color: '#1e293b', fontWeight: 800, fontSize: '17px' }}>
-                                <i className="fas fa-barcode mr-2" style={{ color: '#3b82f6' }}></i>Pick Material
-                            </h5>
-                            <div className="row">
-                                <div className="col-md-6 col-12">
-                                    <div className="form-group">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputPickBundle"].label.schema.value}
-                                        </label>
-                                        <MultiSelectDropDown item={componentList["inputPickBundle"]} className="form-control" />
-                                    </div>
-                                </div>
-                                <div className="col-md-6 col-12">
-                                    <div className="form-group">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputPickLocationId"].label.schema.value}
-                                        </label>
-                                        <div className="d-flex" style={{ gap: '8px' }}>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <TextBox item={componentList["inputPickLocationId"]} className="form-control" />
-                                            </div>
-                                            <Button
-                                                item={componentList["buttonScanLocation"]}
-                                                className="btn btn-outline-primary"
-                                                style={{ flexShrink: 0, padding: '0 14px' }}
-                                            >
-                                                <i className="fas fa-camera"></i>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="col-md-6 col-12">
-                                    <div className="form-group">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputPickStockMaterial"].label.schema.value}
-                                        </label>
-                                        <TextBox item={componentList["inputPickStockMaterial"]} className="form-control" disabled={true} readOnly={true} />
-                                    </div>
-                                </div>
-                                <div className="col-md-6 col-12">
-                                    <div className="form-group">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputPickWhlItem"].label.schema.value}
-                                        </label>
-                                        <MultiSelectDropDown item={componentList["inputPickWhlItem"]} className="form-control" />
-                                    </div>
-                                </div>
-                                <div className="col-md-6 col-12">
-                                    <div className="form-group">
-                                        <label className="d-block" style={{ fontWeight: 700, fontSize: '12px', color: '#4a5568', textTransform: 'uppercase' }}>
-                                            {componentList["inputPickQty"].label.schema.value}
-                                        </label>
-                                        <IntegerField item={componentList["inputPickQty"]} className="form-control" />
-                                    </div>
-                                </div>
-                                <div className="col-md-6 col-12 d-flex align-items-end">
-                                    <Button item={componentList["buttonAddPick"]} className="btn btn-primary w-100 mb-3">
-                                        <i className="fas fa-plus mr-2"></i>{componentList["buttonAddPick"].schema.label}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Finalize / Reopen */}
-                        <div className="d-flex justify-content-end flex-wrap mb-4">
-                            {componentList["buttonFinalize"].schema.visible && isOpen && bundles.length > 0 && (
-                                <Button item={componentList["buttonFinalize"]} className="btn btn-success mr-2 mb-2">
-                                    <i className="fas fa-check-double mr-2"></i>{componentList["buttonFinalize"].schema.label}
-                                </Button>
-                            )}
-                            {componentList["buttonReopen"].schema.visible && isFinalized && (
-                                <Button item={componentList["buttonReopen"]} className="btn btn-warning mb-2">
-                                    <i className="fas fa-undo mr-2"></i>{componentList["buttonReopen"].schema.label}
-                                </Button>
-                            )}
-                        </div>
                     </div>
                 </div>
             </ControlCenter>

@@ -470,7 +470,8 @@ const Mrn = () => {
             if (getData && getData !== "Error" && getData[0].Mrn.length > 0) {
                 const listData = getData[0].Mrn;
                 listData.forEach((value, index) => {
-                    
+                    console.log("*******Value********");
+                    console.log(value.warehouse);
                     data.push({
                         "mrn_id_search": value.id,
                         "batch_no_search": value.batch.batch_no,

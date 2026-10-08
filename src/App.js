@@ -69,6 +69,7 @@ import ActivePODashboard from './components/pages/dashboards/ActivePODashboard';
 import Operation from './components/pages/Operations/OperationES';
 import Routing from './components/pages/Routing/RoutingES';
 import WorkOrder from './components/pages/WorkOrder/WorkOrderES';
+import WorkOrderPicking from './components/pages/WorkOrderPicking/WorkOrderPickingES';
 import SupermarketGRN from './components/pages/Supermarket/SupermarketGRNES';
 import Trolley from './components/pages/Trolley/TrolleyES';
 import Employee from './components/pages/Employee/EmployeeES';
@@ -142,7 +143,8 @@ const App = () => {
 
             <PrivateRoute path="/operation" screen="operation" component={Operation} theme={Theme} />
             <PrivateRoute path="/routing" screen="routing" component={Routing} theme={Theme} />
-            <PrivateRoute path="/workOrderCreation" screen="workOrder" component={WorkOrder} theme={Theme} />
+            <PrivateRoute path="/workOrderCreation" screen="workOrderCreation" component={WorkOrder} theme={Theme} />
+            <PrivateRoute path="/workOrderPicking" screen="workOrderPicking" component={WorkOrderPicking} theme={Theme} />
             <PrivateRoute path="/supermarketGrn" screen="supermarketGrn" component={SupermarketGRN} theme={Theme} />
             <PrivateRoute path="/trolley" screen="trolley" component={Trolley} theme={Theme} />
 
