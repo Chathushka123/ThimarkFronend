@@ -162,7 +162,15 @@
       "Bash(find /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app -iname *Team*.php -o -iname *Operation*.php)",
       "Bash(mysql -h localhost -P 3306 -u app_user -pDoomdoom1@ thimark -e \"SELECT id, operation_code, description, is_final_operation FROM operation_masters WHERE is_final_operation = 1;\")",
       "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"%{http_code}\\\\n\")",
-      "Bash(grep -n 'team_scoreboard.*teamScoreboardRange\\\\|'\\\\''team_daily_trend'\\\\'' => $teamDailyTrend' /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/WipDashboardController.php)"
+      "Bash(grep -n 'team_scoreboard.*teamScoreboardRange\\\\|'\\\\''team_daily_trend'\\\\'' => $teamDailyTrend' /home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app/Http/Controllers/Api/WipDashboardController.php)",
+      "Bash(xargs -I{} sh -c 'echo {}; cat {}')",
+      "Bash(curl -sD - -o /dev/null -X POST \"https://thimark.cscloude.com/backend/public/index.php/api/v1/refreshToken\" -H \"Content-Type: application/json\" --max-time 15)",
+      "Bash(curl -sD - -o /dev/null -X POST \"https://thimark.cscloude.com/backend/public/index.php/api/v1/refreshToken\" -H \"Content-Type: application/json\" -H \"Accept: application/json\" -c /tmp/thimark_cookies.txt --max-time 15)",
+      "Bash(curl -sD - -o /dev/null -X POST \"https://thimark.cscloude.com/backend/public/index.php/api/v1/login\" -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d '{}' --max-time 15)",
+      "Bash(curl -sD - -o /dev/null -X POST \"https://thimark.cscloude.com/backend/public/index.php/api/v1/login\" -H \"Content-Type: application/json\" -H \"Accept: application/json\" -H \"Origin: https://thimark.cscloude.com\" -d '{}' --max-time 15)",
+      "Bash(git --no-pager diff --stat src/components/pages/ProductionWIPScanning/)",
+      "Bash(git --no-pager diff src/components/pages/ProductionWIPScanning/ProductionWIPScanningES.js)",
+      "Bash(git --no-pager diff -U2 --ignore-all-space src/components/pages/ProductionWIPScanning/ProductionWIPScanningDS.js)"
     ],
     "additionalDirectories": [
       "/home/chathura-jayawardane/Documents/Programming/WithChathushka/Thimark/ThimarkBackend/app",

@@ -42,6 +42,16 @@ function vibrate(success) {
     }
 }
 
+// `event.key === 'Enter'` alone only ever fires for a *physical* keyboard —
+// a laptop, or a barcode gun emulating one. Android soft keyboards route
+// keystrokes through an IME and report keydown as `keyCode 229` /
+// `key: 'Unidentified'`, so a manually typed code on a phone never matched
+// and the return key appeared dead. Checked alongside the wrapping <form>'s
+// onSubmit (the reliable mobile path) so every keyboard has a way through.
+function isEnterKey(event) {
+    return event.key === 'Enter' || event.keyCode === 13 || event.which === 13;
+}
+
 // Some backend error `code`s carry a message that's accurate but terse or
 // technical ("Bundle not found.") — this rewrites just those into plain,
 // actionable shop-floor language. Codes whose backend message is already
@@ -355,15 +365,24 @@ const ProductionWIPScanning = () => {
         setTicketCode(value);
     }
 
+    // Entering the Bundle ID directly (instead of via Trolly ID) is a
+    // supported fallback — still fill in the matching trolly for display,
+    // but don't let that lookup block or fail the scan.
+    function submitTicketCode() {
+        resolveTrollyForBundle(ticketCode);
+        lookupScan(ticketCode);
+    }
+
     function handleTicketCodeKeyDown(event) {
-        if (event.key === 'Enter') {
+        if (isEnterKey(event)) {
             event.preventDefault();
-            // Entering the Bundle ID directly (instead of via Trolly ID) is a
-            // supported fallback — still fill in the matching trolly for
-            // display, but don't let that lookup block or fail the scan.
-            resolveTrollyForBundle(ticketCode);
-            lookupScan(ticketCode);
+            submitTicketCode();
         }
+    }
+
+    function handleTicketCodeSubmit(event) {
+        event.preventDefault();
+        submitTicketCode();
     }
 
     function handleTrollyCodeChange(value) {
@@ -371,10 +390,15 @@ const ProductionWIPScanning = () => {
     }
 
     function handleTrollyCodeKeyDown(event) {
-        if (event.key === 'Enter') {
+        if (isEnterKey(event)) {
             event.preventDefault();
             lookupFromTrolly(trollyCode);
         }
+    }
+
+    function handleTrollyCodeSubmit(event) {
+        event.preventDefault();
+        lookupFromTrolly(trollyCode);
     }
 
     // Best-effort only: shows the operator which trolly the bundle they
@@ -551,10 +575,15 @@ const ProductionWIPScanning = () => {
     }
 
     function handleQtyKeyDown(event) {
-        if (event.key === 'Enter') {
+        if (isEnterKey(event)) {
             event.preventDefault();
             handleConfirmScan();
         }
+    }
+
+    function handleQtySubmit(event) {
+        event.preventDefault();
+        handleConfirmScan();
     }
 
     // Step 2: actually record the (possibly amended) quantities once the
@@ -815,8 +844,10 @@ const ProductionWIPScanning = () => {
             qtyInputRef,
             onTicketCodeChange: handleTicketCodeChange,
             onTicketCodeKeyDown: handleTicketCodeKeyDown,
+            onTicketCodeSubmit: handleTicketCodeSubmit,
             onTrollyCodeChange: handleTrollyCodeChange,
             onTrollyCodeKeyDown: handleTrollyCodeKeyDown,
+            onTrollyCodeSubmit: handleTrollyCodeSubmit,
             onOpenCamera: handleOpenCamera,
             onQrScanSuccess: handleQrScanSuccess,
             onQrScanClose: handleQrScanClose,
@@ -830,7 +861,7 @@ const ProductionWIPScanning = () => {
             onReworkQtyChange: setReworkQtyInput,
             onReworkReasonChange: setReworkReasonId,
             onQtyKeyDown: handleQtyKeyDown,
-            onConfirmScan: handleConfirmScan,
+            onQtySubmit: handleQtySubmit,
             onCancelPendingScan: handleCancelPendingScan,
             onSwitchDirection: handleSwitchDirection,
             onEditLastScan: handleEditLastScan,
