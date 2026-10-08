@@ -145,11 +145,15 @@ const Home = () => {
     }, [isMobile]);
 
     if (isMobile) {
-        const cards = (navSections || []).map(item => (
+        // Folders expand into one card per node (instead of collapsing to a
+        // single card that only linked to the first node); standalone items
+        // stay as their own card.
+        const sections = (navSections || []).map(item => (
             item.type === 'folder'
-                ? { label: item.caption, icon: item.icon, to: (item.nodes && item.nodes[0]) ? item.nodes[0].path : '#' }
-                : { label: item.caption, icon: item.icon, to: item.path }
-        ));
+                ? { heading: item.caption, cards: (item.nodes || []).map(node => ({ label: node.caption, icon: node.icon, to: node.path })) }
+                : { heading: null, cards: [{ label: item.caption, icon: item.icon, to: item.path }] }
+        )).filter(section => section.cards.length > 0);
+        const cardCount = sections.reduce((n, s) => n + s.cards.length, 0);
 
         return (
             <div style={{ fontFamily: "'Segoe UI', Tahoma, sans-serif", background: '#f0f2f8', minHeight: '100vh', padding: '20px 16px' }}>
@@ -166,16 +170,27 @@ const Home = () => {
                     </div>
                 )}
 
-                {!navLoading && cards.length === 0 && (
+                {!navLoading && cardCount === 0 && (
                     <div style={{ textAlign: 'center', padding: '40px 20px', color: '#a0aec0' }}>
                         <i className="fas fa-compass" style={{ fontSize: '28px', marginBottom: '10px', display: 'block' }}></i>
                         Nothing to show yet — contact your supervisor if this looks wrong.
                     </div>
                 )}
 
-                {!navLoading && cards.length > 0 && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
-                        {cards.map((c, i) => <NavGridCard key={c.to + i} {...c} index={i} />)}
+                {!navLoading && cardCount > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {sections.map((section, si) => (
+                            <div key={section.heading || `standalone-${si}`}>
+                                {section.heading && (
+                                    <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
+                                        {section.heading}
+                                    </div>
+                                )}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                                    {section.cards.map((c, i) => <NavGridCard key={c.to + i} {...c} index={i} />)}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

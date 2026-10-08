@@ -128,7 +128,9 @@ const Trolley = () => {
             "id": "",
             "code": "",
             "name": "",
-            "active": "1"
+            "active": "1",
+            "bundle_id": "",
+            "clear_bundle": "0"
         };
     }
 
@@ -154,7 +156,9 @@ const Trolley = () => {
                 "id": trolley.id,
                 "code": trolley.code,
                 "name": trolley.name,
-                "active": trolley.active ? "1" : "0"
+                "active": trolley.active ? "1" : "0",
+                "bundle_id": trolley.bundle_id === null || typeof trolley.bundle_id === 'undefined' ? "" : trolley.bundle_id,
+                "clear_bundle": "0"
             });
         } catch (error) {
             __handleApiError(error);
@@ -191,6 +195,7 @@ const Trolley = () => {
             const code = (dataArr.data.code || "").trim();
             const name = (dataArr.data.name || "").trim();
             const active = dataArr.data.active === "1";
+            const clearBundle = dataArr.data.clear_bundle === "1";
 
             if (__validate(code, name)) {
                 const apiRequest = {
@@ -200,6 +205,10 @@ const Trolley = () => {
                 };
                 if (dataArr.action === "MODIFY" && id && id !== "") {
                     apiRequest.id = id;
+                    // Release the trolley from its bundle (trolly_master.bundle_id -> null)
+                    if (clearBundle) {
+                        apiRequest.bundle_id = null;
+                    }
                 }
 
                 document.getElementById("spinner").style.display = "";
@@ -213,6 +222,12 @@ const Trolley = () => {
                         config['inputId'].data.value = body.data.id;
                         config['inputId'].data.oldValue = body.data.id;
                     }
+                    if (clearBundle) {
+                        config['inputBundleId'].data.value = "";
+                        config['inputBundleId'].data.oldValue = "";
+                    }
+                    config['inputClearBundle'].data.value = "0";
+                    config['inputClearBundle'].data.oldValue = "0";
                     resultArr = { success: true };
                 } else {
                     config["CONTROL_CENTER"].promptWarningMessage("Error saving Trolley", "");
