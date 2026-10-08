@@ -37,6 +37,49 @@ const card = {
     boxShadow: '0 2px 10px rgba(0,0,0,0.06)'
 };
 
+// Every code/qty entry on this page sits inside a <form> paired with a
+// submit button: a mobile soft keyboard only renders a working "Go" action
+// key when the focused input has a form to submit to, and the visible button
+// is the guaranteed fallback for IMEs that swallow the return key entirely
+// (plus it's far easier to hit with gloves on than a keyboard key).
+const groupedInputStyle = (borderColor) => ({
+    fontSize: '18px',
+    padding: '14px',
+    minHeight: '54px',
+    fontWeight: 700,
+    borderWidth: '1.5px',
+    borderColor,
+    borderTopLeftRadius: '8px',
+    borderBottomLeftRadius: '8px',
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0
+});
+
+const groupedSubmitStyle = (color) => ({
+    minHeight: '54px',
+    minWidth: '52px',
+    background: color,
+    color: '#fff',
+    border: `1.5px solid ${color}`,
+    borderTopRightRadius: '8px',
+    borderBottomRightRadius: '8px',
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    fontWeight: 700
+});
+
+// Shop-floor codes have to reach the API exactly as typed or scanned —
+// a phone IME's autocapitalise/autocorrect would otherwise mangle them.
+// `enterkeyhint` is deliberately lowercase: React 16 warns on unrecognised
+// camelCase DOM props, and HTML attribute names are case-insensitive.
+const RAW_CODE_INPUT_PROPS = {
+    autoComplete: 'off',
+    autoCorrect: 'off',
+    autoCapitalize: 'off',
+    spellCheck: false,
+    enterkeyhint: 'go'
+};
+
 const summaryCardStyle = (bg, color) => ({
     flex: '1 1 150px',
     backgroundColor: bg,
@@ -314,68 +357,73 @@ function ReworkStationBody(state, handlers) {
                             </span>
                         </div>
 
-                        <div className="form-row">
-                            <div className="form-group col-6 mb-2">
-                                <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.success }}>Return Qty (good)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    className="form-control"
-                                    style={{ color: C.success, fontWeight: 700, borderRadius: '7px', borderWidth: '1.5px', borderColor: inputs.returnQty ? C.successBorder : C.border }}
-                                    value={inputs.returnQty || ''}
-                                    onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'returnQty', e.target.value)}
-                                    disabled={submitting}
-                                />
+                        {/* Same reason as the scan box: a <form> + submit button is what
+                            makes a phone keyboard's action key actually do something. */}
+                        <form onSubmit={(e) => { e.preventDefault(); onReturnFromRework(row); }}>
+                            <div className="form-row">
+                                <div className="form-group col-6 mb-2">
+                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.success }}>Return Qty (good)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        className="form-control"
+                                        style={{ color: C.success, fontWeight: 700, borderRadius: '7px', borderWidth: '1.5px', borderColor: inputs.returnQty ? C.successBorder : C.border }}
+                                        value={inputs.returnQty || ''}
+                                        onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'returnQty', e.target.value)}
+                                        disabled={submitting}
+                                        enterkeyhint="done"
+                                    />
+                                </div>
+                                <div className="form-group col-6 mb-2">
+                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Qty (still bad)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        className="form-control"
+                                        style={{ color: C.danger, fontWeight: 700, borderRadius: '7px', borderWidth: '1.5px', borderColor: inputs.rejectQty ? C.dangerBorder : C.border }}
+                                        value={inputs.rejectQty || ''}
+                                        onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'rejectQty', e.target.value)}
+                                        disabled={submitting}
+                                        enterkeyhint="done"
+                                    />
+                                </div>
                             </div>
-                            <div className="form-group col-6 mb-2">
-                                <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Qty (still bad)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    className="form-control"
-                                    style={{ color: C.danger, fontWeight: 700, borderRadius: '7px', borderWidth: '1.5px', borderColor: inputs.rejectQty ? C.dangerBorder : C.border }}
-                                    value={inputs.rejectQty || ''}
-                                    onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'rejectQty', e.target.value)}
-                                    disabled={submitting}
-                                />
-                            </div>
-                        </div>
 
-                        {Number(inputs.rejectQty) > 0 && (
-                            <div className="form-group mb-2">
-                                <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Reason</label>
-                                <select
-                                    className="form-control"
-                                    style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.dangerBorder }}
-                                    value={inputs.reasonId || ''}
-                                    onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'reasonId', e.target.value)}
-                                    disabled={submitting}
-                                >
-                                    <option value="">Select a reason&#8230;</option>
-                                    {(state.rejectReasons || []).concat(state.reworkReasons || []).map(r => (
-                                        <option key={r.id} value={r.id}>{r.description}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+                            {Number(inputs.rejectQty) > 0 && (
+                                <div className="form-group mb-2">
+                                    <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Reason</label>
+                                    <select
+                                        className="form-control"
+                                        style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.dangerBorder }}
+                                        value={inputs.reasonId || ''}
+                                        onChange={(e) => onReturnInputChange(row.bundle_ticket_id, 'reasonId', e.target.value)}
+                                        disabled={submitting}
+                                    >
+                                        <option value="">Select a reason&#8230;</option>
+                                        {(state.rejectReasons || []).concat(state.reworkReasons || []).map(r => (
+                                            <option key={r.id} value={r.id}>{r.description}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
 
-                        <button
-                            type="button"
-                            className="btn btn-block"
-                            style={{
-                                background: C.success,
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontWeight: 700,
-                                padding: '10px',
-                                boxShadow: `0 2px 8px ${C.success}44`
-                            }}
-                            disabled={submitting}
-                            onClick={() => onReturnFromRework(row)}
-                        >
-                            {submitting ? 'Saving…' : '✓ Record Return'}
-                        </button>
+                            <button
+                                type="submit"
+                                className="btn btn-block"
+                                style={{
+                                    background: C.success,
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontWeight: 700,
+                                    padding: '10px',
+                                    boxShadow: `0 2px 8px ${C.success}44`
+                                }}
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Saving…' : '✓ Record Return'}
+                            </button>
+                        </form>
                     </div>
                 );
             })}
@@ -419,8 +467,10 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
         qtyInputRef,
         onTicketCodeChange,
         onTicketCodeKeyDown,
+        onTicketCodeSubmit,
         onTrollyCodeChange,
         onTrollyCodeKeyDown,
+        onTrollyCodeSubmit,
         onOpenCamera,
         onQrScanSuccess,
         onQrScanClose,
@@ -434,7 +484,7 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
         onReworkQtyChange,
         onReworkReasonChange,
         onQtyKeyDown,
-        onConfirmScan,
+        onQtySubmit,
         onCancelPendingScan,
         onUndoScan,
         onSwitchDirection,
@@ -570,36 +620,70 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                                 <label className="mb-2" style={{ fontWeight: 700, color: C.ink, fontSize: '15px' }}>
                                                     📷 Scan Trolly / Bundle
                                                 </label>
+                                                {/* Stacked full-width below sm: two 50% fields left no room for
+                                                    the submit button on a phone, which is the one place it matters. */}
                                                 <div className="form-row">
-                                                    <div className="form-group col-6 mb-2">
+                                                    <div className="form-group col-12 col-sm-6 mb-2">
                                                         <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.accent }}>🧺 Trolly ID</label>
-                                                        <input
-                                                            ref={scanInputRef}
-                                                            type="text"
-                                                            className="form-control"
-                                                            style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 700, borderRadius: '8px', borderWidth: '1.5px', borderColor: C.accentBorder }}
-                                                            placeholder="Trolly ID"
-                                                            value={trollyCode}
-                                                            onChange={(e) => onTrollyCodeChange(e.target.value)}
-                                                            onKeyDown={onTrollyCodeKeyDown}
-                                                            disabled={lookingUp || resolvingTrolly}
-                                                            autoComplete="off"
-                                                        />
+                                                        <form onSubmit={onTrollyCodeSubmit}>
+                                                            <div className="input-group">
+                                                                <input
+                                                                    ref={scanInputRef}
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    style={groupedInputStyle(C.accentBorder)}
+                                                                    placeholder="Trolly ID"
+                                                                    value={trollyCode}
+                                                                    onChange={(e) => onTrollyCodeChange(e.target.value)}
+                                                                    onKeyDown={onTrollyCodeKeyDown}
+                                                                    disabled={lookingUp || resolvingTrolly}
+                                                                    {...RAW_CODE_INPUT_PROPS}
+                                                                />
+                                                                <div className="input-group-append">
+                                                                    <button
+                                                                        type="submit"
+                                                                        className="btn"
+                                                                        style={groupedSubmitStyle(C.accent)}
+                                                                        disabled={lookingUp || resolvingTrolly || (trollyCode || '').trim() === ''}
+                                                                        title="Look up trolly"
+                                                                        aria-label="Look up trolly"
+                                                                    >
+                                                                        <i className="fas fa-arrow-right"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
                                                     </div>
-                                                    <div className="form-group col-6 mb-2">
+                                                    <div className="form-group col-12 col-sm-6 mb-2">
                                                         <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.purple }}>📦 Bundle ID</label>
-                                                        <input
-                                                            ref={bundleInputRef}
-                                                            type="text"
-                                                            className="form-control"
-                                                            style={{ fontSize: '18px', padding: '14px', minHeight: '54px', fontWeight: 700, borderRadius: '8px', borderWidth: '1.5px', borderColor: C.purpleBorder }}
-                                                            placeholder="Bundle ID"
-                                                            value={ticketCode}
-                                                            onChange={(e) => onTicketCodeChange(e.target.value)}
-                                                            onKeyDown={onTicketCodeKeyDown}
-                                                            disabled={lookingUp || resolvingTrolly}
-                                                            autoComplete="off"
-                                                        />
+                                                        <form onSubmit={onTicketCodeSubmit}>
+                                                            <div className="input-group">
+                                                                <input
+                                                                    ref={bundleInputRef}
+                                                                    type="text"
+                                                                    className="form-control"
+                                                                    style={groupedInputStyle(C.purpleBorder)}
+                                                                    placeholder="Bundle ID"
+                                                                    value={ticketCode}
+                                                                    onChange={(e) => onTicketCodeChange(e.target.value)}
+                                                                    onKeyDown={onTicketCodeKeyDown}
+                                                                    disabled={lookingUp || resolvingTrolly}
+                                                                    {...RAW_CODE_INPUT_PROPS}
+                                                                />
+                                                                <div className="input-group-append">
+                                                                    <button
+                                                                        type="submit"
+                                                                        className="btn"
+                                                                        style={groupedSubmitStyle(C.purple)}
+                                                                        disabled={lookingUp || resolvingTrolly || (ticketCode || '').trim() === ''}
+                                                                        title="Look up bundle"
+                                                                        aria-label="Look up bundle"
+                                                                    >
+                                                                        <i className="fas fa-arrow-right"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
                                                     </div>
                                                 </div>
                                                 <button
@@ -688,129 +772,135 @@ export function generateProductionWIPScanningDisplay(componentList, state, handl
                                                     </div>
                                                 )}
 
-                                                <div className="form-row">
-                                                    <div className="form-group col-4 mb-2">
-                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.success }}>Scan Qty</label>
-                                                        <input
-                                                            ref={qtyInputRef}
-                                                            type="number"
-                                                            min="0"
-                                                            className="form-control"
-                                                            style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.success, borderColor: scanQtyInput ? C.successBorder : C.border }}
-                                                            value={scanQtyInput}
-                                                            onChange={(e) => onScanQtyChange(e.target.value)}
-                                                            onKeyDown={onQtyKeyDown}
-                                                            disabled={scanning}
-                                                        />
+                                                {/* Confirm is the form's submit button rather than an onClick, so
+                                                    the keyboard's action key and the tap both run exactly one path. */}
+                                                <form onSubmit={onQtySubmit}>
+                                                    <div className="form-row">
+                                                        <div className="form-group col-4 mb-2">
+                                                            <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.success }}>Scan Qty</label>
+                                                            <input
+                                                                ref={qtyInputRef}
+                                                                type="number"
+                                                                min="0"
+                                                                className="form-control"
+                                                                style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.success, borderColor: scanQtyInput ? C.successBorder : C.border }}
+                                                                value={scanQtyInput}
+                                                                onChange={(e) => onScanQtyChange(e.target.value)}
+                                                                onKeyDown={onQtyKeyDown}
+                                                                disabled={scanning}
+                                                                enterkeyhint="done"
+                                                            />
+                                                        </div>
+                                                        <div className="form-group col-4 mb-2">
+                                                            <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Qty</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                className="form-control"
+                                                                style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.danger, borderColor: rejectQtyInput ? C.dangerBorder : C.border }}
+                                                                placeholder="0"
+                                                                value={rejectQtyInput}
+                                                                onChange={(e) => onRejectQtyChange(e.target.value)}
+                                                                onKeyDown={onQtyKeyDown}
+                                                                disabled={scanning}
+                                                                enterkeyhint="done"
+                                                            />
+                                                        </div>
+                                                        <div className="form-group col-4 mb-2">
+                                                            <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.amber }}>Rework Qty</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                className="form-control"
+                                                                style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.amber, borderColor: reworkQtyInput ? C.amberBorder : C.border }}
+                                                                placeholder="0"
+                                                                value={reworkQtyInput}
+                                                                onChange={(e) => onReworkQtyChange(e.target.value)}
+                                                                onKeyDown={onQtyKeyDown}
+                                                                disabled={scanning}
+                                                                enterkeyhint="done"
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="form-group col-4 mb-2">
-                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Qty</label>
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            className="form-control"
-                                                            style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.danger, borderColor: rejectQtyInput ? C.dangerBorder : C.border }}
-                                                            placeholder="0"
-                                                            value={rejectQtyInput}
-                                                            onChange={(e) => onRejectQtyChange(e.target.value)}
-                                                            onKeyDown={onQtyKeyDown}
-                                                            disabled={scanning}
-                                                        />
-                                                    </div>
-                                                    <div className="form-group col-4 mb-2">
-                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.amber }}>Rework Qty</label>
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            className="form-control"
-                                                            style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', borderRadius: '8px', borderWidth: '1.5px', color: C.amber, borderColor: reworkQtyInput ? C.amberBorder : C.border }}
-                                                            placeholder="0"
-                                                            value={reworkQtyInput}
-                                                            onChange={(e) => onReworkQtyChange(e.target.value)}
-                                                            onKeyDown={onQtyKeyDown}
-                                                            disabled={scanning}
-                                                        />
-                                                    </div>
-                                                </div>
 
-                                                {rejectQtyInput && Number(rejectQtyInput) > 0 && (
-                                                    <div className="form-group mb-2">
-                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Reason</label>
-                                                        <select
-                                                            className="form-control"
-                                                            style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.dangerBorder }}
-                                                            value={rejectReasonId}
-                                                            onChange={(e) => onRejectReasonChange(e.target.value)}
+                                                    {rejectQtyInput && Number(rejectQtyInput) > 0 && (
+                                                        <div className="form-group mb-2">
+                                                            <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.danger }}>Reject Reason</label>
+                                                            <select
+                                                                className="form-control"
+                                                                style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.dangerBorder }}
+                                                                value={rejectReasonId}
+                                                                onChange={(e) => onRejectReasonChange(e.target.value)}
+                                                                disabled={scanning}
+                                                            >
+                                                                <option value="">Select a reason&#8230;</option>
+                                                                {rejectReasons.map(r => (
+                                                                    <option key={r.id} value={r.id}>{r.description}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
+
+                                                    {reworkQtyInput && Number(reworkQtyInput) > 0 && (
+                                                        <div className="form-group mb-2">
+                                                            <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.amber }}>Rework Reason</label>
+                                                            <select
+                                                                className="form-control"
+                                                                style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.amberBorder }}
+                                                                value={reworkReasonId}
+                                                                onChange={(e) => onReworkReasonChange(e.target.value)}
+                                                                disabled={scanning}
+                                                            >
+                                                                <option value="">Select a reason&#8230;</option>
+                                                                {reworkReasons.map(r => (
+                                                                    <option key={r.id} value={r.id}>{r.description}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
+
+                                                    {overRemaining && (
+                                                        <div className="mt-2 mb-2" style={{ fontSize: '12px', color: C.danger, fontWeight: 600 }}>
+                                                            Only {pendingScan.remaining} left on this ticket.
+                                                        </div>
+                                                    )}
+
+                                                    <div className="d-flex mt-3" style={{ gap: '8px' }}>
+                                                        <button
+                                                            type="submit"
+                                                            className="btn flex-grow-1"
+                                                            style={{
+                                                                minHeight: '48px',
+                                                                background: C.success,
+                                                                color: '#fff',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                fontWeight: 700,
+                                                                fontSize: '15px',
+                                                                boxShadow: `0 2px 8px ${C.success}44`
+                                                            }}
+                                                            disabled={scanning || overRemaining}
+                                                        >
+                                                            {scanning ? 'Saving…' : '✓ Confirm Scan'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="btn"
+                                                            style={{
+                                                                minHeight: '48px',
+                                                                background: '#fff',
+                                                                color: C.danger,
+                                                                border: `1.5px solid ${C.dangerBorder}`,
+                                                                borderRadius: '8px',
+                                                                fontWeight: 700
+                                                            }}
+                                                            onClick={onCancelPendingScan}
                                                             disabled={scanning}
                                                         >
-                                                            <option value="">Select a reason&#8230;</option>
-                                                            {rejectReasons.map(r => (
-                                                                <option key={r.id} value={r.id}>{r.description}</option>
-                                                            ))}
-                                                        </select>
+                                                            Cancel
+                                                        </button>
                                                     </div>
-                                                )}
-
-                                                {reworkQtyInput && Number(reworkQtyInput) > 0 && (
-                                                    <div className="form-group mb-2">
-                                                        <label className="mb-1" style={{ fontSize: '12px', fontWeight: 600, color: C.amber }}>Rework Reason</label>
-                                                        <select
-                                                            className="form-control"
-                                                            style={{ height: '46px', borderRadius: '8px', borderWidth: '1.5px', borderColor: C.amberBorder }}
-                                                            value={reworkReasonId}
-                                                            onChange={(e) => onReworkReasonChange(e.target.value)}
-                                                            disabled={scanning}
-                                                        >
-                                                            <option value="">Select a reason&#8230;</option>
-                                                            {reworkReasons.map(r => (
-                                                                <option key={r.id} value={r.id}>{r.description}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                )}
-
-                                                {overRemaining && (
-                                                    <div className="mt-2 mb-2" style={{ fontSize: '12px', color: C.danger, fontWeight: 600 }}>
-                                                        Only {pendingScan.remaining} left on this ticket.
-                                                    </div>
-                                                )}
-
-                                                <div className="d-flex mt-3" style={{ gap: '8px' }}>
-                                                    <button
-                                                        type="button"
-                                                        className="btn flex-grow-1"
-                                                        style={{
-                                                            minHeight: '48px',
-                                                            background: C.success,
-                                                            color: '#fff',
-                                                            border: 'none',
-                                                            borderRadius: '8px',
-                                                            fontWeight: 700,
-                                                            fontSize: '15px',
-                                                            boxShadow: `0 2px 8px ${C.success}44`
-                                                        }}
-                                                        onClick={onConfirmScan}
-                                                        disabled={scanning || overRemaining}
-                                                    >
-                                                        {scanning ? 'Saving…' : '✓ Confirm Scan'}
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="btn"
-                                                        style={{
-                                                            minHeight: '48px',
-                                                            background: '#fff',
-                                                            color: C.danger,
-                                                            border: `1.5px solid ${C.dangerBorder}`,
-                                                            borderRadius: '8px',
-                                                            fontWeight: 700
-                                                        }}
-                                                        onClick={onCancelPendingScan}
-                                                        disabled={scanning}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
+                                                </form>
                                             </div>
                                         )}
 
